@@ -1,0 +1,5 @@
+export enum BLOG_STATUS {
+  PRIVATE = 'PRIVATE',
+  LINK = 'LINK',
+  PUBLIC = 'PUBLIC'
+}

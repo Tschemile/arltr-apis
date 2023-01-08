@@ -1,0 +1,11 @@
+export enum MEMBER_ROLE {
+  ADMIN = 'ADMIN',
+  MODS = 'MODS',
+  MEMBER = 'MEMBER',
+}
+
+export enum MEMBER_STATUS {
+  INVITING = 'INVITING',
+  ACTIVE = 'ACTIVE',
+  BANNED = 'BANNED'
+}

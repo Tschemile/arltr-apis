@@ -1,0 +1,10 @@
+export enum GROUP_MODE {
+  HIDDEN = 'HIDDEN',
+  PRIVATE = 'PRIVATE',
+  PUBLIC = 'PUBLIC',
+}
+
+export enum QUERY_TYPE {
+  COMMUNICATE = 'COMMUNICATE',
+  SELF = 'SELF'
+}

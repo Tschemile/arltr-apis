@@ -1,0 +1,6 @@
+export enum PRODUCT_STATUS {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
+  BANNED = 'BANNED',
+}
