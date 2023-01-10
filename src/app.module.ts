@@ -6,10 +6,12 @@ import {
   AuthModule,
   ForumModule,
   GroupModule,
+  JobsModule,
   PostModule,
   ProfileModule,
   SettingModule,
   ShopModule,
+  UploadModule,
   UserModule
 } from 'apps';
 
@@ -29,11 +31,13 @@ import {
     AddressModule, 
     AuthModule, 
     ForumModule, 
-    GroupModule, 
+    GroupModule,
+    JobsModule,
     PostModule,
     ProfileModule, 
     SettingModule, 
     ShopModule, 
+    UploadModule,
     UserModule,
   ],
 })
