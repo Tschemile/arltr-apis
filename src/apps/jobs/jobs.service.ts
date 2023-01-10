@@ -146,14 +146,14 @@ export class JobsService extends BaseService<Job> {
     };
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: string) {
     const where = { id: Equal(id) };
     const job = await this.jobRepository.findOne({
       where,
     });
     
     if (!job) {
-      return false;
+      return { status: HTTP_STATUS.Not_Found };
     }
     await this.jobRepository.save({
       id: job.id,

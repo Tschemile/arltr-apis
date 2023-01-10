@@ -82,7 +82,7 @@ export class JobsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async remove(@Param('id') id: string): Promise<boolean> {
+  async remove(@Param('id') id: string) {
     return await this.jobsService.remove(id);
   }
 }
