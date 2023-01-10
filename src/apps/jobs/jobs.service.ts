@@ -160,6 +160,6 @@ export class JobsService extends BaseService<Job> {
       isDeleted: true,
     });
 
-    return true;
+    return { status: HTTP_STATUS.OK }
   }
 }
