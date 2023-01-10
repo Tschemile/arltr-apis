@@ -11,7 +11,6 @@ export enum POST_STATUS {
 }
 
 export enum POST_TYPE {
-  STORY = 'STORY',
-  POST = 'POST',
-  REEL = 'REEL',
+  PIN = 'PIN',
+  POST = 'POST'
 }

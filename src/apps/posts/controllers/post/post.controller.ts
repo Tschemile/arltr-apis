@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreatePostInput, GetPostOutput, GetPostsOutput, UpdatePostInput } from "apps/posts/dtos";
+import { CreatePostInput, GetPostOutput, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
 import { HTTP_STATUS } from "utils";
 
@@ -38,31 +38,6 @@ export class PostController {
     }
 
     return { status, post }
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiQuery({ name: 'type', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  @ApiOkResponse({
-    type: GetPostsOutput
-  })
-  async get(
-    @Request() req,
-    @Query('type') type,
-    @Query('limit') limit,
-  ): Promise<GetPostsOutput> {
-    const { posts, total } = await this.postService.findAll(
-      req.user,
-      { type, limit }
-    )
-
-    return {
-      status: HTTP_STATUS.OK,
-      posts,
-      total,
-    }
   }
 
   @Patch(':id')

@@ -3,7 +3,7 @@ import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, ManyToOne } from "typeorm";
-import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
+import { POST_MODE, POST_STATUS } from "../constants";
 
 @Entity()
 export class Post extends Base {
@@ -14,10 +14,6 @@ export class Post extends Base {
   @ManyToOne(() => Group, { nullable: true })
   @ApiProperty({ type: Group, nullable: true })
   group: Group
-
-  @Column({ enum: POST_TYPE, default: POST_TYPE.POST })
-  @ApiProperty({ type: String, enum: POST_TYPE })
-  type: string
   
   @Column({ nullable: true })
   @ApiProperty({ type: String })

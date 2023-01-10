@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
+import { POST_MODE, POST_STATUS } from "apps/posts/constants";
 import { IsArray, IsEnum, IsString, IsUrl, IsUUID, MaxLength } from "class-validator";
 
 export class CreatePostInput {
@@ -27,8 +27,4 @@ export class CreatePostInput {
   @IsEnum(POST_STATUS)
   @ApiProperty({ type: String, nullable: true })
   status?: string
-
-  @IsEnum(POST_TYPE)
-  @ApiProperty({ type: String, enum: POST_TYPE })
-  type: string
 }

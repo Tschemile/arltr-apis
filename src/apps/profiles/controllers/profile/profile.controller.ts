@@ -101,27 +101,6 @@ export class ProfileController {
     }
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
-  @ApiOkResponse({ type: GetProfileOutput })
-  async getMyProfile(
-    @Request() req
-  ): Promise<GetProfileOutput> {
-    const { status, profile } = await this.profileService.findById(req.user.profile.id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return {
-      status,
-      profile,
-    }
-  }
-
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
