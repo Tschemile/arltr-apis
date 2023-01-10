@@ -5,12 +5,17 @@ import { BaseService } from 'base';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { Job } from './entities';
-import { Any, Equal, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
+import { Any, Equal, FindOptionsWhere, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { CategoryService } from 'apps/settings';
 import { HTTP_STATUS } from 'utils';
-import { Address, AddressService } from 'apps/address';
+import { AddressService } from 'apps/address';
 import { QueryJobInput } from './dto/query-job.dto';
 
+const relations = {
+  address: true,
+  category: true,
+  employer: true,
+}
 @Injectable()
 export class JobsService extends BaseService<Job> {
   constructor(
@@ -18,14 +23,22 @@ export class JobsService extends BaseService<Job> {
     private jobRepository: Repository<Job>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
     @Inject(forwardRef(() => AddressService)) private addressService: AddressService,
-
   ) {
     super(jobRepository);
   }
   async create(createJobDto: CreateJobDto, user: UserToken) {
+    console.log(user);
+    
     const category = await this.categoryService.findOne({id: createJobDto.categoryId})
 
     if (!category) {
+      return { status: HTTP_STATUS.Not_Found };
+    }
+
+    const address = await this.addressService.findOne({ id: createJobDto.addressId})
+
+
+    if (!address) {
       return { status: HTTP_STATUS.Not_Found };
     }
 
@@ -55,13 +68,11 @@ export class JobsService extends BaseService<Job> {
       id: query.jobIds ? Any([query.jobIds]) : Not(IsNull()),
       category: query.categoryIds ? Any([query.categoryIds]) : Not(IsNull()),
       type: type ? Equal(type) : Not(IsNull()),
+      expiredAt: LessThanOrEqual(new Date()),
     };
 
     const result = await this.jobRepository.findAndCount({
-      relations: {
-        address: true,
-        category: true,
-      },
+      relations,
       where,
       take,
     });
@@ -130,15 +141,17 @@ export class JobsService extends BaseService<Job> {
   async remove(id: string): Promise<boolean> {
     const where = { id: Equal(id) };
     const job = await this.jobRepository.findOne({
-      relations: ['applicant'],
       where,
     });
-
-    const removeJob = await this.jobRepository.remove(job);
-
-    if (!removeJob) {
+    
+    if (!job) {
       return false;
     }
+    await this.jobRepository.save({
+      id: job.id,
+      isDeleted: true,
+    });
+
     return true;
   }
 }

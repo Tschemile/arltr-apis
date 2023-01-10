@@ -1,5 +1,5 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsString, IsUrl, IsUUID } from 'class-validator';
 import { JOB_CAREER, JOB_GENDER, JOB_QUALIFICATION, JOB_TYPE, SALARY_TYPE } from '../constants';
 
 export class UpdateJobDto {
@@ -14,17 +14,17 @@ export class UpdateJobDto {
   description: string;
 
   @ApiProperty({ enum: JOB_TYPE })
-  @IsString()
+  @IsEnum(JOB_TYPE)
   @IsNotEmpty()
   type = JOB_TYPE.FULL_TIME;
 
   @ApiProperty({ enum: JOB_GENDER })
-  @IsString()
+  @IsEnum(JOB_GENDER)
   @IsNotEmpty()
   gender = JOB_GENDER.FEMALE;
 
   @ApiProperty({ enum: SALARY_TYPE })
-  @IsString()
+  @IsEnum(SALARY_TYPE)
   @IsNotEmpty()
   salaryType = SALARY_TYPE.MONTHLY;
 
@@ -44,31 +44,32 @@ export class UpdateJobDto {
   experience: string;
 
   @ApiProperty({ enum: JOB_CAREER })
-  @IsString()
+  @IsEnum(JOB_CAREER)
   @IsNotEmpty()
   career = JOB_CAREER.STUDENT;
 
   @ApiProperty({ enum: JOB_QUALIFICATION })
-  @IsString()
+  @IsEnum(JOB_QUALIFICATION)
   @IsNotEmpty()
   qualification = JOB_QUALIFICATION.ASSOCIATE_DEGREE;
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsDateString()
   expiredAt: Date;
 
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   categoryId: string;
 
   @ApiProperty()
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   addressId: string;
 
   @ApiProperty()
-  @IsString()
+  @IsUrl()
   @IsNotEmpty()
   image: string;
 }

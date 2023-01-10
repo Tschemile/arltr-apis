@@ -3,16 +3,12 @@ import { JobsService } from './jobs.service';
 import { JobsController } from './jobs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Applicant, Job, Resume } from './entities';
-import { Category, SettingModule } from 'apps/settings';
-import { UserModule } from 'apps/users';
-import { AuthModule } from 'apps/auth';
+import { SettingModule } from 'apps/settings';
 import { Address, AddressModule } from 'apps/address';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Job, Applicant, Resume, Address]), 
-  forwardRef(() => UserModule), 
-  forwardRef(() => AuthModule),
+    TypeOrmModule.forFeature([Job, Applicant, Resume]), 
   forwardRef(() => SettingModule),
   forwardRef(() => AddressModule)
 ],
