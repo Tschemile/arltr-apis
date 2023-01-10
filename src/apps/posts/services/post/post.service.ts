@@ -3,12 +3,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { GroupService, memberRelation, MemberService } from "apps/groups";
 import { MEMBER_STATUS } from "apps/groups/constants";
-import { POST_MODE, POST_STATUS } from "apps/posts/constants";
-import { CreatePostInput, UpdatePostInput } from "apps/posts/dtos";
+import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
+import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
 import { RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseService } from "base";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, In, Not, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
 import { CommentService } from "../comment";
 
@@ -73,6 +73,35 @@ export class PostService extends BaseService<Post> {
       status: HTTP_STATUS.Forbidden,
       post: createdPost
     }
+  }
+
+  async findAll(user: UserToken, query: QueryPostInput) {
+    const take = query.limit || 10
+    const singleWhere: FindOptionsWhere<Post> = { isDeleted: false }  
+    singleWhere.type = query.type || POST_TYPE.POST
+
+    const { data: relations } = await this.relationService.getRelations(user)
+    const { friendIds, followingIds } = relations
+
+    const where: FindOptionsWhere<Post>[] = [
+      {
+        author: { id: In(friendIds) },
+        mode: Not(POST_MODE.PRIVATE),
+        ...singleWhere,
+      },
+      {
+        author: { id: In(followingIds) },
+        mode: POST_MODE.PUBLIC,
+        ...singleWhere,
+      }
+    ]
+
+    const [posts, total] = await Promise.all([
+      this.postRepo.find({ where, relations: postRelation, take }),
+      this.postRepo.count({ where })
+    ])
+
+    return { posts, total }
   }
 
   async findById(user: UserToken, id: string) {
