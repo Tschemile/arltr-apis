@@ -1,8 +1,7 @@
 import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { Item, Order } from "apps/shop/entities";
+import { Job } from "apps/jobs/entities";
 import { BaseOutputResponse } from "base";
 import { IsArray } from "class-validator";
-import { Job } from "../entities";
 
 
 export class GetJobsOutput extends BaseOutputResponse {

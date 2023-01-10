@@ -2,14 +2,13 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UserToken } from 'apps/auth';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from 'base';
-import { CreateJobDto } from './dto/create-job.dto';
-import { UpdateJobDto } from './dto/update-job.dto';
-import { Job } from './entities';
+import { CreateJobDto } from '../../dtos/job/create-job.dto';
+import { Job } from '../../entities';
 import { Any, Equal, FindOptionsWhere, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { CategoryService } from 'apps/settings';
 import { HTTP_STATUS } from 'utils';
 import { AddressService } from 'apps/address';
-import { QueryJobInput } from './dto/query-job.dto';
+import { QueryJobInput, UpdateJobDto } from 'apps/jobs/dtos';
 
 const relations = {
   address: true,

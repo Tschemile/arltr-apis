@@ -1,11 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Request, HttpStatus, HttpCode, UseGuards, Query } from '@nestjs/common';
-import { JobsService } from './jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
-import { UpdateJobDto } from './dto/update-job.dto';
+import { JobsService } from '../../services/job/jobs.service';
+import { CreateJobDto } from '../../dtos/job/create-job.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'apps/auth';
-import { GetJobsOutput } from './dto/get-job.dto';
 import { HTTP_STATUS } from 'utils';
+import { GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
 
 const MODULE_NAME = 'Jobs';
 

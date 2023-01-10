@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AddressModule, AuthModule, ForumModule, ProfileModule, SettingModule, ShopModule, UserModule } from 'apps';
-import { JobsModule } from 'apps/jobs/jobs.module';
+import { JobsModule } from 'apps/jobs/modules/jobs.module';
 
 @Module({
   imports: [
