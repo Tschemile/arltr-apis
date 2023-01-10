@@ -121,6 +121,14 @@ export class JobsService extends BaseService<Job> {
       return { status: HTTP_STATUS.Not_Found };
     }
 
+    const address = await this.addressService.findOne({ id: updateJobDto.addressId})
+
+
+    if (!address) {
+      return { status: HTTP_STATUS.Not_Found };
+    }
+
+
     await this.jobRepository.save({
       ...updateJobDto,
       address: {
