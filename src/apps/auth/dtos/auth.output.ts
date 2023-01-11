@@ -6,6 +6,7 @@ export class UserToken {
     name: string
     gender: string
     birth: Date
+    domain: string
     role: string
     status: string
   }

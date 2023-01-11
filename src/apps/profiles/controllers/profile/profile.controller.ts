@@ -109,7 +109,7 @@ export class ProfileController {
   async getMyProfile(
     @Request() req
   ): Promise<GetProfileOutput> {
-    const { status, profile } = await this.profileService.findById(req.user, req.user.profile.id)
+    const { status, profile } = await this.profileService.findById(req.user, req.user.profile.domain)
     if (status === HTTP_STATUS.Not_Found) {
       return {
         status,
