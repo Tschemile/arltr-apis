@@ -18,6 +18,7 @@ export class AuthService {
         id: profile.id,
         name: profile.name,
         gender: profile.gender,
+        domain: profile.domain,
         role: profile.role,
         birth: profile.birth,
         status: profile.status,
