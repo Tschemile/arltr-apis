@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { CreateProfileInput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
@@ -109,7 +109,7 @@ export class ProfileController {
   async getMyProfile(
     @Request() req
   ): Promise<GetProfileOutput> {
-    const { status, profile } = await this.profileService.findById(req.user.profile.id)
+    const { status, profile } = await this.profileService.findById(req.user, req.user.profile.id)
     if (status === HTTP_STATUS.Not_Found) {
       return {
         status,
@@ -122,20 +122,27 @@ export class ProfileController {
     }
   }
 
-  @Get(':id')
+  @Get(':domain')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiParam({ name: 'id' })
+  @ApiParam({ name: 'domain' })
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetProfileOutput })
-  async getById(
-    @Param('id') id: string
+  async getByDomain(
+    @Request() req,
+    @Param('domain') domain: string
   ): Promise<GetProfileOutput> {
-    const { status, profile } = await this.profileService.findById(id)
+    const { status, profile } = await this.profileService.findById(req.user, domain)
     if (status === HTTP_STATUS.Not_Found) {
       return {
         status,
         message: `${MODULE_NAME} not found`,
+      }
+    } else if (status === HTTP_STATUS.Forbidden) {
+      return {
+        status,
+        message: `You don't have permission to do that`
       }
     }
     return {

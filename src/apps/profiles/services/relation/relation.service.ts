@@ -1,11 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { FRIEND_STATUS, RELATION_TYPE } from "apps/profiles/constants";
 import { CreateRelationInput, QUERY_RELATION_TYPE } from "apps/profiles/dtos/relation";
-import { Profile, Relation } from "apps/profiles/entities";
+import { Relation } from "apps/profiles/entities";
 import { BaseService } from "base";
-import { userInfo } from "os";
 import { FindOptionsWhere, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
 import { ProfileService } from "../profile";
@@ -19,7 +18,7 @@ export const relateRelations = {
 export class RelationService extends BaseService<Relation> {
   constructor(
     @InjectRepository(Relation) private relationRepo: Repository<Relation>,
-    private profileService: ProfileService,
+    @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
     super(relationRepo)
   }
