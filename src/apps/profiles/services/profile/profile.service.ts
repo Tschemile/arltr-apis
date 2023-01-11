@@ -1,13 +1,15 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
-import { USER_ROLE } from "apps/profiles/constants";
+import { MemberService } from "apps/groups";
+import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
 import { User } from "apps/users";
 import { BaseService } from "base";
 import { Between, FindOptionsWhere, LessThan, Like, Not, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
+import { relateRelations, RelationService } from "../relation";
 
 export const profileRelations = {
   user: true,
@@ -18,6 +20,7 @@ export class ProfileService extends BaseService<Profile> {
   constructor(
     @InjectRepository(Profile) private profileRepo: Repository<Profile>,
     @Inject(forwardRef(() => AuthService)) private authService: AuthService,
+    @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
   ) {
     super(profileRepo)
   }
@@ -97,10 +100,20 @@ export class ProfileService extends BaseService<Profile> {
     return { profiles, total }
   }
 
-  async findById(id: string) {
+  async findById(user: UserToken, domain: string) {
     const profile = await this.profileRepo.findOne({
-      where: { id },
+      where: { domain },
     })
+
+    const blocked = await this.relationService.findOne([
+      { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 
+      { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.BLOCKED },
+    ], relateRelations)
+    if (blocked) {
+      return {
+        status: HTTP_STATUS.Forbidden,
+      }
+    }
     if (!profile) {
       return {
         status: HTTP_STATUS.Not_Found,
