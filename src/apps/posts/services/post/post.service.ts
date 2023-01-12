@@ -77,7 +77,7 @@ export class PostService extends BaseService<Post> {
 
   async findAll(user: UserToken, query: QueryPostInput) {
     const take = query.limit || 10
-    const singleWhere: FindOptionsWhere<Post> = { isDeleted: false }  
+    const singleWhere: FindOptionsWhere<Post> = {}  
     singleWhere.type = query.type || POST_TYPE.POST
 
     const { data: relations } = await this.relationService.getRelations(user)
@@ -177,11 +177,7 @@ export class PostService extends BaseService<Post> {
       }
     }
 
-    await this.postRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.postRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,

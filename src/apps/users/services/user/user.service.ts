@@ -101,14 +101,9 @@ export class UserService extends BaseService<User> {
       return {
         status: HTTP_STATUS.Not_Found,
       }
-    } else if (exist.isDeleted) {
-      return {
-        status: HTTP_STATUS.Not_Modified,
-      }
     }
-    exist.isDeleted = true
-    exist.deletedAt = new Date()
-    await this.userRepo.save(exist)
+
+    await this.userRepo.softDelete(user.id)
     return {
       status: HTTP_STATUS.OK,
     }

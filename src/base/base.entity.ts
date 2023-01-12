@@ -9,9 +9,6 @@ export class Base {
 
   @UpdateDateColumn()
   updatedAt: Date
-
-  @Column({ default: false })
-  isDeleted: boolean
   
   @DeleteDateColumn()
   deletedAt: Date

@@ -22,15 +22,13 @@ export class CategoryService extends BaseService<Category> {
   }
 
   async findAll(search?: string) {
-    const where: FindOptionsWhere<Category> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Category> = {}
     if (search) {
       where.name = Like(`%${search}%`)
     }
 
     const [categories, total] = await Promise.all([
-      this.categoryRepo.find({ where }),
+      this.categoryRepo.find({ where, withDeleted: true }),
       this.categoryRepo.count({ where })
     ])
 
@@ -60,6 +58,8 @@ export class CategoryService extends BaseService<Category> {
     if (!category) {
       return { status: HTTP_STATUS.Not_Found }
     }
+
+    await this.categoryRepo.softDelete(id)
 
     return { status: HTTP_STATUS.OK }
   }

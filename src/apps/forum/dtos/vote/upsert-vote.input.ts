@@ -1,12 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsUUID } from "class-validator";
+import { IsBoolean, IsOptional, IsUUID } from "class-validator";
 
 export class UpsertVoteInput {
   @IsUUID()
+  @IsOptional()
   @ApiProperty({ type: String })
   blog?: string
 
   @IsUUID()
+  @IsOptional()
   @ApiProperty({ type: String })
   reply?: string
 

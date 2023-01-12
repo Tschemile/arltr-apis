@@ -31,9 +31,7 @@ export class AddressService extends BaseService<Address> {
   }
 
   async findAll(user: UserToken) {
-    const where: FindOptionsWhere<Address> = {
-      isDeleted: false
-    }
+    const where: FindOptionsWhere<Address> = {}
 
     where.user = {
       id: user.profile.id,
@@ -90,11 +88,7 @@ export class AddressService extends BaseService<Address> {
       }
     }
 
-    await this.addressRepo.save({
-      id,
-      isDeleted: true,
-      deletedAt: new Date(),
-    })
+    await this.addressRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,

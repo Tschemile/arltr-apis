@@ -121,7 +121,7 @@ export class MemberService extends BaseService<Member> {
   }
 
   async findAll(user: UserToken, group?: string) {
-    const where: FindOptionsWhere<Member> = { isDeleted: false }
+    const where: FindOptionsWhere<Member> = {}
 
     if (group) {
       where.group = { id: group }
@@ -208,11 +208,7 @@ export class MemberService extends BaseService<Member> {
       }
     }
 
-    await this.memberRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.memberRepo.softDelete(id)
 
     const total = member.group.total || 0
     await this.groupService.incrementTotal(member.group.id, total - 1)

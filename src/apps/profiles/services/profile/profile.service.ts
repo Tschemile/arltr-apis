@@ -32,7 +32,6 @@ export class ProfileService extends BaseService<Profile> {
         user: {
           id: user.id,
         },
-        isDeleted: false,
       }, profileRelations)
 
       if (existedProfile) {
@@ -64,7 +63,6 @@ export class ProfileService extends BaseService<Profile> {
     } = query || {}
 
     const where: FindOptionsWhere<Profile> = {
-      isDeleted: false,
       role: USER_ROLE.USER,
     }
 
@@ -145,17 +143,13 @@ export class ProfileService extends BaseService<Profile> {
   }
 
   async remove(user: UserToken) {
-    const profile = await this.findOne({ id: user.profile.id })
+    const profile = await this.findOne({ id: user.profile.id }, profileRelations)
     if (!profile) {
       return {
         status: HTTP_STATUS.Not_Found
       }
     }
-    await this.profileRepo.save({
-      id: profile.id,
-      isDeleted: true,
-      deleteAt: new Date(),
-    })
+    await this.profileRepo.softDelete(profile.id)
 
     return {
       status: HTTP_STATUS.OK,

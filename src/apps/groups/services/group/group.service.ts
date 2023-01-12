@@ -39,7 +39,7 @@ export class GroupService extends BaseService<Group> {
   }
 
   async findAll(user: UserToken, query: QueryGroupInput) {
-    const where: FindOptionsWhere<Group> = { isDeleted: false }
+    const where: FindOptionsWhere<Group> = {}
     const take = query.limit || 10
 
     switch (query.type) {
@@ -123,11 +123,7 @@ export class GroupService extends BaseService<Group> {
       }
     }
 
-    await this.groupRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.groupRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,

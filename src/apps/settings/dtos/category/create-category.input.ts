@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CATEGORY_MODULE } from "apps/settings/constants";
-import { IsAlpha, IsEnum, IsUrl } from "class-validator";
+import { IsAlpha, IsEnum, IsOptional, IsUrl } from "class-validator";
 
 export class CreateCategoryInput {
   @IsAlpha()
@@ -8,8 +8,9 @@ export class CreateCategoryInput {
   name: string
 
   @IsUrl()
+  @IsOptional()
   @ApiProperty({ type: String })
-  image: string
+  image?: string
 
   @IsEnum(CATEGORY_MODULE)
   @ApiProperty({ type: String, enum: CATEGORY_MODULE })

@@ -62,7 +62,6 @@ export class PageService extends BaseService<Profile> {
     } = query || {}
 
     const where: FindOptionsWhere<Profile> = {
-      isDeleted: false,
       role: USER_ROLE.PAGE,
     }
 
@@ -159,11 +158,7 @@ export class PageService extends BaseService<Profile> {
       return { status }
     }
 
-    await this.pageRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.pageRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,
