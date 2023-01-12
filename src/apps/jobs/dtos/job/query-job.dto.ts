@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { USER_ROLE } from "apps/profiles/constants";
+import { JOB_TYPE } from "apps/jobs/constants";
 import { BaseQueryInput } from "base";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 
@@ -15,6 +15,6 @@ export class QueryJobInput extends BaseQueryInput {
   @IsString()
   search?: string
 
-  @IsEnum(USER_ROLE)
+  @IsEnum(JOB_TYPE)
   type?: string
 }

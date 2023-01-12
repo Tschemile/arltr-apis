@@ -26,7 +26,6 @@ export class JobsService extends BaseService<Job> {
     super(jobRepository);
   }
   async create(createJobDto: CreateJobDto, user: UserToken) {
-    console.log(user);
     
     const category = await this.categoryService.findOne({id: createJobDto.categoryId})
 
@@ -157,6 +156,7 @@ export class JobsService extends BaseService<Job> {
     await this.jobRepository.save({
       id: job.id,
       isDeleted: true,
+      deletedAt: new Date(),
     });
 
     return { status: HTTP_STATUS.OK }

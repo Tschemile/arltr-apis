@@ -4,15 +4,16 @@ import { JobsController } from '../controllers/job/jobs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Applicant, Job, Resume } from '../entities';
 import { SettingModule } from 'apps/settings';
-import { Address, AddressModule } from 'apps/address';
+import { AddressModule } from 'apps/address';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Job, Applicant, Resume]), 
   forwardRef(() => SettingModule),
-  forwardRef(() => AddressModule)
+  forwardRef(() => AddressModule),
 ],
   controllers: [JobsController],
   providers: [JobsService],
+  exports: [JobsService],
 })
 export class JobsModule {}

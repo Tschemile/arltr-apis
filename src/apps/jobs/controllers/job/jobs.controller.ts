@@ -54,11 +54,7 @@ export class JobsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string) {
-    const job = await this.jobsService.findById(id);
-    return {
-      job,
-      status: HTTP_STATUS.OK,
-    };
+   return await this.jobsService.findById(id);
   }
 
   @Patch(':id')
