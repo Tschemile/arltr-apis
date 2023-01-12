@@ -10,11 +10,12 @@ import { HTTP_STATUS } from 'utils';
 import { AddressService } from 'apps/address';
 import { QueryJobInput, UpdateJobDto } from 'apps/jobs/dtos';
 
-const relations = {
+export const groupRelation = {
   address: true,
   category: true,
   employer: true,
 }
+
 @Injectable()
 export class JobsService extends BaseService<Job> {
   constructor(
@@ -71,7 +72,7 @@ export class JobsService extends BaseService<Job> {
     };
 
     const result = await this.jobRepository.findAndCount({
-      relations,
+      relations: groupRelation,
       where,
       take,
     });
@@ -146,18 +147,12 @@ export class JobsService extends BaseService<Job> {
   }
 
   async remove(id: string) {
-    const where = { id: Equal(id) };
-    const job = await this.jobRepository.findOne({
-      where,
-    });
+    const job = await this.findOne({ id }, groupRelation);
     
     if (!job) {
       return { status: HTTP_STATUS.Not_Found };
     }
-    await this.jobRepository.save({
-      id: job.id,
-      isDeleted: true,
-    });
+    await this.jobRepository.softDelete(id)
 
     return { status: HTTP_STATUS.OK }
   }

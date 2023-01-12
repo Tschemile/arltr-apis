@@ -73,9 +73,7 @@ export class ProductService extends BaseService<Product> {
   }
 
   async findAll(ids?: string[]) {
-    const where: FindOptionsWhere<Product> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Product> = {}
 
     if (ids && ids.length > 0) {
       where.id = In(ids)
@@ -157,11 +155,7 @@ export class ProductService extends BaseService<Product> {
       }
     }
 
-    await this.productRepo.save({
-      id,
-      isDeleted: true,
-      deletedAt: new Date(),
-    })
+    await this.productRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,

@@ -48,7 +48,7 @@ export class CommentService extends BaseService<Comment> {
   }
 
   async findAll(post: Post, take: number) {
-    const where: FindOptionsWhere<Comment> = { isDeleted: false }
+    const where: FindOptionsWhere<Comment> = {}
     where.post = { id: post.id }
 
     const [comments, total] = await Promise.all([
@@ -102,11 +102,7 @@ export class CommentService extends BaseService<Comment> {
       }
     }
 
-    await this.commentRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.commentRepo.softDelete(id)
 
     const total = comment.post.totalComments || 0
     await this.postService.incrementComments(comment.post.id, total - 1)

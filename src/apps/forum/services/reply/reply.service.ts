@@ -3,25 +3,23 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateReplyInput, UpdateReplyInput } from "apps/forum/dtos";
 import { Reply } from "apps/forum/entities";
+import { BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
 import { BlogService } from "../blog";
 
-const relations = {
+const replyRelation = {
   user: true,
   blog: true,
 }
 
 @Injectable()
-export class ReplyService {
+export class ReplyService extends BaseService<Reply> {
   constructor(
     @InjectRepository(Reply) private replyRepo: Repository<Reply>,
     private blogService: BlogService,
-  ) { }
-
-  async findOne(where: FindOptionsWhere<Reply> | FindOptionsWhere<Reply>[]) {
-    const reply = await this.replyRepo.findOne({ relations, where })
-    return reply
+  ) { 
+    super(replyRepo)
   }
 
   async create(user: UserToken, input: CreateReplyInput) {
@@ -48,14 +46,12 @@ export class ReplyService {
   }
 
   async findAll(blogId: string) {
-    const where: FindOptionsWhere<Reply> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Reply> = {}
 
     where.blog = { id: blogId }
 
     const [replies, total] = await Promise.all([
-      this.replyRepo.find({ relations, where }),
+      this.replyRepo.find({ relations: replyRelation, where }),
       this.replyRepo.count({ where })
     ])
 
@@ -67,7 +63,7 @@ export class ReplyService {
     id: string,
     input: UpdateReplyInput
   ) {
-    const reply = await this.findOne({ id })
+    const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
       return { 
         status: HTTP_STATUS.Not_Found 
@@ -92,7 +88,7 @@ export class ReplyService {
   }
 
   async remove(user: UserToken, id: string) {
-    const reply = await this.findOne({ id })
+    const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
       return { 
         status: HTTP_STATUS.Not_Found 
@@ -103,11 +99,7 @@ export class ReplyService {
       }
     }
 
-    await this.replyRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
+    await this.replyRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK,

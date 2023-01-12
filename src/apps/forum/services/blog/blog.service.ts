@@ -5,27 +5,22 @@ import { BLOG_STATUS } from "apps/forum/constants";
 import { CreateBlogInput, QueryBlogInput, UpdateBlogInput } from "apps/forum/dtos";
 import { Blog } from "apps/forum/entities";
 import { CategoryService } from "apps/settings";
+import { BaseService } from "base";
 import { ArrayContains, FindOptionsWhere, In, Like, Repository } from "typeorm";
 import { generateSlug, HTTP_STATUS } from "utils";
 
-const relations = {
+const blogRelation = {
   author: true,
   category: true,
 }
 
 @Injectable()
-export class BlogService {
+export class BlogService extends BaseService<Blog> {
   constructor(
     @InjectRepository(Blog) private blogRepo: Repository<Blog>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
-  ) { }
-
-  async findOne(where: FindOptionsWhere<Blog>[] | FindOptionsWhere<Blog>) {
-    const blog = await this.blogRepo.findOne({
-      relations,
-      where,
-    })
-    return blog
+  ) { 
+    super(blogRepo)
   }
 
   async create(user: UserToken, input: CreateBlogInput) {
@@ -53,9 +48,7 @@ export class BlogService {
   }
 
   async findAll(user: UserToken, input: QueryBlogInput) {
-    const where: FindOptionsWhere<Blog> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Blog> = {}
 
     const { type, search, categories, tags, author, status, limit = 12 } = input
     switch(type) {
@@ -89,7 +82,7 @@ export class BlogService {
     }
 
     const [blogs, total] = await Promise.all([
-      this.blogRepo.find({ relations, where, take: limit }),
+      this.blogRepo.find({ relations: blogRelation, where, take: limit }),
       this.blogRepo.count({ where })
     ])
 
@@ -101,7 +94,7 @@ export class BlogService {
     id: string,
     input: UpdateBlogInput
   ) {
-    const blog = await this.findOne({ id })
+    const blog = await this.findOne({ id }, blogRelation)
     
     if (!blog) {
       return {
@@ -139,7 +132,7 @@ export class BlogService {
   }
 
   async remove(user: UserToken, id: string) {
-    const blog = await this.findOne({ id })
+    const blog = await this.findOne({ id }, blogRelation)
     
     if (!blog) {
       return {
@@ -151,11 +144,7 @@ export class BlogService {
       }
     }
 
-    await this.blogRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id
-    })
+    await this.blogRepo.softDelete(id)
 
     return {
       status: HTTP_STATUS.OK

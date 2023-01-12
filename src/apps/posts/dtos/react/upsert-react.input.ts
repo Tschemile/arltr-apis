@@ -1,13 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { REACT_TYPE } from "apps/posts/constants";
-import { IsEnum, IsUUID } from "class-validator";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
 
 export class UpsertReactInput {
   @IsUUID()
+  @IsOptional()
   @ApiProperty({ type: String, nullable: true })
   post?: string
 
   @IsUUID()
+  @IsOptional()
   @ApiProperty({ type: String, nullable: true })
   comment?: string
 
