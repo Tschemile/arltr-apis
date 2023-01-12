@@ -76,6 +76,7 @@ export class UserService extends BaseService<User> {
         status: HTTP_STATUS.Not_Found,
       }
     }
+    console.log(user)
     if (!await (bcrypt.compare(password, user.password))) {
       return {
         status: HTTP_STATUS.Bad_Request,
@@ -86,7 +87,7 @@ export class UserService extends BaseService<User> {
         id: user.id,
       }
     })
-    if (!user) {
+    if (!profile) {
       return { status: HTTP_STATUS.Not_Found }
     }
     return {
