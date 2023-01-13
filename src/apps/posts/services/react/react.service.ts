@@ -98,5 +98,7 @@ export class ReactService extends BaseService<React> {
       }
       await this.commentService.incrementReacts(comment.id, total)
     }
+
+    return { status: HTTP_STATUS.Created }
   }
 }

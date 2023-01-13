@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateItemInput } from "apps/shop/dtos";
 import { Item, Order } from "apps/shop/entities";
+import { BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
 
 const itemRelations = {
@@ -10,10 +11,12 @@ const itemRelations = {
 }
 
 @Injectable()
-export class ItemService {
+export class ItemService extends BaseService<Item> {
   constructor(
     @InjectRepository(Item) private itemRepo: Repository<Item>,
-  ) { }
+  ) { 
+    super(itemRepo)
+  }
 
   async insertMany(items: CreateItemInput[]) {
     const createdItems = this.itemRepo.create(items)
@@ -29,10 +32,10 @@ export class ItemService {
       }
     }
 
-    const [items, total] = await Promise.all([
-      this.itemRepo.find({ relations: itemRelations, where }),
-      this.itemRepo.count({ where })
-    ])
+    const { data: items, total } = await this.find({
+      where,
+      relations: itemRelations,
+    })
 
     return {
       items,

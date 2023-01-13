@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { CreateAddressInput, GetAddressesOutput, GetAddressOutput, UpdateAddressInput } from "apps/address/dtos";
 import { AddressService } from "apps/address/services";
 import { JwtAuthGuard } from "apps/auth";
@@ -37,7 +37,7 @@ export class AddressController {
   async gets(
     @Request() req,
   ): Promise<GetAddressesOutput> {
-    const { addresses, total } = await this.addressService.findAll(req.user)
+    const { addresses, total } = await this.addressService.findAll(req.user, 5)
 
     return {
       status: HTTP_STATUS.OK,
@@ -67,6 +67,7 @@ export class AddressController {
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ type: GetAddressOutput })
   async patch(
     @Request() req,
@@ -84,6 +85,11 @@ export class AddressController {
         status,
         message: `${MODULE_NAME} not found`,
       }
+    } else if (status === HTTP_STATUS.Forbidden) {
+      return {
+        status,
+        message: `You don't have permission to do that.`
+      }
     }
 
     return {
@@ -97,6 +103,7 @@ export class AddressController {
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
@@ -111,6 +118,11 @@ export class AddressController {
       return {
         status,
         message: `${MODULE_NAME} not found`,
+      }
+    } else if (status === HTTP_STATUS.Forbidden) {
+      return {
+        status,
+        message: `You don't have permission to do that.`
       }
     }
 

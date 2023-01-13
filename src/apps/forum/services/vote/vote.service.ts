@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { Vote } from "apps/forum/entities";
+import { BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
 import { BlogService } from "../blog";
@@ -15,19 +16,13 @@ const relations = {
 }
 
 @Injectable()
-export class VoteService {
+export class VoteService extends BaseService<Vote> {
   constructor(
     @InjectRepository(Vote) private voteRepo: Repository<Vote>,
     private blogService: BlogService,
     private replyService: ReplyService,
-  ) { }
-
-  async findOne(where: FindOptionsWhere<Vote>[] | FindOptionsWhere<Vote>) {
-    const vote = await this.voteRepo.findOne({
-      relations,
-      where,
-    })
-    return vote
+  ) { 
+    super(voteRepo)
   }
 
   async upsert(user: UserToken, input: UpsertVoteInput) {
