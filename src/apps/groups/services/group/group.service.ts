@@ -66,6 +66,21 @@ export class GroupService extends BaseService<Group> {
     return { groups, total }
   }
 
+  async findByUser(user: UserToken, take: number) {
+    const where: FindOptionsWhere<Group> = {}
+
+    const { members } = await this.memberService.findAll(user)
+    const groupIds = members.map((x) => x.group.id)
+    where.id = In(groupIds)
+
+    const [groups, total] = await Promise.all([
+      this.groupRepo.find({ where, take }),
+      this.groupRepo.count({ where })
+    ])
+
+    return { groups, total }
+  }
+
   async update(
     user: UserToken,
     id: string,
@@ -123,7 +138,7 @@ export class GroupService extends BaseService<Group> {
       }
     }
 
-    await this.groupRepo.softDelete(id)
+    await this.groupRepo.softRemove(group)
 
     return {
       status: HTTP_STATUS.OK,

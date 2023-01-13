@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreateCommentInput, GetCommentOutput, UpdateCommentInput } from "apps/posts/dtos";
+import { CreateCommentInput, GetCommentOutput, GetCommentsOutput, UpdateCommentInput } from "apps/posts/dtos";
 import { CommentService } from "apps/posts/services";
 import { HTTP_STATUS } from "utils";
 
@@ -40,6 +40,26 @@ export class CommentController {
     return { status, comment }
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id' })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiOkResponse({ type: GetCommentsOutput })
+  async get(
+    @Request() req,
+    @Param('id') id: string,
+    @Query('limit') limit?: number
+  ): Promise<GetCommentsOutput> {
+    const { comments, total } = await this.commentService.findAll(id, limit)
+
+    return {
+      status: HTTP_STATUS.OK,
+      comments,
+      total,
+    }
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -49,7 +69,7 @@ export class CommentController {
   @ApiOkResponse({ type: GetCommentOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateCommentInput,
   ): Promise<GetCommentOutput> {
     const { status, comment } = await this.commentService.update(req.user, id, input)
@@ -80,7 +100,7 @@ export class CommentController {
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
     const { status } = await this.commentService.remove(req.user, id)
     if (status === HTTP_STATUS.Not_Found) {

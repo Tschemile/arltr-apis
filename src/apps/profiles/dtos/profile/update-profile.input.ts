@@ -6,12 +6,12 @@ import { CreateProfileInput } from "./create-profile.input";
 export class UpdateProfileInput extends PartialType(CreateProfileInput) { 
   @IsUrl()
   @IsOptional()
-  @ApiProperty({ type: String })
+  @ApiProperty({ type: String, nullable: true })
   avatar?: string
 
   @IsUrl()
   @IsOptional()
-  @ApiProperty({ type: String })
+  @ApiProperty({ type: String, nullable: true })
   cover?: string
 
   @IsString()

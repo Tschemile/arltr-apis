@@ -43,7 +43,7 @@ export class ReplyController {
   @ApiOkResponse({ type: GetReplyOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateReplyInput,
   ): Promise<GetReplyOutput> {
     const { status, reply } = await this.replyService.update(req.user, id, input)
@@ -74,7 +74,7 @@ export class ReplyController {
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
     const { status } = await this.replyService.remove(req.user, id)
     if (status === HTTP_STATUS.Not_Found) {

@@ -78,7 +78,7 @@ export class BlogController {
   @ApiOkResponse({ type: GetBlogOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateBlogInput,
   ): Promise<GetBlogOutput> {
     const { status, blog } = await this.blogService.update(req.user, id, input)
@@ -109,7 +109,7 @@ export class BlogController {
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
     const { status } = await this.blogService.remove(req.user, id)
     if (status === HTTP_STATUS.Not_Found) {

@@ -1,10 +1,12 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
-import { MemberService } from "apps/groups";
+import { GroupService, MemberService } from "apps/groups";
+import { PostService } from "apps/posts";
 import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
+import { FileService } from "apps/uploads";
 import { User } from "apps/users";
 import { BaseService } from "base";
 import { Between, FindOptionsWhere, LessThan, Like, Not, Repository } from "typeorm";
@@ -20,7 +22,10 @@ export class ProfileService extends BaseService<Profile> {
   constructor(
     @InjectRepository(Profile) private profileRepo: Repository<Profile>,
     @Inject(forwardRef(() => AuthService)) private authService: AuthService,
+    @Inject(forwardRef(() => PostService)) private postService: PostService,
+    @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
+    @Inject(forwardRef(() => FileService)) private fileService: FileService,
   ) {
     super(profileRepo)
   }
@@ -107,6 +112,12 @@ export class ProfileService extends BaseService<Profile> {
       { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 
       { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.BLOCKED },
     ], relateRelations)
+
+    const { relations, total: totalRelations } = await this.relationService.getRelations(user)
+    const { posts, total: totalPosts } = await this.postService.findByUser(user, profile, 5)
+    const { groups, total: totalGroups } = await this.groupService.findByUser(user, 6)
+    const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
+
     if (blocked) {
       return {
         status: HTTP_STATUS.Forbidden,
@@ -117,9 +128,21 @@ export class ProfileService extends BaseService<Profile> {
         status: HTTP_STATUS.Not_Found,
       }
     }
+
+    const profileFully = {
+      ...profile,
+      ...relations,
+      ...totalRelations,
+      posts,
+      totalPosts,
+      groups,
+      totalGroups,
+      albums,
+      totalAlbums,
+    }
     return {
       status: HTTP_STATUS.OK,
-      profile
+      profile: profileFully
     }
   }
 
@@ -149,7 +172,7 @@ export class ProfileService extends BaseService<Profile> {
         status: HTTP_STATUS.Not_Found
       }
     }
-    await this.profileRepo.softDelete(profile.id)
+    await this.profileRepo.softRemove(profile)
 
     return {
       status: HTTP_STATUS.OK,

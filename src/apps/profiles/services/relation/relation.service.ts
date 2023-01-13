@@ -110,30 +110,30 @@ export class RelationService extends BaseService<Relation> {
   }
 
   async getRelations(user: UserToken) {
-    const { total: totalFriends, data: friends = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FRIEND)
-    const friend1 = friends.map((x) => x.requester.id)
-    const friend2 = friends.map((x) => x.user.id)
+    const { total: totalFriends, data: friendRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FRIEND)
+    const friend1 = friendRaws.map((x) => x.requester)
+    const friend2 = friendRaws.map((x) => x.user)
 
-    const friendIds = [...friend1, ...friend2]
+    const friends = [...friend1, ...friend2]
 
-    const { total: totalPages, data: pages = [] } = await this.findAll(user, QUERY_RELATION_TYPE.LIKED)
-    const pageIds = pages.map((x) => x.user.id)
+    const { total: totalPages, data: pageRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.LIKED)
+    const pages = pageRaws.map((x) => x.user)
 
-    const { total: totalBlocks, data: blocks = [] } = await this.findAll(user, QUERY_RELATION_TYPE.BLOCKED)
-    const blockedIds = blocks.map((x) => x.user.id)
+    const { total: totalBlocks, data: blockRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.BLOCKED)
+    const blocks = blockRaws.map((x) => x.user)
 
-    const { total: totalFollowers, data: followers = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWER)
-    const followerIds = followers.map((x) => x.requester.id)
+    const { total: totalFollowers, data: followerRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWER)
+    const followers = followerRaws.map((x) => x.requester)
 
-    const { total: totalFollowing, data: following = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWING)
-    const followingIds = following.map((x) => x.user.id)
+    const { total: totalFollowing, data: followingRaw = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWING)
+    const followings = followingRaw.map((x) => x.user)
 
-    const data = {
-      friendIds,
-      pageIds,
-      blockedIds,
-      followerIds,
-      followingIds,
+    const relations = {
+      friends,
+      pages,
+      blocks,
+      followers,
+      followings,
     }
 
     const total = {
@@ -144,7 +144,7 @@ export class RelationService extends BaseService<Relation> {
       totalFollowing,
     }
 
-    return { data, total }
+    return { relations, total }
   }
 
   async update(user: UserToken, id: string) {

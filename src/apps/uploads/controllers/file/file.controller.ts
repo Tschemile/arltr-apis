@@ -62,24 +62,6 @@ export class FileController {
     return { status }
   }
 
-  @Get('albums')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiQuery({ name: 'domain' })
-  @ApiQuery({ name: 'limit', required: false })
-  async getByUser(
-    @Request() req,
-    @Query('domain') domain: string,
-    @Query('limit') limit?: number,
-  ) {
-    const { files, total } = await this.fileService.findAll(req.user, domain, limit)
-    return {
-      status: HTTP_STATUS.OK,
-      files,
-      total,
-    }
-  }
-
   @Get(':path')
   @ApiParam({ name: 'path' })
   getFile(

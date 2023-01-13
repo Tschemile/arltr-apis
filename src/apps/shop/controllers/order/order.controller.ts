@@ -44,7 +44,7 @@ export class OrderController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetOrderOutput })
   async getById(
-    @Param() id: string,
+    @Param('id') id: string,
   ): Promise<GetOrderOutput> {
     const order = await this.orderService.findOne({ id })
 
@@ -61,7 +61,7 @@ export class OrderController {
   @ApiOkResponse({ type: GetOrderOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateOrderInput,
   ): Promise<GetOrderOutput> {
     const { status, order } = await this.orderService.update(
@@ -100,7 +100,7 @@ export class OrderController {
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
     const { status } = await this.orderService.remove(
       req.user,

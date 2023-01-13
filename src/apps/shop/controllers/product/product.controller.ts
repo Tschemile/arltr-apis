@@ -42,7 +42,7 @@ export class ProductController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetProductOutput })
   async getById(
-    @Param() id: string,
+    @Param('id') id: string,
   ): Promise<GetProductOutput> {
     const product = await this.productService.findOne({ id })
 
@@ -59,7 +59,7 @@ export class ProductController {
   @ApiOkResponse({ type: GetProductOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateProductInput,
   ): Promise<GetProductOutput> {
     const { status, product } = await this.productService.update(
@@ -98,7 +98,7 @@ export class ProductController {
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
     const { status } = await this.productService.remove(
       req.user,

@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
+import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
@@ -56,23 +56,18 @@ export class FileService extends BaseService<File> {
     }
   }
 
-  async findAll(user: UserToken, domain: string, take?: number) {
+  async findAll(user: UserToken, profile: Profile, take?: number) {
     const where: FindOptionsWhere<File> = {
       owner: {
-        domain,
+        domain: profile.domain,
       }
-    }
-
-    const profile = await this.profileService.findOne({ domain })
-    if (!profile) {
-      return { status: HTTP_STATUS.Not_Found }
     }
     if (profile.id === user.profile.id) {
       where.scope = Any(Object.values(FILE_SCOPE))
     } else {
       const friends = await this.relationService.findOne([
-        { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.FRIEND }, 
-        { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+        { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND }, 
+        { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
       ], relateRelations)
       if (friends) {
         where.scope = Not(FILE_SCOPE.PRIVATE)

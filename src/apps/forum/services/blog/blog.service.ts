@@ -144,7 +144,7 @@ export class BlogService extends BaseService<Blog> {
       }
     }
 
-    await this.blogRepo.softDelete(id)
+    await this.blogRepo.softRemove(blog)
 
     return {
       status: HTTP_STATUS.OK
