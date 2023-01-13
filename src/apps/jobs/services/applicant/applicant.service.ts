@@ -170,11 +170,7 @@ export class ApplicantService extends BaseService<Applicant> {
     }
 
     async remove(id: string) {
-        const applicant = await this.applicantRepository.findOne({
-            where: {
-                id: Equal(id),
-            }
-        });
+        const applicant = await this.findOne({ id });
 
         if(!applicant) {
             return {
