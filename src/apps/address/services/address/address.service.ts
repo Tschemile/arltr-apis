@@ -30,17 +30,18 @@ export class AddressService extends BaseService<Address> {
     return createdAddress
   }
 
-  async findAll(user: UserToken) {
+  async findAll(user: UserToken, take: number) {
     const where: FindOptionsWhere<Address> = {}
 
     where.user = {
       id: user.profile.id,
     }
 
-    const [addresses, total] = await Promise.all([
-      this.addressRepo.find({ relations: addressRelations, where }),
-      this.addressRepo.count({ where }),
-    ])
+    const { data: addresses, total } = await this.find({
+      where,
+      relations: addressRelations,
+      take,
+    })
 
     return { addresses, total }
   }
@@ -50,15 +51,13 @@ export class AddressService extends BaseService<Address> {
     id: string,
     input: UpdateAddressInput,
   ) {
-    const address = await this.findOne({ id }, addressRelations)
-    if (!address) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
-    } else if (address.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Unauthorized
-      }
+    const { status, data: address } = await this.validUpsert(
+      { id },
+      { user: { id: user.profile.id }},
+      addressRelations,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.addressRepo.save({
@@ -77,15 +76,13 @@ export class AddressService extends BaseService<Address> {
     user: UserToken,
     id: string,
   ) { 
-    const address = await this.findOne({ id }, addressRelations)
-    if (!address) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
-    } else if (address.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Unauthorized
-      }
+    const { status, data: address } = await this.validUpsert(
+      { id },
+      { user: { id: user.profile.id }},
+      addressRelations,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.addressRepo.softRemove(address)

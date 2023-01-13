@@ -5,9 +5,8 @@ import { GROUP_MODE, MEMBER_ROLE, QUERY_TYPE } from 'apps/groups/constants';
 import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups/dtos';
 import { Group } from 'apps/groups/entities';
 import { BaseService } from 'base';
-import slugify from 'slugify';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
-import { HTTP_STATUS } from 'utils';
+import { generateSlug, HTTP_STATUS } from 'utils';
 import { MemberService } from '../member';
 
 @Injectable()
@@ -22,7 +21,7 @@ export class GroupService extends BaseService<Group> {
   async create(user: UserToken, input: CreateGroupInput) {
     const createdGroup = this.groupRepo.create({
       ...input,
-      slug: slugify(input.name),
+      slug: generateSlug(input.name),
       total: 1,
     })
     await this.groupRepo.save(createdGroup)
@@ -58,10 +57,10 @@ export class GroupService extends BaseService<Group> {
       where.name = Like(`%${query.search}%`)
     }
 
-    const [groups, total] = await Promise.all([
-      this.groupRepo.find({ where, take }),
-      this.groupRepo.count({ where })
-    ])
+    const { data: groups, total } = await this.find({
+      where,
+      take,
+    })
 
     return { groups, total }
   }
@@ -73,10 +72,10 @@ export class GroupService extends BaseService<Group> {
     const groupIds = members.map((x) => x.group.id)
     where.id = In(groupIds)
 
-    const [groups, total] = await Promise.all([
-      this.groupRepo.find({ where, take }),
-      this.groupRepo.count({ where })
-    ])
+    const { data: groups, total} = await this.find({
+      where,
+      take,
+    })
 
     return { groups, total }
   }

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { GROUP_MODE } from "apps/groups/constants";
-import { IsEnum, IsString, IsUrl, MaxLength } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
 
 export class CreateGroupInput {
   @IsEnum(GROUP_MODE)
@@ -17,10 +17,12 @@ export class CreateGroupInput {
   description: string
 
   @IsUrl()
+  @IsOptional()
   @ApiProperty({ type: String })
   avatar: string
 
   @IsUrl()
+  @IsOptional()
   @ApiProperty({ type: String })
   cover: string
 }

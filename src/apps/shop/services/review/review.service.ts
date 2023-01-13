@@ -60,10 +60,10 @@ export class ReviewService extends BaseService<Review> {
       }
     }
 
-    const [reviews, total] = await Promise.all([
-      this.reviewRepo.find({ relations: reviewRelations, where }),
-      this.reviewRepo.count({ where })
-    ])
+    const { data: reviews, total } = await this.find({
+      where,
+      relations: reviewRelations,
+    })
 
     return { reviews, total }
   }

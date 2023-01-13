@@ -119,10 +119,10 @@ export class OrderService extends BaseService<Order> {
       }
     }
 
-    const [orders, total] = await Promise.all([
-      this.orderRepo.find({ relations: orderRelations, where }),
-      this.orderRepo.count({ where })
-    ])
+    const { data: orders, total } = await this.find({
+      where,
+      relations: orderRelations,
+    })
 
     return {
       orders,
@@ -135,15 +135,13 @@ export class OrderService extends BaseService<Order> {
     id: string,
     input: UpdateOrderInput
   ) {
-    const order = await this.findOne({ id }, orderRelations)
-    if (!order) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
-    } else if (user.profile.id !== order.shop.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status, data: order } = await this.validUpsert(
+      { id },
+      { shop: { id: user.profile.id }},
+      orderRelations,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.orderRepo.save({
@@ -166,17 +164,13 @@ export class OrderService extends BaseService<Order> {
     user: UserToken,
     id: string,
   ) {
-    const order = await this.findOne({ id }, orderRelations)
-    if (!order) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
-    }
-
-    if (order.shop.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status, data: order } = await this.validUpsert(
+      { id },
+      { shop: { id: user.profile.id }},
+      orderRelations,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.orderRepo.softRemove(order)

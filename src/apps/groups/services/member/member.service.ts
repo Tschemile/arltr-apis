@@ -131,10 +131,11 @@ export class MemberService extends BaseService<Member> {
 
     where.status = Not(MEMBER_STATUS.INVITING)
 
-    const [members, total] = await Promise.all([
-      this.memberRepo.find({ where, relations: memberRelation }),
-      this.memberRepo.count({ where })
-    ])
+    const { data: members, total } = await this.find({
+      where,
+      relations:memberRelation,
+      take: 5,
+    })
 
     return { members, total }
   }

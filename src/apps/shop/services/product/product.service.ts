@@ -79,10 +79,10 @@ export class ProductService extends BaseService<Product> {
       where.id = In(ids)
     }
 
-    const [products, total] = await Promise.all([
-      this.productRepo.find({ relations: productRelations, where }),
-      this.productRepo.count({ where })
-    ])
+    const { data: products, total } = await this.find({
+      where,
+      relations: productRelations,
+    })
 
     return { products, total }
   }
@@ -94,17 +94,13 @@ export class ProductService extends BaseService<Product> {
   ) {
     const { name, category: categoryId, address: addressId } = input
 
-    const product = await this.findOne({ id }, productRelations)
-    if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
-    }
-
-    if (product.shop.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status: statusFound, data: product } = await this.validUpsert(
+      { id },
+      { shop: { id: user.profile.id }},
+      productRelations,
+    )
+    if (statusFound !== HTTP_STATUS.OK) {
+      return { statusFound }
     }
 
     const { status, category, address } = await this.checkValidUpsert({
@@ -142,17 +138,13 @@ export class ProductService extends BaseService<Product> {
     user: UserToken,
     id: string,
   ) {
-    const product = await this.findOne({ id }, productRelations)
-    if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
-    }
-
-    if (product.shop.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status, data: product } = await this.validUpsert(
+      { id },
+      { shop: { id: user.profile.id }},
+      productRelations,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.productRepo.softRemove(product)

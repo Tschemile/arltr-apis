@@ -50,10 +50,10 @@ export class ReplyService extends BaseService<Reply> {
 
     where.blog = { id: blogId }
 
-    const [replies, total] = await Promise.all([
-      this.replyRepo.find({ relations: replyRelation, where }),
-      this.replyRepo.count({ where })
-    ])
+    const { data: replies, total } = await this.find({
+      where,
+      relations: replyRelation,
+    })
 
     return { replies, total }
   }
@@ -63,15 +63,13 @@ export class ReplyService extends BaseService<Reply> {
     id: string,
     input: UpdateReplyInput
   ) {
-    const reply = await this.findOne({ id }, replyRelation)
-    if (!reply) {
-      return { 
-        status: HTTP_STATUS.Not_Found 
-      }
-    } else if (reply.user.id !== user.profile.id) {
-      return { 
-        status: HTTP_STATUS.Forbidden 
-      }
+    const { status, data: reply } = await this.validUpsert(
+      { id },
+      { user: { id: user.profile.id }},
+      replyRelation,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.replyRepo.save({
@@ -88,15 +86,13 @@ export class ReplyService extends BaseService<Reply> {
   }
 
   async remove(user: UserToken, id: string) {
-    const reply = await this.findOne({ id }, replyRelation)
-    if (!reply) {
-      return { 
-        status: HTTP_STATUS.Not_Found 
-      }
-    } else if (reply.user.id !== user.profile.id) {
-      return { 
-        status: HTTP_STATUS.Forbidden 
-      }
+    const { status, data: reply } = await this.validUpsert(
+      { id },
+      { user: { id: user.profile.id }},
+      replyRelation,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.replyRepo.softRemove(reply)

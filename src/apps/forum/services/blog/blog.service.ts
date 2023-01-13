@@ -81,10 +81,11 @@ export class BlogService extends BaseService<Blog> {
       where.author = { id: author }
     }
 
-    const [blogs, total] = await Promise.all([
-      this.blogRepo.find({ relations: blogRelation, where, take: limit }),
-      this.blogRepo.count({ where })
-    ])
+    const { data: blogs, total } = await this.find({
+      where,
+      relations: blogRelation,
+      take: limit,
+    })
 
     return { blogs, total }
   }
@@ -94,37 +95,37 @@ export class BlogService extends BaseService<Blog> {
     id: string,
     input: UpdateBlogInput
   ) {
-    const blog = await this.findOne({ id }, blogRelation)
-    
-    if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
-    } else if (blog.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status, data: blog } = await this.validUpsert(
+      { id },
+      { author: { id: user.profile.id }},
+      blogRelation,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     const { title, category: categoryId } = input
     
-    const category = await this.categoryService.findOne({ id: categoryId })
-    if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
+    if (categoryId && categoryId !== blog.category.id) {
+      const category = await this.categoryService.findOne({ id: categoryId })
+      if (!category) {
+        return {
+          status: HTTP_STATUS.Not_Found,
+        }
       }
+      blog.category = category
     }
 
     const slug = title ? generateSlug(title) : blog.slug
 
     await this.blogRepo.save({
       ...input,
-      category,
+      category: blog.category,
       slug,
       id
     })
 
-    const updatedBlog = { ...blog, ...input, category, slug }
+    const updatedBlog = { ...blog, ...input, category: blog.category, slug }
     return {
       status: HTTP_STATUS.OK,
       blog: updatedBlog
@@ -132,16 +133,13 @@ export class BlogService extends BaseService<Blog> {
   }
 
   async remove(user: UserToken, id: string) {
-    const blog = await this.findOne({ id }, blogRelation)
-    
-    if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
-    } else if (blog.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+    const { status, data: blog } = await this.validUpsert(
+      { id },
+      { author: { id: user.profile.id }},
+      blogRelation,
+    )
+    if (status !== HTTP_STATUS.OK) {
+      return { status }
     }
 
     await this.blogRepo.softRemove(blog)

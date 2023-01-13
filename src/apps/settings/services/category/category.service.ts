@@ -27,10 +27,9 @@ export class CategoryService extends BaseService<Category> {
       where.name = Like(`%${search}%`)
     }
 
-    const [categories, total] = await Promise.all([
-      this.categoryRepo.find({ where, withDeleted: true }),
-      this.categoryRepo.count({ where })
-    ])
+    const {data: categories, total} = await this.find({
+      where,
+    })
 
     return { categories, total }
   }

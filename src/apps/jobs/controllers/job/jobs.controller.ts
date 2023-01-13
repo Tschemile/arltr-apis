@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'apps/auth';
 import { HTTP_STATUS } from 'utils';
 import { GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
 
-const MODULE_NAME = 'Jobs';
+const MODULE_NAME = 'Job';
 
 @ApiTags(MODULE_NAME)
 @Controller(MODULE_NAME.toLowerCase())
