@@ -59,7 +59,7 @@ export class CategoryService extends BaseService<Category> {
       return { status: HTTP_STATUS.Not_Found }
     }
 
-    await this.categoryRepo.softDelete(id)
+    await this.categoryRepo.softRemove(category)
 
     return { status: HTTP_STATUS.OK }
   }

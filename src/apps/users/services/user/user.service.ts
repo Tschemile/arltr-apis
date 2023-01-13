@@ -104,7 +104,7 @@ export class UserService extends BaseService<User> {
       }
     }
 
-    await this.userRepo.softDelete(user.id)
+    await this.userRepo.softRemove(user)
     return {
       status: HTTP_STATUS.OK,
     }

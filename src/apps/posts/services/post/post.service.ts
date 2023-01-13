@@ -6,7 +6,7 @@ import { MEMBER_STATUS } from "apps/groups/constants";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
-import { RelationService, RELATION_TYPE } from "apps/profiles";
+import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
 import { HTTP_STATUS } from "utils";
@@ -25,6 +25,7 @@ export class PostService extends BaseService<Post> {
     @Inject(forwardRef(() => MemberService)) private memberService: MemberService,
     @Inject(forwardRef(() => CommentService)) private commentService: CommentService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
+    @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
     super(postRepo)
   }
@@ -58,6 +59,7 @@ export class PostService extends BaseService<Post> {
       ...rest,
       author: user.profile,
     })
+    console.log(groupId)
 
     if (groupId) {
       const { status, group } = await this.validGroup(user, groupId)
@@ -70,18 +72,22 @@ export class PostService extends BaseService<Post> {
 
     await this.postRepo.save(createdPost)
     return {
-      status: HTTP_STATUS.Forbidden,
+      status: HTTP_STATUS.Created,
       post: createdPost
     }
   }
 
   async findAll(user: UserToken, query: QueryPostInput) {
-    const take = query.limit || 10
+    const { limit, type, } = query
+    const take = limit || 10
     const singleWhere: FindOptionsWhere<Post> = {}  
-    singleWhere.type = query.type || POST_TYPE.POST
+    singleWhere.type = type || POST_TYPE.POST
 
-    const { data: relations } = await this.relationService.getRelations(user)
-    const { friendIds, followingIds } = relations
+    const { relations } = await this.relationService.getRelations(user)
+    const { friends, followings } = relations
+
+    const friendIds = friends.map(x => x.id)
+    const followingIds = followings.map(x => x.id)
 
     const where: FindOptionsWhere<Post>[] = [
       {
@@ -95,6 +101,31 @@ export class PostService extends BaseService<Post> {
         ...singleWhere,
       }
     ]
+
+    const [posts, total] = await Promise.all([
+      this.postRepo.find({ where, relations: postRelation, take }),
+      this.postRepo.count({ where })
+    ])
+
+    return { posts, total }
+  }
+
+  async findByUser(user: UserToken, profile: Profile, take: number) {
+    const relation = await this.relationService.findOne([
+      { requester: { id: user.profile.id }, user: { id: profile.id  }, type: RELATION_TYPE.FRIEND }, 
+      { requester: { id: profile.id  }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+    ], relateRelations)
+
+    const where: FindOptionsWhere<Post> = {
+      group: { id: null }
+    }
+    if (user.profile.id !== profile.id) {
+      if (relation) {
+        where.mode = Not(POST_MODE.PRIVATE)
+      } else {
+        where.mode = POST_MODE.PUBLIC
+      }
+    } 
 
     const [posts, total] = await Promise.all([
       this.postRepo.find({ where, relations: postRelation, take }),
@@ -177,7 +208,7 @@ export class PostService extends BaseService<Post> {
       }
     }
 
-    await this.postRepo.softDelete(id)
+    await this.postRepo.softRemove(post)
 
     return {
       status: HTTP_STATUS.OK,

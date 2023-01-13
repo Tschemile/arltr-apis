@@ -155,7 +155,7 @@ export class ProductService extends BaseService<Product> {
       }
     }
 
-    await this.productRepo.softDelete(id)
+    await this.productRepo.softRemove(product)
 
     return {
       status: HTTP_STATUS.OK,

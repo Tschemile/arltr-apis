@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreateProfileInput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
+import { CreateProfileInput, GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
 import { GetUserTokenOutput } from "apps/users/dtos";
 import { HTTP_STATUS } from "utils";
@@ -128,11 +128,11 @@ export class ProfileController {
   @ApiParam({ name: 'domain' })
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
-  @ApiOkResponse({ type: GetProfileOutput })
+  @ApiOkResponse({ type: GetProfileFullyOutput })
   async getByDomain(
     @Request() req,
     @Param('domain') domain: string
-  ): Promise<GetProfileOutput> {
+  ): Promise<GetProfileFullyOutput> {
     const { status, profile } = await this.profileService.findById(req.user, domain)
     if (status === HTTP_STATUS.Not_Found) {
       return {

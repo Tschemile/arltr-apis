@@ -88,7 +88,7 @@ export class AddressService extends BaseService<Address> {
       }
     }
 
-    await this.addressRepo.softDelete(id)
+    await this.addressRepo.softRemove(address)
 
     return {
       status: HTTP_STATUS.OK,

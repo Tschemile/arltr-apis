@@ -99,7 +99,7 @@ export class ReplyService extends BaseService<Reply> {
       }
     }
 
-    await this.replyRepo.softDelete(id)
+    await this.replyRepo.softRemove(reply)
 
     return {
       status: HTTP_STATUS.OK,

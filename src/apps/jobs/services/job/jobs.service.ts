@@ -152,7 +152,7 @@ export class JobsService extends BaseService<Job> {
     if (!job) {
       return { status: HTTP_STATUS.Not_Found };
     }
-    await this.jobRepository.softDelete(id)
+    await this.jobRepository.softRemove(job)
 
     return { status: HTTP_STATUS.OK }
   }

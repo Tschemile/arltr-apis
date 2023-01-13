@@ -179,7 +179,7 @@ export class OrderService extends BaseService<Order> {
       }
     }
 
-    await this.orderRepo.softDelete(id)
+    await this.orderRepo.softRemove(order)
 
     return {
       status: HTTP_STATUS.OK,

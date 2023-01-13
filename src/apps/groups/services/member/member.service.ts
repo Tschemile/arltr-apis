@@ -208,7 +208,7 @@ export class MemberService extends BaseService<Member> {
       }
     }
 
-    await this.memberRepo.softDelete(id)
+    await this.memberRepo.softRemove(member)
 
     const total = member.group.total || 0
     await this.groupService.incrementTotal(member.group.id, total - 1)

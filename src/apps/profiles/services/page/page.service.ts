@@ -158,7 +158,7 @@ export class PageService extends BaseService<Profile> {
       return { status }
     }
 
-    await this.pageRepo.softDelete(id)
+    await this.pageRepo.softRemove(user.profile)
 
     return {
       status: HTTP_STATUS.OK,
