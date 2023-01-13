@@ -35,9 +35,7 @@ export class ResumeService extends BaseService<Resume> {
 
         const createResume = this.resumeRepository.create({
             ...createRusemeDto,
-            candidate: {
-                id: createRusemeDto.candidate,
-            }
+            candidate: profile,
         });
 
         await this.resumeRepository.save(createResume);

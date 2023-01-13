@@ -3,3 +3,8 @@ export enum APPLICANT_STATUS {
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED'
 }
+
+export enum ROLE {
+  EMPLOYER = 'EMPLOYER',
+  CANDIDATE= 'CANDIDATE'
+}

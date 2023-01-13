@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, Request} from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
+import { ROLE } from "apps/jobs/constants";
 import { CreateApplicantDto } from "apps/jobs/dtos/applicant";
 import { GetApplicantsOutput } from "apps/jobs/dtos/applicant/get-applicant.dto";
 import { UpdateApplicantDto } from "apps/jobs/dtos/applicant/update-applicant.dto";
@@ -32,14 +33,17 @@ export class ApplicantController {
     @ApiQuery({ name: 'jobs', required: false, type: [String] })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'resumes', required: false, type: [String] })
+    @ApiQuery({ name: 'role',  enum: ROLE })
     async findAll(
+        @Request() req,
         @Query('search') search,
         @Query('jobs') jobs,
         @Query('resumes') resumes,
         @Query('limit') limit,
+        @Query('role') role = ROLE.CANDIDATE,
 
     ): Promise<GetApplicantsOutput> {
-        const { applicants, total } = await this.applicantService.findAll({ search, jobs, resumes, limit });
+        const { applicants, total } = await this.applicantService.findAll(req.user, { search, jobs, resumes, limit }, role);
         return {
           status: HTTP_STATUS.OK,
           applicants,

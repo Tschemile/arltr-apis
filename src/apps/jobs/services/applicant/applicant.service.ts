@@ -1,5 +1,7 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { UserToken } from "apps/auth";
+import { ROLE } from "apps/jobs/constants";
 import { CreateApplicantDto } from "apps/jobs/dtos/applicant";
 import { QueryApplicantInput } from "apps/jobs/dtos/applicant/query-applicant.dto";
 import { UpdateApplicantDto } from "apps/jobs/dtos/applicant/update-applicant.dto";
@@ -27,7 +29,18 @@ export class ApplicantService extends BaseService<Applicant> {
     }
 
     async create(createApplicantDto: CreateApplicantDto) {
-        const job = await this.jobService.findOne({ id: createApplicantDto.job });
+        const { job: jobId, resume: resumeId } = createApplicantDto;
+
+        const applicant = await this.findOne({ resume: { id: resumeId }, job: { id: jobId } });
+
+        if(applicant) {
+            return {
+                status: HTTP_STATUS.Not_Found
+            }
+        }
+        
+
+        const job = await this.jobService.findOne({ id: jobId });
 
         if(!job) {
             return {
@@ -35,7 +48,7 @@ export class ApplicantService extends BaseService<Applicant> {
             }
         }
 
-        const resume = await this.resumeService.findOne({ id: createApplicantDto.resume });
+        const resume = await this.resumeService.findOne({ id: resumeId });
 
         if(!resume) {
             return {
@@ -44,12 +57,8 @@ export class ApplicantService extends BaseService<Applicant> {
 
         const createApplicant = this.applicantRepository.create({
             ...createApplicantDto,
-            resume: {
-                id: createApplicantDto.resume,
-            },
-            job: {
-                id: createApplicantDto.job,
-            },
+            resume,
+            job,
             appliedAt: new Date(),
         });
 
@@ -61,14 +70,34 @@ export class ApplicantService extends BaseService<Applicant> {
         }
     }
 
-    async findAll(query: QueryApplicantInput) {
+    async findAll(user: UserToken, query: QueryApplicantInput, role: ROLE) {
         const {
             search = '', limit: take = 10
         } = query || {};
-
+ 
         const where: FindOptionsWhere<Applicant> = {
             resume: query.resumes ? Any([query.resumes]) : Not(IsNull()),
             job: query.jobs ? Any([query.jobs]) : Not(IsNull()),
+        }
+
+        switch (role) {
+            case ROLE.CANDIDATE: {
+                where.resume = {
+                    candidate: {
+                        id: user.profile.id
+                    }
+                }
+            }
+            case ROLE.EMPLOYER: {
+                where.job = {
+                    employer: {
+                        id: user.profile.id
+                    }
+                }
+            }
+            default: {
+                where.id = Not(IsNull())
+            }
         }
 
         const result = await this.applicantRepository.findAndCount({
@@ -85,11 +114,7 @@ export class ApplicantService extends BaseService<Applicant> {
     }
 
     async findById(id: string) {
-        const applicant = await this.applicantRepository.findOne({
-            where: {
-                id: Equal(id),
-            }
-        });
+        const applicant = await this.findOne({ id });
 
         if(!applicant) {
             return {
@@ -133,12 +158,8 @@ export class ApplicantService extends BaseService<Applicant> {
         }
         await this.applicantRepository.save({
             ...updateApplicantDto,
-            resume: {
-                id: updateApplicantDto.resume,
-            },
-            job: {
-                id: updateApplicantDto.job,
-            },
+            resume,
+            job,
             id: applicant.id,
         });
 
