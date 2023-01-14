@@ -4,7 +4,6 @@ import { JwtAuthGuard } from "apps/auth";
 import { CreateOrderInput, UpdateOrderInput } from "apps/shop/dtos";
 import { GetOrderOutput } from "apps/shop/dtos/order/get-order.output";
 import { OrderService } from "apps/shop/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Order'
 
@@ -24,19 +23,7 @@ export class OrderController {
     @Request() req,
     @Body() input: CreateOrderInput
   ): Promise<GetOrderOutput> {
-    const { status, order } = await this.orderService.create(req.user, input)
-    
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-
-    return {
-      status,
-      order,
-    }
+    return await this.orderService.create(req.user, input)
   }
 
   @Get(':id')
@@ -49,7 +36,6 @@ export class OrderController {
     const order = await this.orderService.findOne({ id })
 
     return {
-      status: HTTP_STATUS.OK,
       order,
     }
   }
@@ -64,33 +50,11 @@ export class OrderController {
     @Param('id') id: string,
     @Body() input: UpdateOrderInput,
   ): Promise<GetOrderOutput> {
-    const { status, order } = await this.orderService.update(
+    return await this.orderService.update(
       req.user,
       id,
       input,
     )
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do it`,
-      }
-    } else if (status === HTTP_STATUS.Bad_Request) {
-      return {
-        status,
-        message: 'Invalid request'
-      }
-    }
-
-    return {
-      status,
-      order,
-    }
   }
 
   @Delete(':id')
@@ -102,26 +66,9 @@ export class OrderController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.orderService.remove(
+    return await this.orderService.remove(
       req.user,
       id,
     )
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do it`,
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
   }
 }

@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query, Request, Response, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Request, Response, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { diskStorage } from "multer";
-import { HTTP_STATUS } from "utils";
 import { UPLOAD_TYPE } from "../../constants";
 import { FileInput, FileUploadInput } from "../../dtos";
 import { FileService } from "../../services";
@@ -46,20 +45,12 @@ export class FileController {
       mimetype: file.mimetype,
       size: file.size,
     }
-    const { status } = await this.fileService.create(
+    return await this.fileService.create(
       req.user,
       fileInput,
       type,
       req.headers.host,
     )
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Profile not found'
-      }
-    }
-
-    return { status }
   }
 
   @Get(':path')
@@ -69,7 +60,6 @@ export class FileController {
     @Param('path') path,
     @Response() res,
   ) {
-    console.log(req.headers.host)
     return res.sendFile(path, { root: './public' })
   }
 }

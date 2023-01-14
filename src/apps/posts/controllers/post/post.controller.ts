@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreatePostInput, GetPostOutput, GetPostsOutput, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Post'
 
@@ -24,20 +23,7 @@ export class PostController {
     @Request() req,
     @Body() input: CreatePostInput,
   ): Promise<GetPostOutput> {
-    const { status, post } = await this.postService.create(req.user, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Group not found'
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return { status, post }
+    return await this.postService.create(req.user, input)
   }
 
   @Get()
@@ -53,16 +39,10 @@ export class PostController {
     @Query('type') type,
     @Query('limit') limit,
   ): Promise<GetPostsOutput> {
-    const { posts, total } = await this.postService.findAll(
+    return await this.postService.findAll(
       req.user,
       { type, limit }
     )
-
-    return {
-      status: HTTP_STATUS.OK,
-      posts,
-      total,
-    }
   }
 
   @Patch(':id')
@@ -77,23 +57,7 @@ export class PostController {
     @Param('id') id: string,
     @Body() input: UpdatePostInput,
   ): Promise<GetPostOutput> {
-    const { status, post } = await this.postService.update(req.user, id, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      post,
-    }
+    return await this.postService.update(req.user, id, input)
   }
 
   @Delete(':id')
@@ -107,22 +71,6 @@ export class PostController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.postService.remove(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
+    return await this.postService.remove(req.user, id)
   }
 }

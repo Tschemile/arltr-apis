@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { CreateAddressInput, GetAddressesOutput, GetAddressOutput, UpdateAddressInput } from "apps/address/dtos";
 import { AddressService } from "apps/address/services";
 import { JwtAuthGuard } from "apps/auth";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Address'
 
@@ -22,12 +21,7 @@ export class AddressController {
     @Request() req,
     @Body() input: CreateAddressInput,
   ): Promise<GetAddressOutput> {
-    const address = await this.addressService.create(req.user, input)
-
-    return {
-      status: HTTP_STATUS.Created,
-      address,
-    }
+    return await this.addressService.create(req.user, input)
   }
 
   @Get()
@@ -37,13 +31,7 @@ export class AddressController {
   async gets(
     @Request() req,
   ): Promise<GetAddressesOutput> {
-    const { addresses, total } = await this.addressService.findAll(req.user, 5)
-
-    return {
-      status: HTTP_STATUS.OK,
-      addresses,
-      total,
-    }
+    return await this.addressService.findAll(req.user, 5)
   }
 
   @Get(':id')
@@ -55,11 +43,7 @@ export class AddressController {
     @Param('id') id: string,
   ): Promise<GetAddressOutput> {
     const address = await this.addressService.findOne({ id })
-
-    return {
-      status: HTTP_STATUS.OK,
-      address,
-    }
+    return { address }
   }
 
   @Patch(':id')
@@ -74,28 +58,11 @@ export class AddressController {
     @Param('id') id: string,
     @Body() input: UpdateAddressInput,
   ): Promise<GetAddressOutput> {
-    const { status, address } = await this.addressService.update(
+    return await this.addressService.update(
       req.user,
       id,
       input,
     )
-    
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that.`
-      }
-    }
-
-    return {
-      status,
-      address,
-    }
   }
 
   @Delete(':id')
@@ -109,26 +76,9 @@ export class AddressController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.addressService.remove(
+    return await this.addressService.remove(
       req.user,
       id,
     )
-    
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that.`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
   }
 }

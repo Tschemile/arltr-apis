@@ -1,13 +1,14 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { Any, FindOptionsWhere, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+
+const MODULE_NAME = 'File'
 
 export const fileRelation = {
   owner: true,
@@ -36,24 +37,23 @@ export class FileService extends BaseService<File> {
 
     await this.fileRepo.save(createdFile)
 
+    let url = `https://${baseUrl}/api/file/${fileInput.filename}`
     if (type) {
       const profile = await this.profileService.findOne({ id: user.profile.id })
       if (!profile) {
-        return { status: HTTP_STATUS.Not_Found }
+        BaseError(`Profile`, HttpStatus.NOT_FOUND)
       }
       let avatar = profile.avatar
       let cover = profile.cover
       if (type === UPLOAD_TYPE.AVATAR) {
-        avatar = `${baseUrl}/api/file/${fileInput.filename}`
+        avatar = url
       } else if (type === UPLOAD_TYPE.COVER) {
-        cover = `${baseUrl}/api/file/${fileInput.filename}`
+        cover = url
       }
       await this.profileService.update(user, {  avatar, cover })
     }
 
-    return {
-      status: HTTP_STATUS.Created,
-    }
+    return url
   }
 
   async findAll(user: UserToken, profile: Profile, take?: number) {

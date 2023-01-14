@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { GroupService, memberRelation, MemberService } from "apps/groups";
@@ -7,10 +7,11 @@ import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
 import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
 import { CommentService } from "../comment";
+
+const MODULE_NAME = 'Post'
 
 export const postRelation = {
   author: true,
@@ -33,9 +34,7 @@ export class PostService extends BaseService<Post> {
   async validGroup(user: UserToken, groupId: string) {
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(`Group`, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -44,12 +43,10 @@ export class PostService extends BaseService<Post> {
     }, memberRelation)
 
     if (!member || member.status !== MEMBER_STATUS.ACTIVE) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
-    return { group, status: HTTP_STATUS.OK }
+    return { group }
   }
 
   async create(user: UserToken, input: CreatePostInput) {
@@ -59,20 +56,15 @@ export class PostService extends BaseService<Post> {
       ...rest,
       author: user.profile,
     })
-    console.log(groupId)
 
     if (groupId) {
-      const { status, group } = await this.validGroup(user, groupId)
-      if (status !== HTTP_STATUS.OK) {
-        return { status }
-      }
+      const { group } = await this.validGroup(user, groupId)
 
       createdPost.group = group
     }
 
     await this.postRepo.save(createdPost)
     return {
-      status: HTTP_STATUS.Created,
       post: createdPost
     }
   }
@@ -102,10 +94,11 @@ export class PostService extends BaseService<Post> {
       }
     ]
 
-    const [posts, total] = await Promise.all([
-      this.postRepo.find({ where, relations: postRelation, take }),
-      this.postRepo.count({ where })
-    ])
+    const { data: posts, total } = await this.find({
+      where,
+      relations: postRelation,
+      take,
+    })
 
     return { posts, total }
   }
@@ -127,10 +120,11 @@ export class PostService extends BaseService<Post> {
       }
     } 
 
-    const [posts, total] = await Promise.all([
-      this.postRepo.find({ where, relations: postRelation, take }),
-      this.postRepo.count({ where })
-    ])
+    const { data: posts, total } = await this.find({
+      where,
+      relations: postRelation,
+      take,
+    })
 
     return { posts, total }
   }
@@ -140,7 +134,7 @@ export class PostService extends BaseService<Post> {
     switch (post.mode) {
       case POST_MODE.PRIVATE: {
         if (post.author.id !== user.profile.id) {
-          return { status: HTTP_STATUS.Forbidden }
+          BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
         }
         break
       }
@@ -150,19 +144,16 @@ export class PostService extends BaseService<Post> {
           { user: { id: post.author.id }, requester: { id: user.profile.id } }
         ])
         if (!relations || relations.type !== RELATION_TYPE.FRIEND) {
-          return { status: HTTP_STATUS.Forbidden }
+          BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
         }
         break
       }
     }
     if (post.status !== POST_STATUS.ACTIVE) {
-      return { status: HTTP_STATUS.Gone }
+      BaseError(MODULE_NAME, HttpStatus.GONE)
     }
 
-    return {
-      status: HTTP_STATUS.OK,
-      post,
-    }
+    return { post }
   }
 
   async update(
@@ -172,15 +163,11 @@ export class PostService extends BaseService<Post> {
   ) {
     const post = await this.findOne({ id }, postRelation)
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.postRepo.save({
@@ -189,7 +176,6 @@ export class PostService extends BaseService<Post> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       post: { ...post, ...input }
     }
   }
@@ -197,22 +183,14 @@ export class PostService extends BaseService<Post> {
   async remove(user: UserToken, id: string) {
     const post = await this.findOne({ id }, postRelation)
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.postRepo.softRemove(post)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 
   async incrementReacts(id: string, total: number) {

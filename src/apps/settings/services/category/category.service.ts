@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCategoryInput, UpdateCategoryInput } from "apps/settings/dtos";
 import { Category } from "apps/settings/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+
+const MODULE_NAME = 'Category'
 
 @Injectable()
 export class CategoryService extends BaseService<Category> {
@@ -37,7 +38,7 @@ export class CategoryService extends BaseService<Category> {
   async update(id: string, input: UpdateCategoryInput) {
     const category = await this.findOne({ id })
     if (!category) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     await this.categoryRepo.save({
@@ -46,20 +47,15 @@ export class CategoryService extends BaseService<Category> {
     })
 
     const updateCategory = { ...category, ...input }
-    return {
-      status: HTTP_STATUS.OK,
-      category: updateCategory,
-    }
+    return { category: updateCategory }
   }
 
   async remove(id: string) {
     const category = await this.findOne({ id })
     if (!category) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     await this.categoryRepo.softRemove(category)
-
-    return { status: HTTP_STATUS.OK }
   }
 }

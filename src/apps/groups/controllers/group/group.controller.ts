@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateGroupInput, GetGroupOutput, GetGroupsOutput, UpdateGroupInput } from "apps/groups/dtos";
 import { GroupService } from "apps/groups/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Group'
 
@@ -23,14 +22,10 @@ export class GroupController {
     @Request() req,
     @Body() input: CreateGroupInput,
   ): Promise<GetGroupOutput> {
-    const { status, group } = await this.groupService.create(
+    return await this.groupService.create(
       req.user,
       input,
     )
-    return {
-      status,
-      group,
-    }
   }
 
   @Get()
@@ -48,16 +43,10 @@ export class GroupController {
     @Query('type') type,
     @Query('limit') limit,
   ): Promise<GetGroupsOutput> {
-    const { groups, total } = await this.groupService.findAll(
+    return await this.groupService.findAll(
       req.user,
       { search, type, limit }
     )
-
-    return {
-      status: HTTP_STATUS.OK,
-      groups,
-      total,
-    }
   }
 
   @Get(':id')
@@ -70,16 +59,7 @@ export class GroupController {
     @Param('id') id: string
   ): Promise<GetGroupOutput> {
     const group = await this.groupService.findOne({ id })
-    if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return {
-      status: HTTP_STATUS.OK,
-      group,
-    }
+    return { group }
   }
 
   @Patch(':id')
@@ -94,26 +74,11 @@ export class GroupController {
     @Param('id') id: string,
     @Body() input: UpdateGroupInput,
   ) {
-    const { status, group } = await this.groupService.update(
+    return await this.groupService.update(
       req.user,
       id,
       input,
     )
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`,
-      }
-    }
-    return {
-      status,
-      group,
-    }
   }
 
   @Delete(':id')
@@ -127,23 +92,6 @@ export class GroupController {
     @Request() req,
     @Param('id') id: string
   ) {
-    const { status } = await this.groupService.remove(req.user, id)
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`,
-      }
-    }
-
-    return {
-      status,
-      message: `Deleted successfully`
-    }
+    return await this.groupService.remove(req.user, id)
   }
 }

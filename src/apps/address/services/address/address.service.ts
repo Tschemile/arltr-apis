@@ -1,11 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateAddressInput, UpdateAddressInput } from "apps/address/dtos";
 import { Address } from "apps/address/entities";
 import { UserToken } from "apps/auth";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+
+const MODULE_NAME = 'Address'
 
 const addressRelations = {
   user: true,
@@ -27,7 +28,7 @@ export class AddressService extends BaseService<Address> {
 
     await this.addressRepo.save(createdAddress)
 
-    return createdAddress
+    return { address: createdAddress }
   }
 
   async findAll(user: UserToken, take: number) {
@@ -51,13 +52,11 @@ export class AddressService extends BaseService<Address> {
     id: string,
     input: UpdateAddressInput,
   ) {
-    const { status, data: address } = await this.validUpsert(
-      { id },
-      { user: { id: user.profile.id }},
-      addressRelations,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+    const address = await this.findOne({ id }, addressRelations)
+    if (!address) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (address.user.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.addressRepo.save({
@@ -66,29 +65,19 @@ export class AddressService extends BaseService<Address> {
     })
 
     const updatedAddress = { ...address, ...input }
-    return {
-      status: HTTP_STATUS.OK,
-      address: updatedAddress,
-    }
+    return { address: updatedAddress }
   }
 
   async remove(
     user: UserToken,
     id: string,
-  ) { 
-    const { status, data: address } = await this.validUpsert(
-      { id },
-      { user: { id: user.profile.id }},
-      addressRelations,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+  ) {
+    const address = await this.findOne({ id }, addressRelations)
+    if (!address) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (address.user.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
-
     await this.addressRepo.softRemove(address)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 }

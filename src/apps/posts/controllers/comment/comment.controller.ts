@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateCommentInput, GetCommentOutput, GetCommentsOutput, UpdateCommentInput } from "apps/posts/dtos";
 import { CommentService } from "apps/posts/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Comment'
 
@@ -24,20 +23,7 @@ export class CommentController {
     @Request() req,
     @Body() input: CreateCommentInput,
   ): Promise<GetCommentOutput> {
-    const { status, comment } = await this.commentService.create(req.user, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Group not found'
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return { status, comment }
+    return await this.commentService.create(req.user, input)
   }
 
   @Get(':id')
@@ -51,13 +37,7 @@ export class CommentController {
     @Param('id') id: string,
     @Query('limit') limit?: number
   ): Promise<GetCommentsOutput> {
-    const { comments, total } = await this.commentService.findAll(id, limit)
-
-    return {
-      status: HTTP_STATUS.OK,
-      comments,
-      total,
-    }
+    return await this.commentService.findAll(id, limit)
   }
 
   @Patch(':id')
@@ -72,23 +52,7 @@ export class CommentController {
     @Param('id') id: string,
     @Body() input: UpdateCommentInput,
   ): Promise<GetCommentOutput> {
-    const { status, comment } = await this.commentService.update(req.user, id, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      comment,
-    }
+    return await this.commentService.update(req.user, id, input)
   }
 
   @Delete(':id')
@@ -102,22 +66,6 @@ export class CommentController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.commentService.remove(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
+    return await this.commentService.remove(req.user, id)
   }
 }

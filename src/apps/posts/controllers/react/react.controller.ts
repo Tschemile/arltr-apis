@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nes
 import { JwtAuthGuard } from "apps/auth";
 import { UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'React'
 
@@ -23,17 +22,6 @@ export class ReactController {
     @Request() req,
     @Body() input: UpsertReactInput
   ) {
-    const { status } = await this.reactService.upsert(req.user, input)
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Post not found'
-      }
-    }
-
-    return {
-      status
-    }
+    return await this.reactService.upsert(req.user, input)
   }
 }

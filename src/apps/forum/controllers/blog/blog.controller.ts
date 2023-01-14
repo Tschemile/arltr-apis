@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { CreateBlogInput, GetBlogOutput, GetBlogsOutput, QUERY_TYPE, UpdateBlogInput } from "apps/forum/dtos";
 import { BlogService } from "apps/forum/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Blog'
 
@@ -23,15 +22,7 @@ export class BlogController {
     @Request() req,
     @Body() input: CreateBlogInput,
   ): Promise<GetBlogOutput> {
-    const { status, blog } = await this.blogService.create(req.user, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Category not found'
-      }
-    }
-
-    return { status, blog }
+    return await this.blogService.create(req.user, input)
   }
 
   @Get()
@@ -53,7 +44,7 @@ export class BlogController {
     @Query('author') author?: string,
     @Query('status') status?: string,
   ) {
-    const { blogs, total } = await this.blogService.findAll(req.user, {
+    return await this.blogService.findAll(req.user, {
       type,
       search,
       categories,
@@ -61,12 +52,6 @@ export class BlogController {
       author,
       status,
     })
-
-    return {
-      status: HTTP_STATUS.OK,
-      blogs,
-      total,
-    }
   }
 
   @Patch(':id')
@@ -81,23 +66,7 @@ export class BlogController {
     @Param('id') id: string,
     @Body() input: UpdateBlogInput,
   ): Promise<GetBlogOutput> {
-    const { status, blog } = await this.blogService.update(req.user, id, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      blog,
-    }
+    return await this.blogService.update(req.user, id, input)
   }
 
   @Delete(':id')
@@ -111,22 +80,6 @@ export class BlogController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.blogService.remove(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
+    return await this.blogService.remove(req.user, id)
   }
 }

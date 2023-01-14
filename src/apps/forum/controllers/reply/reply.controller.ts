@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateReplyInput, GetReplyOutput, UpdateReplyInput } from "apps/forum/dtos";
 import { ReplyService } from "apps/forum/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Reply'
 
@@ -23,15 +22,7 @@ export class ReplyController {
     @Request() req,
     @Body() input: CreateReplyInput,
   ): Promise<GetReplyOutput> {
-    const { status, reply } = await this.replyService.create(req.user, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Category not found'
-      }
-    }
-
-    return { status, reply }
+    return await this.replyService.create(req.user, input)
   }
 
   @Patch(':id')
@@ -46,23 +37,7 @@ export class ReplyController {
     @Param('id') id: string,
     @Body() input: UpdateReplyInput,
   ): Promise<GetReplyOutput> {
-    const { status, reply } = await this.replyService.update(req.user, id, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      reply,
-    }
+    return await this.replyService.update(req.user, id, input)
   }
 
   @Delete(':id')
@@ -76,22 +51,6 @@ export class ReplyController {
     @Request() req,
     @Param('id') id: string,
   ) {
-    const { status } = await this.replyService.remove(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
+    return await this.replyService.remove(req.user, id)
   }
 }

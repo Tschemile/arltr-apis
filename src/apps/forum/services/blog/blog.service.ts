@@ -1,13 +1,15 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { BLOG_STATUS } from "apps/forum/constants";
 import { CreateBlogInput, QueryBlogInput, UpdateBlogInput } from "apps/forum/dtos";
 import { Blog } from "apps/forum/entities";
 import { CategoryService } from "apps/settings";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { ArrayContains, FindOptionsWhere, In, Like, Repository } from "typeorm";
-import { generateSlug, HTTP_STATUS } from "utils";
+import { generateSlug } from "utils";
+
+const MODULE_NAME = 'Blog'
 
 const blogRelation = {
   author: true,
@@ -28,9 +30,7 @@ export class BlogService extends BaseService<Blog> {
     
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError('Category', HttpStatus.NOT_FOUND)
     }
 
     const createdBlog = this.blogRepo.create({
@@ -41,10 +41,7 @@ export class BlogService extends BaseService<Blog> {
     })
     await this.blogRepo.save(createdBlog)
 
-    return {
-      status: HTTP_STATUS.Created,
-      blog: createdBlog
-    }
+    return { blog: createdBlog }
   }
 
   async findAll(user: UserToken, input: QueryBlogInput) {
@@ -95,13 +92,11 @@ export class BlogService extends BaseService<Blog> {
     id: string,
     input: UpdateBlogInput
   ) {
-    const { status, data: blog } = await this.validUpsert(
-      { id },
-      { author: { id: user.profile.id }},
-      blogRelation,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+    const blog = await this.findOne({ id }, blogRelation)
+    if (!blog) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (blog.author.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     const { title, category: categoryId } = input
@@ -109,9 +104,7 @@ export class BlogService extends BaseService<Blog> {
     if (categoryId && categoryId !== blog.category.id) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        return {
-          status: HTTP_STATUS.Not_Found,
-        }
+        BaseError('Category', HttpStatus.NOT_FOUND)
       }
       blog.category = category
     }
@@ -126,27 +119,18 @@ export class BlogService extends BaseService<Blog> {
     })
 
     const updatedBlog = { ...blog, ...input, category: blog.category, slug }
-    return {
-      status: HTTP_STATUS.OK,
-      blog: updatedBlog
-    }
+    return { blog: updatedBlog }
   }
 
   async remove(user: UserToken, id: string) {
-    const { status, data: blog } = await this.validUpsert(
-      { id },
-      { author: { id: user.profile.id }},
-      blogRelation,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+    const blog = await this.findOne({ id }, blogRelation)
+    if (!blog) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (blog.author.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.blogRepo.softRemove(blog)
-
-    return {
-      status: HTTP_STATUS.OK
-    }
   }
 
   async updateVote(id: string, votes: number) {
