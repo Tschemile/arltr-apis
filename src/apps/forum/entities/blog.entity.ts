@@ -12,11 +12,11 @@ export class Blog extends Base {
   title: string
 
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   author: Profile
 
   @ManyToOne(() => Category)
-  @ApiProperty({ type: Category })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column({ type: 'simple-array' })

@@ -7,11 +7,11 @@ import { Product } from "./product.entity";
 @Entity()
 export class Item extends Base {
   @ManyToOne(() => Order)
-  @ApiProperty({ type: Order })
+  @ApiProperty({ type: () => Order })
   order: Order
 
   @ManyToOne(() => Product)
-  @ApiProperty({ type: Product })
+  @ApiProperty({ type: () => Product })
   product: Product
 
   @Column()

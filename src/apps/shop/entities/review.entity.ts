@@ -7,11 +7,11 @@ import { ApiProperty } from "@nestjs/swagger";
 @Entity()
 export class Review extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @ManyToOne(() => Product)
-  @ApiProperty({ type: Product })
+  @ApiProperty({ type: () => Product })
   product: Product
 
   @Column()

@@ -8,11 +8,11 @@ import { ApiProperty } from "@nestjs/swagger";
 @Entity()
 export class Member extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @ManyToOne(() => Group)
-  @ApiProperty({ type: Group })
+  @ApiProperty({ type: () => Group })
   group: Group
 
   @Column({ enum: MEMBER_ROLE })

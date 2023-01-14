@@ -7,7 +7,7 @@ import { FILE_SCOPE } from "../constants";
 @Entity()
 export class File extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   owner: Profile
   
   @Column()

@@ -8,25 +8,25 @@ import { IsArray } from "class-validator";
 
 
 export class ProfileFully extends Profile {
-  @ApiProperty({ type: [Post] })
+  @ApiProperty({ type: () => [Post] })
   posts: Post[]
 
   @ApiProperty({ type: Number })
   totalPosts: number
 
-  @ApiProperty({ type: [Profile] })
+  @ApiProperty({ type: () => [Profile] })
   friends: Profile[];
 
-  @ApiProperty({ type: [Profile] })
+  @ApiProperty({ type: () => [Profile] })
   pages: Profile[];
 
-  @ApiProperty({ type: [Profile] })
+  @ApiProperty({ type: () => [Profile] })
   blocks: Profile[];
 
-  @ApiProperty({ type: [Profile] })
+  @ApiProperty({ type: () => [Profile] })
   followers: Profile[];
 
-  @ApiProperty({ type: [Profile] })
+  @ApiProperty({ type: () => [Profile] })
   followings: Profile[];
 
   @ApiProperty({ type: Number })
@@ -58,16 +58,16 @@ export class ProfileFully extends Profile {
 }
 export class GetProfilesOutput extends BaseOutputResponse {
   @IsArray()
-  @ApiProperty({ type: [Profile ] })
+  @ApiProperty({ type: () => [Profile] })
   profiles: Profile[]
 }
 
 export class GetProfileOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   profile?: Profile
 }
 
 export class GetProfileFullyOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-  @ApiProperty({ type: ProfileFully })
+  @ApiProperty({ type: () => ProfileFully })
   profile?: ProfileFully
 }

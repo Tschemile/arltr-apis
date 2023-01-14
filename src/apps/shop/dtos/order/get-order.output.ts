@@ -7,11 +7,11 @@ export class OrderOutput extends Order {
 }
 
 export class GetOrdersOutput extends BaseOutputResponse {
-  @ApiProperty({ type: [Order] })
+  @ApiProperty({ type: () => [Order] })
   orders: Order[]
 }
 
 export class GetOrderOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
-  @ApiProperty({ type: Order })
+  @ApiProperty({ type: () => Order })
   order?: OrderOutput
 }
