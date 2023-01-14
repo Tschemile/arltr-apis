@@ -1,15 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { Vote } from "apps/forum/entities";
-import { BaseService } from "base";
-import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { BaseError, BaseService } from "base";
+import { Repository } from "typeorm";
 import { BlogService } from "../blog";
 import { ReplyService } from "../reply";
 
-const relations = {
+export const voteRelations = {
   user: true,
   blog: true,
   reply: true,
@@ -31,9 +30,7 @@ export class VoteService extends BaseService<Vote> {
     if (blogId) {
       const blog = await this.blogService.findOne({ id: blogId })
       if (!blog) {
-        return {
-          status: HTTP_STATUS.Not_Found
-        }
+        BaseError('Blog', HttpStatus.NOT_FOUND)
       }
   
       let total = blog.votes || 0
@@ -41,7 +38,7 @@ export class VoteService extends BaseService<Vote> {
       const voted = await this.findOne({
         user: { id: user.profile.id },
         blog: { id: blog.id }
-      })
+      }, voteRelations)
   
       if (voted) {
         if (voted.vote === vote) {
@@ -65,17 +62,11 @@ export class VoteService extends BaseService<Vote> {
       }
   
       await this.blogService.updateVote(blog.id, total)
-  
-      return {
-        status: HTTP_STATUS.OK
-      }
     }
     if (replyId) {
       const reply = await this.replyService.findOne({ id: replyId })
       if (!reply) {
-        return {
-          status: HTTP_STATUS.Not_Found
-        }
+        BaseError('Reply', HttpStatus.NOT_FOUND)
       }
   
       let total = reply.votes || 0
@@ -83,7 +74,7 @@ export class VoteService extends BaseService<Vote> {
       const voted = await this.findOne({
         user: { id: user.profile.id },
         reply: { id: reply.id }
-      })
+      }, voteRelations)
   
       if (voted) {
         if (voted.vote === vote) {
@@ -107,10 +98,6 @@ export class VoteService extends BaseService<Vote> {
       }
   
       await this.replyService.updateVote(reply.id, total)
-  
-      return {
-        status: HTTP_STATUS.OK
-      }
     }
   }
 }

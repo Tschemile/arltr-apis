@@ -1,12 +1,13 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateCommentInput, UpdateCommentInput } from "apps/posts/dtos";
-import { Comment, Post } from "apps/posts/entities";
-import { BaseService } from "base";
+import { Comment } from "apps/posts/entities";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
 import { PostService } from "../post";
+
+const MODULE_NAME = 'Comment'
 
 export const commentRelation = {
   user: true,
@@ -27,9 +28,7 @@ export class CommentService extends BaseService<Comment> {
 
     const post = await this.postService.findOne({ id: postId })
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(`Post`, HttpStatus.NOT_FOUND)
     }
 
     const createdComment = this.commentRepo.create({
@@ -42,7 +41,6 @@ export class CommentService extends BaseService<Comment> {
     await this.postService.incrementComments(post.id, total + 1)
 
     return {
-      status: HTTP_STATUS.Created,
       comment: createdComment,
     }
   }
@@ -67,15 +65,11 @@ export class CommentService extends BaseService<Comment> {
   ) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.commentRepo.save({
@@ -84,7 +78,6 @@ export class CommentService extends BaseService<Comment> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       comment: { ...comment, ...input }
     }
   }
@@ -92,25 +85,17 @@ export class CommentService extends BaseService<Comment> {
   async remove(user: UserToken, id: string) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.commentRepo.softRemove(comment)
 
     const total = comment.post.totalComments || 0
     await this.postService.incrementComments(comment.post.id, total - 1)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 
   async incrementReacts(id: string, total: number) {

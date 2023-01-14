@@ -1,10 +1,9 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Group } from "apps/groups";
 import { Post } from "apps/posts";
-import { File } from "apps/uploads";
 import { Profile } from "apps/profiles/entities";
-import { BaseOutputResponse } from "base";
-import { IsArray } from "class-validator";
+import { File } from "apps/uploads";
+import { IsArray, IsNumber } from "class-validator";
 
 
 export class ProfileFully extends Profile {
@@ -56,18 +55,22 @@ export class ProfileFully extends Profile {
   @ApiProperty({ type: Number })
   totalAlbums: number
 }
-export class GetProfilesOutput extends BaseOutputResponse {
+export class GetProfilesOutput {
   @IsArray()
   @ApiProperty({ type: () => [Profile] })
   profiles: Profile[]
+
+  @IsNumber()
+  @ApiProperty({ type: Number })
+  total: number
 }
 
-export class GetProfileOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
+export class GetProfileOutput {
   @ApiProperty({ type: () => Profile })
   profile?: Profile
 }
 
-export class GetProfileFullyOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
+export class GetProfileFullyOutput {
   @ApiProperty({ type: () => ProfileFully })
   profile?: ProfileFully
 }

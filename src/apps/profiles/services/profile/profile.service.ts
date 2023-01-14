@@ -1,17 +1,18 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
-import { GroupService, MemberService } from "apps/groups";
+import { GroupService } from "apps/groups";
 import { PostService } from "apps/posts";
 import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
 import { FileService } from "apps/uploads";
 import { User } from "apps/users";
-import { BaseService } from "base";
-import { Between, FindOptionsWhere, LessThan, Like, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { BaseError, BaseService } from "base";
+import { Between, FindOptionsWhere, Like, Not, Repository } from "typeorm";
 import { relateRelations, RelationService } from "../relation";
+
+const MODULE_NAME = 'Profile'
 
 export const profileRelations = {
   user: true,
@@ -40,9 +41,7 @@ export class ProfileService extends BaseService<Profile> {
       }, profileRelations)
 
       if (existedProfile) {
-        return {
-          status: HTTP_STATUS.Conflict,
-        }
+        BaseError(MODULE_NAME, HttpStatus.CONFLICT)
       }
     }
     const createdProfile = this.profileRepo.create({
@@ -51,10 +50,7 @@ export class ProfileService extends BaseService<Profile> {
     })
     await this.profileRepo.save(createdProfile)
 
-    return {
-      status: HTTP_STATUS.Created,
-      profile: createdProfile,
-    }
+    return { profile: createdProfile }
   }
 
   async findAll(user: UserToken, query: QueryProfileInput) {
@@ -119,14 +115,10 @@ export class ProfileService extends BaseService<Profile> {
     const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
 
     if (blocked) {
-      return {
-        status: HTTP_STATUS.Forbidden,
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     const profileFully = {
@@ -141,7 +133,6 @@ export class ProfileService extends BaseService<Profile> {
       totalAlbums,
     }
     return {
-      status: HTTP_STATUS.OK,
       profile: profileFully
     }
   }
@@ -149,9 +140,7 @@ export class ProfileService extends BaseService<Profile> {
   async update(user: UserToken, input: UpdateProfileInput) {
     const profile = await this.findOne({ id: user.profile.id })
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
     await this.profileRepo.save({
       ...input,
@@ -160,7 +149,6 @@ export class ProfileService extends BaseService<Profile> {
 
     const updateProfile = { ...profile, ...input }
     return {
-      status: HTTP_STATUS.OK,
       profile: updateProfile,
     }
   }
@@ -168,27 +156,20 @@ export class ProfileService extends BaseService<Profile> {
   async remove(user: UserToken) {
     const profile = await this.findOne({ id: user.profile.id }, profileRelations)
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
     await this.profileRepo.softRemove(profile)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 
   async switch(user: User, id: string) {
     const profile = await this.findOne({ id })
     if (!profile) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
     if (user.id !== profile.user.id) {
-      return { status: HTTP_STATUS.Unauthorized }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
     return {
-      status: HTTP_STATUS.OK,
       token: this.authService.generateToken(user, profile),
     }
   }

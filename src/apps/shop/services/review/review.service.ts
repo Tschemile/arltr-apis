@@ -1,11 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateReviewInput } from "apps/shop/dtos";
 import { Review } from "apps/shop/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
 import { ProductService } from "../product";
 
 export const reviewRelations = {
@@ -27,9 +26,7 @@ export class ReviewService extends BaseService<Review> {
 
     const product = await this.productService.findOne({ id: productId })
     if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(`Product`, HttpStatus.NOT_FOUND)
     }
 
     const createdReview = this.reviewRepo.create({
@@ -47,10 +44,7 @@ export class ReviewService extends BaseService<Review> {
       newNumReviews,
     )
 
-    return {
-      status: HTTP_STATUS.Created,
-      review: createdReview,
-    }
+    return { review: createdReview, }
   }
 
   async findAll(product: string) {

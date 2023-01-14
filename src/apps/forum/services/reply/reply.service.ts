@@ -1,14 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateReplyInput, UpdateReplyInput } from "apps/forum/dtos";
 import { Reply } from "apps/forum/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
 import { BlogService } from "../blog";
 
-const replyRelation = {
+const MODULE_NAME = 'Reply'
+
+export const replyRelation = {
   user: true,
   blog: true,
 }
@@ -27,9 +28,7 @@ export class ReplyService extends BaseService<Reply> {
     
     const blog = await this.blogService.findOne({ id: blogId })
     if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError('Blog', HttpStatus.NOT_FOUND)
     }
 
     const createdReply = this.replyRepo.create({
@@ -39,10 +38,7 @@ export class ReplyService extends BaseService<Reply> {
     })
     await this.replyRepo.save(createdReply)
 
-    return {
-      status: HTTP_STATUS.Created,
-      reply: createdReply
-    }
+    return { reply: createdReply }
   }
 
   async findAll(blogId: string) {
@@ -63,13 +59,11 @@ export class ReplyService extends BaseService<Reply> {
     id: string,
     input: UpdateReplyInput
   ) {
-    const { status, data: reply } = await this.validUpsert(
-      { id },
-      { user: { id: user.profile.id }},
-      replyRelation,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+    const reply = await this.findOne({ id }, replyRelation)
+    if (!reply) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (reply.user.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.replyRepo.save({
@@ -79,27 +73,18 @@ export class ReplyService extends BaseService<Reply> {
 
     const updatedReply = { ...reply, ...input }
 
-    return {
-      status: HTTP_STATUS.OK,
-      reply: updatedReply
-    }
+    return { reply: updatedReply }
   }
 
   async remove(user: UserToken, id: string) {
-    const { status, data: reply } = await this.validUpsert(
-      { id },
-      { user: { id: user.profile.id }},
-      replyRelation,
-    )
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
+    const reply = await this.findOne({ id }, replyRelation)
+    if (!reply) {
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+    } else if (reply.user.id !== user.profile.id) {
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.replyRepo.softRemove(reply)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 
   async updateVote(id: string, votes: number) {

@@ -1,10 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { CreateProfileInput, GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
 import { GetUserTokenOutput } from "apps/users/dtos";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Profile'
 
@@ -24,48 +23,23 @@ export class ProfileController {
     @Request() req,
     @Body() input: CreateProfileInput,
   ) {
-    const { status, profile } = await this.profileService.create(
+    return await this.profileService.create(
       input,
       req.user,
     )
-    if (status === HTTP_STATUS.Conflict) {
-      return {
-        status,
-        message: `${MODULE_NAME} has already existed`,
-      }
-    }
-    return {
-      status,
-      profile,
-    }
   }
 
   @Get('switch')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
-  @ApiUnauthorizedResponse({ description: `Unauthorized` })
+  @ApiForbiddenResponse({ description: `You dont have permission to do that` })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async switch(
     @Request() req,
     @Query('id') id: string,
   ): Promise<GetUserTokenOutput> {
-    const { status, token } = await this.profileService.switch(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Unauthorized) {
-      return {
-        status,
-        message: `Unauthorized`,
-      }
-    }
-    return {
-      status,
-      token,
-    }
+    return await this.profileService.switch(req.user, id)
   }
 
   @Get()
@@ -89,16 +63,10 @@ export class ProfileController {
     @Query('maxAge') maxAge,
     @Query('limit') limit,
   ): Promise<GetProfilesOutput> {
-    const { profiles, total } = await this.profileService.findAll(
+    return await this.profileService.findAll(
       req.user,
       { search, gender, status, minAge, maxAge, limit }
     )
-
-    return {
-      status: HTTP_STATUS.OK,
-      profiles,
-      total,
-    }
   }
 
   @Get('me')
@@ -109,17 +77,7 @@ export class ProfileController {
   async getMyProfile(
     @Request() req
   ): Promise<GetProfileOutput> {
-    const { status, profile } = await this.profileService.findById(req.user, req.user.profile.domain)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return {
-      status,
-      profile,
-    }
+    return await this.profileService.findById(req.user, req.user.profile.domain)
   }
 
   @Get(':domain')
@@ -133,22 +91,7 @@ export class ProfileController {
     @Request() req,
     @Param('domain') domain: string
   ): Promise<GetProfileFullyOutput> {
-    const { status, profile } = await this.profileService.findById(req.user, domain)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-    return {
-      status,
-      profile,
-    }
+    return await this.profileService.findById(req.user, domain)
   }
 
   @Patch()
@@ -160,20 +103,10 @@ export class ProfileController {
     @Request() req,
     @Body() input: UpdateProfileInput,
   ) {
-    const { status, profile } = await this.profileService.update(
+    return await this.profileService.update(
       req.user,
       input,
     )
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return {
-      status,
-      profile,
-    }
   }
 
   @Delete()
@@ -184,16 +117,6 @@ export class ProfileController {
   async delete(
     @Request() req,
   ) {
-    const { status } = await this.profileService.remove(req.user)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return {
-      status,
-      message: `Deleted successfully`
-    }
+    return await this.profileService.remove(req.user)
   }
 }

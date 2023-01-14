@@ -3,7 +3,6 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedRe
 import { JwtAuthGuard } from "apps/auth";
 import { GetUserTokenOutput, LoginInput, RegisterInput } from "apps/users/dtos";
 import { UserService } from "apps/users/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'User'
 
@@ -19,60 +18,21 @@ export class UserController {
   @ApiBadRequestResponse({ description: 'Email or password incorrect' })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async login(@Body() loginUserInput: LoginInput): Promise<GetUserTokenOutput> {
-    const { status, token } = await this.userService.login(loginUserInput)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    else if (status === HTTP_STATUS.Bad_Request) {
-      return {
-        status,
-        message: 'Email or password incorrect',
-      }
-    } else if (status === HTTP_STATUS.OK) {
-      return {
-        status,
-        token,
-      }
-    }
+    return await this.userService.login(loginUserInput)
   }
 
   @Post()
   @ApiConflictResponse({ description: `${MODULE_NAME} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
   async create(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
-    const { status, token } = await this.userService.register(registerInput)
-    if (status === HTTP_STATUS.Conflict) {
-      return {
-        status,
-        message: `${MODULE_NAME} already existed`,
-      }
-    } else if (status === HTTP_STATUS.Created) {
-      return {
-        status,
-        token,
-      }
-    }
+    return await this.userService.register(registerInput)
   }
 
   @Post('admin')
   @ApiConflictResponse({ description: `${MODULE_NAME} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
   async createAdmin(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
-    const { status, token } = await this.userService.register(registerInput, true)
-    if (status === HTTP_STATUS.Conflict) {
-      return {
-        status,
-        message: `${MODULE_NAME} already existed`,
-      }
-    } else if (status === HTTP_STATUS.Created) {
-      return {
-        status,
-        token,
-      }
-    }
+    return await this.userService.register(registerInput, true)
   }
 
   @Delete()
@@ -83,21 +43,6 @@ export class UserController {
   async delete(
     @Request() req,
   ) {
-    const { status } = await this.userService.delete(req.user)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Not_Modified) {
-      return {
-        status,
-        message: `${MODULE_NAME} has already deleted`,
-      }
-    }
-    return {
-      status,
-      message: `Deleted successfully`
-    }
+    return await this.userService.delete(req.user)
   }
 }

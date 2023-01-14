@@ -6,12 +6,12 @@ export class OrderOutput extends Order {
   orderItems?: Item[]
 }
 
-export class GetOrdersOutput extends BaseOutputResponse {
+export class GetOrdersOutput {
   @ApiProperty({ type: () => [Order] })
   orders: Order[]
 }
 
-export class GetOrderOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
+export class GetOrderOutput {
   @ApiProperty({ type: () => Order })
   order?: OrderOutput
 }

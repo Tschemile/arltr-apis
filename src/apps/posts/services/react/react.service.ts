@@ -1,11 +1,10 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { UpsertReactInput } from "apps/posts/dtos";
 import { React } from "apps/posts/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
 
@@ -31,9 +30,7 @@ export class ReactService extends BaseService<React> {
     if (postId) {
       const post = await this.postService.findOne({ id: postId })
       if (!post) {
-        return {
-          status: HTTP_STATUS.Not_Found
-        }
+        BaseError(`Product`, HttpStatus.NOT_FOUND)
       }
 
       let total = post.totalReacts || 0
@@ -66,9 +63,7 @@ export class ReactService extends BaseService<React> {
     if (commentId) {
       const comment = await this.commentService.findOne({ id: commentId })
       if (!comment) {
-        return {
-          status: HTTP_STATUS.Not_Found
-        }
+        BaseError(`Comment`, HttpStatus.NOT_FOUND)
       }
 
       let total = comment.totalReacts || 0
@@ -98,7 +93,5 @@ export class ReactService extends BaseService<React> {
       }
       await this.commentService.incrementReacts(comment.id, total)
     }
-
-    return { status: HTTP_STATUS.Created }
   }
 }

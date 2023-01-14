@@ -1,13 +1,15 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
 import { GROUP_MODE, MEMBER_ROLE, QUERY_TYPE } from 'apps/groups/constants';
 import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups/dtos';
 import { Group } from 'apps/groups/entities';
-import { BaseService } from 'base';
+import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
-import { generateSlug, HTTP_STATUS } from 'utils';
+import { generateSlug } from 'utils';
 import { MemberService } from '../member';
+
+const MODULE_NAME = 'Group'
 
 @Injectable()
 export class GroupService extends BaseService<Group> {
@@ -29,7 +31,6 @@ export class GroupService extends BaseService<Group> {
     const owner = await this.memberService.createOwner(user, createdGroup)
 
     return {
-      status: HTTP_STATUS.Created,
       group: {
         ...createdGroup,
         member: owner,
@@ -87,9 +88,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -97,9 +96,7 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.groupRepo.save({
@@ -108,7 +105,6 @@ export class GroupService extends BaseService<Group> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       group: {
         ...group,
         ...input,
@@ -122,9 +118,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -132,16 +126,10 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
     }
 
     await this.groupRepo.softRemove(group)
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
   }
 
   async incrementTotal(id: string, total: number) {

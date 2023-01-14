@@ -1,13 +1,12 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Product } from "apps/shop/entities";
-import { BaseOutputResponse } from "base";
 
-export class GetProductsOutput extends BaseOutputResponse {
+export class GetProductsOutput {
   @ApiProperty({ type: () => [Product] })
   products: Product[]
 }
 
-export class GetProductOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
+export class GetProductOutput {
   @ApiProperty({ type: () => Product })
   product?: Product
 }
