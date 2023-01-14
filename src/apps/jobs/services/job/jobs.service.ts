@@ -131,12 +131,8 @@ export class JobsService extends BaseService<Job> {
 
     await this.jobRepository.save({
       ...updateJobDto,
-      address: {
-        id: updateJobDto.addressId,
-      },
-      category: {
-        id: updateJobDto.categoryId,
-      },
+      address,
+      category,
       id: job.id,
     });
 

@@ -1,1 +1,5 @@
 export * from './entities'
+export * from './controllers'
+export * from './dto'
+export * from './modules'
+export * from './services'
