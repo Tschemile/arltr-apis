@@ -14,6 +14,7 @@ import {
   UploadModule,
   UserModule
 } from 'apps';
+import { CoursesModule } from 'apps/courses/modules/courses.module';
 
 
 @Module({
@@ -35,6 +36,7 @@ import {
     GroupModule,
     JobsModule,
     PostModule,
+    CoursesModule,
     ProfileModule, 
     SettingModule, 
     ShopModule, 
