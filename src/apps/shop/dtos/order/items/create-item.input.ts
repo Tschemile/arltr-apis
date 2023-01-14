@@ -4,11 +4,11 @@ import { IsNotEmpty, IsNumber } from "class-validator"
 
 export class CreateItemInput {
   @IsNotEmpty()
-  @ApiProperty({ type: Order })
+  @ApiProperty({ type: () => Order })
   order: Order
 
   @IsNotEmpty()
-  @ApiProperty({ type: Product })
+  @ApiProperty({ type: () => Product })
   product: Product
 
   @IsNumber()

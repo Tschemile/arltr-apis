@@ -5,11 +5,11 @@ import { IsArray } from "class-validator";
 
 export class GetApplicantsOutput extends BaseOutputResponse {
     @IsArray()
-    @ApiProperty({ type: [ Applicant] })
+    @ApiProperty({ type: () => [ Applicant] })
     applicants: Applicant[]
 }
 
 export class GetApplicantOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-    @ApiProperty({ type: Applicant })
+    @ApiProperty({ type: () => Applicant })
     applicant?: Applicant 
 }

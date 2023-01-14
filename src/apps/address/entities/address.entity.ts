@@ -6,7 +6,7 @@ import { Column, Entity, ManyToOne } from "typeorm";
 @Entity()
 export class Address extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
   
   @Column()

@@ -7,11 +7,11 @@ import { ApiProperty } from "@nestjs/swagger";
 @Entity()
 export class Order extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   shop: Profile
 
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @Column()
@@ -19,7 +19,7 @@ export class Order extends Base {
   ticketId: string
 
   @ManyToOne(() => Address)
-  @ApiProperty({ type: Address })
+  @ApiProperty({ type: () => Address })
   address: Address
 
   @Column()

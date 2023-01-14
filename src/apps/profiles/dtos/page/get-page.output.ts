@@ -5,11 +5,11 @@ import { IsArray } from "class-validator";
 
 export class GetPagesOutput extends BaseOutputResponse {
   @IsArray()
-  @ApiProperty({ type: [Profile ] })
+  @ApiProperty({ type: () => [Profile] })
   pages: Profile[]
 }
 
 export class GetPageOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   page?: Profile
 }

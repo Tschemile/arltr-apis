@@ -5,11 +5,11 @@ import { IsArray } from "class-validator";
 
 export class GetGroupsOutput extends BaseOutputResponse {
   @IsArray()
-  @ApiProperty({ type: [Group ] })
+  @ApiProperty({ type: () => [Group] })
   groups: Group[]
 }
 
 export class GetGroupOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-  @ApiProperty({ type: Group })
+  @ApiProperty({ type: () => Group })
   group?: Group
 }

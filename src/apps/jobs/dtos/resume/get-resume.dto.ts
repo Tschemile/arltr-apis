@@ -6,11 +6,11 @@ import { IsArray } from "class-validator";
 
 export class GetResumesOutput extends BaseOutputResponse {
     @IsArray()
-    @ApiProperty({ type: [ Resume ] })
+    @ApiProperty({ type: () => [Resume] })
     resumes: Resume[]
 }
 
 export class GetResumeOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-    @ApiProperty({ type: Resume })
+    @ApiProperty({ type: () => Resume })
     resume?: Resume
-  }
+}

@@ -9,7 +9,7 @@ import { ApiProperty } from "@nestjs/swagger";
 @Entity()
 export class Product extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   shop: Profile
 
   @Column()
@@ -17,7 +17,7 @@ export class Product extends Base {
   name: string
 
   @ManyToOne(() => Address)
-  @ApiProperty({ type: Address })
+  @ApiProperty({ type: () => Address })
   address: Address
 
   @Column()
@@ -33,7 +33,7 @@ export class Product extends Base {
   description: string
 
   @ManyToOne(() => Category)
-  @ApiProperty({ type: Category })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column({ type: 'simple-array' })

@@ -3,11 +3,11 @@ import { Review } from "apps/shop/entities";
 import { BaseOutputResponse } from "base";
 
 export class GetReviewsOutput extends BaseOutputResponse {
-  @ApiProperty({ type: [Review] })
+  @ApiProperty({ type: () => [Review] })
   reviews: Review[]
 }
 
 export class GetReviewOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
-  @ApiProperty({ type: Review })
+  @ApiProperty({ type: () => Review })
   review?: Review
 }

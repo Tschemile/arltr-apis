@@ -9,5 +9,6 @@ export enum CATEGORY_MODULE {
   FORUM = 'FORUM',
   JOB = 'JOB',
   COURSE = 'COURSE',
+  REPORT = 'REPORT',
   ALL = 'ALL'
 }

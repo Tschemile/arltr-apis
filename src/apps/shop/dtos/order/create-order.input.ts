@@ -25,7 +25,7 @@ export class CreateOrderInput {
   address: string
 
   @IsArray()
-  @ApiProperty({ type: OrderItems })
+  @ApiProperty({ type: () => OrderItems })
   orderItems: OrderItems[]
 
   @IsNumber()

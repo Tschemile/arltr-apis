@@ -7,11 +7,11 @@ import { Profile } from "./profile.entity";
 @Entity()
 export class Relation extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   requester: Profile
 
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @Column({ enum: RELATION_TYPE })
