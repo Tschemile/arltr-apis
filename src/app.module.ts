@@ -1,8 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AddressModule, AuthModule, ForumModule, ProfileModule, SettingModule, ShopModule, UserModule } from 'apps';
-import { JobsModule } from 'apps/jobs/jobs.module';
+import {
+  AddressModule,
+  AuthModule,
+  ForumModule,
+  GroupModule,
+  JobsModule,
+  PostModule,
+  ProfileModule,
+  SettingModule,
+  ShopModule,
+  UploadModule,
+  UserModule
+} from 'apps';
+import { CoursesModule } from 'apps/courses/modules/courses.module';
+
 
 @Module({
   imports: [
@@ -17,14 +30,18 @@ import { JobsModule } from 'apps/jobs/jobs.module';
       entities: [__dirname + '/../**/*.entity.js'],
       synchronize: true,
     }),
-    AddressModule,
-    ProfileModule,
-    AuthModule,
-    ForumModule,
-    SettingModule,
+    AddressModule, 
+    AuthModule, 
+    ForumModule, 
+    GroupModule,
     JobsModule,
+    PostModule,
+    CoursesModule,
+    ProfileModule, 
+    SettingModule, 
+    ShopModule, 
+    UploadModule,
     UserModule,
-    ShopModule,
   ],
 })
 export class AppModule {}

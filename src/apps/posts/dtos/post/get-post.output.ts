@@ -1,14 +1,13 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Post } from "apps/posts/entities";
-import { BaseOutputResponse } from "base";
 
-export class GetPostsOutput extends BaseOutputResponse {
-  @ApiProperty({ type: [Post] })
+export class GetPostsOutput {
+  @ApiProperty({ type: () => [Post] })
   posts: Post[]
 
 }
 
-export class GetPostOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
-  @ApiProperty({ type: Post })
+export class GetPostOutput {
+  @ApiProperty({ type: () => Post })
   post?: Post
 }

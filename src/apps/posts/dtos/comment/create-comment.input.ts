@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsUUID } from "class-validator";
+import { IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateCommentInput {
   @IsUUID()
@@ -7,10 +7,12 @@ export class CreateCommentInput {
   post: string
 
   @IsString()
+  @IsOptional()
   @ApiProperty({ type: String, nullable: true })
   content?: string
 
   @IsString()
+  @IsOptional()
   @ApiProperty({ type: String, nullable: true })
   image?: string
 }

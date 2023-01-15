@@ -8,11 +8,11 @@ import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
 @Entity()
 export class Post extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   author: Profile
 
   @ManyToOne(() => Group, { nullable: true })
-  @ApiProperty({ type: Group, nullable: true })
+  @ApiProperty({ type: () => Group, nullable: true })
   group: Group
 
   @Column({ enum: POST_TYPE, default: POST_TYPE.POST })

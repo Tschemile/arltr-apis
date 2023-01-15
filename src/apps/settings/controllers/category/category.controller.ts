@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard, Roles, RolesGuard } from "apps/auth";
 import { USER_ROLE } from "apps/profiles";
 import { CreateCategoryInput, UpdateCategoryInput } from "apps/settings/dtos";
 import { Category } from "apps/settings/entities";
 import { CategoryService } from "apps/settings/services";
-import { HTTP_STATUS } from "utils";
 
 const MODULE_NAME = 'Category'
 
@@ -27,7 +26,6 @@ export class CategoryController {
   ) {
     const category = await this.categoryService.create(input)
     return {
-      status: HTTP_STATUS.Created,
       category,
     }
   }
@@ -37,12 +35,7 @@ export class CategoryController {
   async gets(
     @Query('search') search: string,
   ) {
-    const { categories, total } = await this.categoryService.findAll(search)
-    return {
-      status: HTTP_STATUS.OK,
-      categories,
-      total
-    }
+    return await this.categoryService.findAll(search)
   }
 
   @Patch(':id')
@@ -56,21 +49,10 @@ export class CategoryController {
     @Param('id') id: string,
     @Body() input: UpdateCategoryInput
   ) {
-    const { status, category } = await this.categoryService.update(
+    return await this.categoryService.update(
       id,
       input,
     )
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-
-    return {
-      status,
-      category,
-    }
   }
 
   @Delete(':id')
@@ -81,17 +63,8 @@ export class CategoryController {
   @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
-    @Request() req,
     @Param('id') id: string
   ) {
-    const user = req.user
-    const { status } = await this.categoryService.remove(id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    }
-    return { status }
+    return await this.categoryService.remove(id)
   }
 }

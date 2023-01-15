@@ -1,13 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateAddressInput, UpdateAddressInput } from "apps/address/dtos";
 import { Address } from "apps/address/entities";
 import { UserToken } from "apps/auth";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 
-const addressRelations = {
+export const addressRelations = {
   user: true,
 }
 
@@ -27,24 +27,33 @@ export class AddressService extends BaseService<Address> {
 
     await this.addressRepo.save(createdAddress)
 
-    return createdAddress
+    return { address: createdAddress }
   }
 
-  async findAll(user: UserToken) {
-    const where: FindOptionsWhere<Address> = {
-      isDeleted: false
-    }
+  async findAll(user: UserToken, limit: number) {
+    const where: FindOptionsWhere<Address> = {}
 
     where.user = {
       id: user.profile.id,
     }
 
-    const [addresses, total] = await Promise.all([
-      this.addressRepo.find({ relations: addressRelations, where }),
-      this.addressRepo.count({ where }),
-    ])
+    const { data: addresses, total } = await this.find({
+      where,
+      relations: addressRelations,
+      limit,
+    })
 
     return { addresses, total }
+  }
+
+  async findById(user: UserToken, id: string) {
+    const address = await this.findOne({ id }, addressRelations)
+
+    if (address.user.id !== user.profile.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
+    }
+
+    return { address }
   }
 
   async update(
@@ -54,13 +63,9 @@ export class AddressService extends BaseService<Address> {
   ) {
     const address = await this.findOne({ id }, addressRelations)
     if (!address) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Unauthorized
-      }
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
     }
 
     await this.addressRepo.save({
@@ -69,35 +74,21 @@ export class AddressService extends BaseService<Address> {
     })
 
     const updatedAddress = { ...address, ...input }
-    return {
-      status: HTTP_STATUS.OK,
-      address: updatedAddress,
-    }
+    return { address: updatedAddress }
   }
 
   async remove(
     user: UserToken,
     id: string,
-  ) { 
+  ) {
     const address = await this.findOne({ id }, addressRelations)
     if (!address) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Unauthorized
-      }
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
     }
-
-    await this.addressRepo.save({
-      id,
-      isDeleted: true,
-      deletedAt: new Date(),
-    })
-
     return {
-      status: HTTP_STATUS.OK,
+      address: await this.addressRepo.softRemove(address)
     }
   }
 }

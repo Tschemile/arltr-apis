@@ -1,27 +1,25 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateReplyInput, UpdateReplyInput } from "apps/forum/dtos";
 import { Reply } from "apps/forum/entities";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { BlogService } from "../blog";
 
-const relations = {
+export const replyRelation = {
   user: true,
   blog: true,
 }
 
 @Injectable()
-export class ReplyService {
+export class ReplyService extends BaseService<Reply> {
   constructor(
     @InjectRepository(Reply) private replyRepo: Repository<Reply>,
     private blogService: BlogService,
-  ) { }
-
-  async findOne(where: FindOptionsWhere<Reply> | FindOptionsWhere<Reply>[]) {
-    const reply = await this.replyRepo.findOne({ relations, where })
-    return reply
+  ) { 
+    super(replyRepo)
   }
 
   async create(user: UserToken, input: CreateReplyInput) {
@@ -29,9 +27,7 @@ export class ReplyService {
     
     const blog = await this.blogService.findOne({ id: blogId })
     if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     }
 
     const createdReply = this.replyRepo.create({
@@ -41,23 +37,18 @@ export class ReplyService {
     })
     await this.replyRepo.save(createdReply)
 
-    return {
-      status: HTTP_STATUS.Created,
-      reply: createdReply
-    }
+    return { reply: createdReply }
   }
 
   async findAll(blogId: string) {
-    const where: FindOptionsWhere<Reply> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Reply> = {}
 
     where.blog = { id: blogId }
 
-    const [replies, total] = await Promise.all([
-      this.replyRepo.find({ relations, where }),
-      this.replyRepo.count({ where })
-    ])
+    const { data: replies, total } = await this.find({
+      where,
+      relations: replyRelation,
+    })
 
     return { replies, total }
   }
@@ -67,15 +58,11 @@ export class ReplyService {
     id: string,
     input: UpdateReplyInput
   ) {
-    const reply = await this.findOne({ id })
+    const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
-      return { 
-        status: HTTP_STATUS.Not_Found 
-      }
+      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      return { 
-        status: HTTP_STATUS.Forbidden 
-      }
+      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
     }
 
     await this.replyRepo.save({
@@ -85,39 +72,19 @@ export class ReplyService {
 
     const updatedReply = { ...reply, ...input }
 
-    return {
-      status: HTTP_STATUS.OK,
-      reply: updatedReply
-    }
+    return { reply: updatedReply }
   }
 
   async remove(user: UserToken, id: string) {
-    const reply = await this.findOne({ id })
+    const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
-      return { 
-        status: HTTP_STATUS.Not_Found 
-      }
+      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      return { 
-        status: HTTP_STATUS.Forbidden 
-      }
+      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
     }
-
-    await this.replyRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
 
     return {
-      status: HTTP_STATUS.OK,
+      reply: await this.replyRepo.softRemove(reply)
     }
-  }
-
-  async updateVote(id: string, votes: number) {
-    await this.replyRepo.save({
-      votes,
-      id,
-    })
   }
 }

@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { GroupService, memberRelation, MemberService } from "apps/groups";
@@ -6,11 +6,13 @@ import { MEMBER_STATUS } from "apps/groups/constants";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
-import { RelationService, RELATION_TYPE } from "apps/profiles";
-import { BaseService } from "base";
+import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { CommentService } from "../comment";
+import { ReactService } from "../react";
+import { formatData } from "./formatData";
 
 export const postRelation = {
   author: true,
@@ -21,10 +23,12 @@ export const postRelation = {
 export class PostService extends BaseService<Post> {
   constructor(
     @InjectRepository(Post) private postRepo: Repository<Post>,
+    @Inject(forwardRef(() => ReactService)) private reactService: ReactService,
     @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
     @Inject(forwardRef(() => MemberService)) private memberService: MemberService,
     @Inject(forwardRef(() => CommentService)) private commentService: CommentService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
+    @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
     super(postRepo)
   }
@@ -32,9 +36,7 @@ export class PostService extends BaseService<Post> {
   async validGroup(user: UserToken, groupId: string) {
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -43,12 +45,10 @@ export class PostService extends BaseService<Post> {
     }, memberRelation)
 
     if (!member || member.status !== MEMBER_STATUS.ACTIVE) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
     }
 
-    return { group, status: HTTP_STATUS.OK }
+    return { group }
   }
 
   async create(user: UserToken, input: CreatePostInput) {
@@ -60,28 +60,27 @@ export class PostService extends BaseService<Post> {
     })
 
     if (groupId) {
-      const { status, group } = await this.validGroup(user, groupId)
-      if (status !== HTTP_STATUS.OK) {
-        return { status }
-      }
+      const { group } = await this.validGroup(user, groupId)
 
       createdPost.group = group
     }
 
     await this.postRepo.save(createdPost)
     return {
-      status: HTTP_STATUS.Forbidden,
       post: createdPost
     }
   }
 
   async findAll(user: UserToken, query: QueryPostInput) {
-    const take = query.limit || 10
-    const singleWhere: FindOptionsWhere<Post> = { isDeleted: false }  
-    singleWhere.type = query.type || POST_TYPE.POST
+    const { limit, type, } = query
+    const singleWhere: FindOptionsWhere<Post> = {}
+    singleWhere.type = type || POST_TYPE.POST
 
-    const { data: relations } = await this.relationService.getRelations(user)
-    const { friendIds, followingIds } = relations
+    const { relations } = await this.relationService.getRelations(user)
+    const { friends, followings } = relations
+
+    const friendIds = friends.map(x => x.id)
+    const followingIds = followings.map(x => x.id)
 
     const where: FindOptionsWhere<Post>[] = [
       {
@@ -96,12 +95,45 @@ export class PostService extends BaseService<Post> {
       }
     ]
 
-    const [posts, total] = await Promise.all([
-      this.postRepo.find({ where, relations: postRelation, take }),
-      this.postRepo.count({ where })
-    ])
+    const { data: posts, total } = await this.find({
+      where,
+      relations: postRelation,
+      limit,
+    })
 
     return { posts, total }
+  }
+
+  async findByUser(user: UserToken, profile: Profile, limit: number) {
+    const relation = await this.relationService.findOne([
+      { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND },
+      { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+    ], relateRelations)
+
+    const where: FindOptionsWhere<Post> = {
+      group: { id: null },
+      author: {
+        id: profile.id,
+      }
+    }
+    if (user.profile.id !== profile.id) {
+      if (relation) {
+        where.mode = Not(POST_MODE.PRIVATE)
+      } else {
+        where.mode = POST_MODE.PUBLIC
+      }
+    }
+
+    const { data: posts, total } = await this.find({
+      where,
+      relations: postRelation,
+      limit,
+    })
+
+    const postIds = posts.map((x) => x.id)
+    const { reacts } = await this.reactService.findAll({ postIds, user: user.profile.id })
+
+    return { posts: formatData({ posts, reacts }), total }
   }
 
   async findById(user: UserToken, id: string) {
@@ -109,7 +141,7 @@ export class PostService extends BaseService<Post> {
     switch (post.mode) {
       case POST_MODE.PRIVATE: {
         if (post.author.id !== user.profile.id) {
-          return { status: HTTP_STATUS.Forbidden }
+          BaseError(TableName.POST, HttpStatus.FORBIDDEN)
         }
         break
       }
@@ -119,19 +151,16 @@ export class PostService extends BaseService<Post> {
           { user: { id: post.author.id }, requester: { id: user.profile.id } }
         ])
         if (!relations || relations.type !== RELATION_TYPE.FRIEND) {
-          return { status: HTTP_STATUS.Forbidden }
+          BaseError(TableName.POST, HttpStatus.FORBIDDEN)
         }
         break
       }
     }
     if (post.status !== POST_STATUS.ACTIVE) {
-      return { status: HTTP_STATUS.Gone }
+      BaseError(TableName.POST, HttpStatus.GONE)
     }
 
-    return {
-      status: HTTP_STATUS.OK,
-      post,
-    }
+    return { post }
   }
 
   async update(
@@ -141,15 +170,11 @@ export class PostService extends BaseService<Post> {
   ) {
     const post = await this.findOne({ id }, postRelation)
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
     }
 
     await this.postRepo.save({
@@ -158,7 +183,6 @@ export class PostService extends BaseService<Post> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       post: { ...post, ...input }
     }
   }
@@ -166,39 +190,15 @@ export class PostService extends BaseService<Post> {
   async remove(user: UserToken, id: string) {
     const post = await this.findOne({ id }, postRelation)
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
     }
-
-    await this.postRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
 
     return {
-      status: HTTP_STATUS.OK,
+      post: await this.postRepo.softRemove(post)
     }
-  }
-
-  async incrementReacts(id: string, total: number) {
-    await this.postRepo.save({
-      id,
-      totalReacts: total,
-    })
-  }
-
-  async incrementComments(id: string, total: number) {
-    await this.postRepo.save({
-      id,
-      totalComments: total,
-    })
   }
 }

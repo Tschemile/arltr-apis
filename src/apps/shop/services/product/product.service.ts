@@ -1,13 +1,13 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AddressService } from "apps/address";
 import { UserToken } from "apps/auth";
 import { CategoryService } from "apps/settings";
-import { CreateProductInput, CreateReviewInput, UpdateProductInput } from "apps/shop/dtos";
+import { CreateProductInput, UpdateProductInput } from "apps/shop/dtos";
 import { Product } from "apps/shop/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { generateSlug, HTTP_STATUS } from "utils";
+import { generateSlug, TableName } from "utils";
 
 export const productRelations = {
   shop: true,
@@ -21,7 +21,7 @@ export class ProductService extends BaseService<Product> {
     @InjectRepository(Product) private productRepo: Repository<Product>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
     @Inject(forwardRef(() => AddressService)) private addressService: AddressService,
-  ) { 
+  ) {
     super(productRepo)
   }
 
@@ -32,14 +32,15 @@ export class ProductService extends BaseService<Product> {
     const category = await this.categoryService.findOne({ id: categoryId })
     const address = await this.addressService.findOne({ id: addressId })
 
-    if (!category || !address) {
-      return {
-        status: HTTP_STATUS.Bad_Request
-      }
+    if (!category) {
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+    }
+
+    if (!address) {
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     }
 
     return {
-      status: HTTP_STATUS.OK,
       category,
       address,
     }
@@ -47,15 +48,11 @@ export class ProductService extends BaseService<Product> {
 
   async create(user: UserToken, input: CreateProductInput) {
     const { name, category: categoryId, address: addressId } = input
-    
-    const { status, category, address } = await this.checkValidUpsert({
+
+    const { category, address } = await this.checkValidUpsert({
       categoryId,
       addressId,
     })
-
-    if (status === HTTP_STATUS.Bad_Request) {
-      return { status }
-    }
 
     const createdProduct = this.productRepo.create({
       ...input,
@@ -66,27 +63,27 @@ export class ProductService extends BaseService<Product> {
     })
     await this.productRepo.save(createdProduct)
 
-    return {
-      status: HTTP_STATUS.Created,
-      product: createdProduct,
-    }
+    return { product: createdProduct }
   }
 
   async findAll(ids?: string[]) {
-    const where: FindOptionsWhere<Product> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Product> = {}
 
     if (ids && ids.length > 0) {
       where.id = In(ids)
     }
 
-    const [products, total] = await Promise.all([
-      this.productRepo.find({ relations: productRelations, where }),
-      this.productRepo.count({ where })
-    ])
+    const { data: products, total } = await this.find({
+      where,
+      relations: productRelations,
+    })
 
     return { products, total }
+  }
+
+  async findById(id: string) {
+    const product = await this.findOne({ id }, productRelations)
+    return { product }
   }
 
   async update(
@@ -98,45 +95,33 @@ export class ProductService extends BaseService<Product> {
 
     const product = await this.findOne({ id }, productRelations)
     if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+    } else if (product.shop.id !== user.profile.id) {
+      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
     }
 
-    if (product.shop.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
-    }
-
-    const { status, category, address } = await this.checkValidUpsert({
+    const { category, address } = await this.checkValidUpsert({
       categoryId,
       addressId,
     })
 
-    if (status === HTTP_STATUS.Bad_Request) {
-      return { status }
+    const updatedProduct = {
+      ...input,
+      slug: generateSlug(name),
+      category,
+      address
     }
 
     await this.productRepo.save({
-      ...input,
-      category,
-      address,
-      slug: generateSlug(name),
+      ...updatedProduct,
       id,
     })
 
-    const updatedProduct = { 
-      ...product, 
-      ...input, 
-      slug: generateSlug(name), 
-      category, 
-      address 
-    }
-
     return {
-      status: HTTP_STATUS.OK,
-      product: updatedProduct,
+      product: {
+        ...product,
+        ...updatedProduct,
+      }
     }
   }
 
@@ -146,33 +131,13 @@ export class ProductService extends BaseService<Product> {
   ) {
     const product = await this.findOne({ id }, productRelations)
     if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+    } else if (product.shop.id !== user.profile.id) {
+      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
     }
-
-    if (product.shop.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
-    }
-
-    await this.productRepo.save({
-      id,
-      isDeleted: true,
-      deletedAt: new Date(),
-    })
 
     return {
-      status: HTTP_STATUS.OK,
+      product: await this.productRepo.softRemove(product)
     }
-  }
-
-  async incrementReview(id: string, rating: number, numReview: number) {
-    await this.productRepo.save({
-      rating,
-      numReview,
-      id,
-    })
   }
 }

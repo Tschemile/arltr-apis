@@ -1,13 +1,12 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
 import { GROUP_MODE, MEMBER_ROLE, QUERY_TYPE } from 'apps/groups/constants';
 import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups/dtos';
 import { Group } from 'apps/groups/entities';
-import { BaseService } from 'base';
-import slugify from 'slugify';
+import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
-import { HTTP_STATUS } from 'utils';
+import { generateSlug, TableName } from 'utils';
 import { MemberService } from '../member';
 
 @Injectable()
@@ -22,7 +21,7 @@ export class GroupService extends BaseService<Group> {
   async create(user: UserToken, input: CreateGroupInput) {
     const createdGroup = this.groupRepo.create({
       ...input,
-      slug: slugify(input.name),
+      slug: generateSlug(input.name),
       total: 1,
     })
     await this.groupRepo.save(createdGroup)
@@ -30,7 +29,6 @@ export class GroupService extends BaseService<Group> {
     const owner = await this.memberService.createOwner(user, createdGroup)
 
     return {
-      status: HTTP_STATUS.Created,
       group: {
         ...createdGroup,
         member: owner,
@@ -39,8 +37,8 @@ export class GroupService extends BaseService<Group> {
   }
 
   async findAll(user: UserToken, query: QueryGroupInput) {
-    const where: FindOptionsWhere<Group> = { isDeleted: false }
-    const take = query.limit || 10
+    const where: FindOptionsWhere<Group> = {}
+    const limit = query.limit || 10
 
     switch (query.type) {
       case QUERY_TYPE.COMMUNICATE: {
@@ -58,10 +56,25 @@ export class GroupService extends BaseService<Group> {
       where.name = Like(`%${query.search}%`)
     }
 
-    const [groups, total] = await Promise.all([
-      this.groupRepo.find({ where, take }),
-      this.groupRepo.count({ where })
-    ])
+    const { data: groups, total } = await this.find({
+      where,
+      limit,
+    })
+
+    return { groups, total }
+  }
+
+  async findByUser(user: UserToken, limit: number) {
+    const where: FindOptionsWhere<Group> = {}
+
+    const { members } = await this.memberService.findAll(user)
+    const groupIds = members.map((x) => x.group.id)
+    where.id = In(groupIds)
+
+    const { data: groups, total} = await this.find({
+      where,
+      limit,
+    })
 
     return { groups, total }
   }
@@ -73,9 +86,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -83,9 +94,7 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     await this.groupRepo.save({
@@ -94,7 +103,6 @@ export class GroupService extends BaseService<Group> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       group: {
         ...group,
         ...input,
@@ -108,9 +116,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -118,26 +124,9 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
-    await this.groupRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
-
-    return {
-      status: HTTP_STATUS.OK,
-    }
-  }
-
-  async incrementTotal(id: string, total: number) {
-    await this.groupRepo.save({
-      total,
-      id,
-    })
+    return await this.groupRepo.softRemove(group)
   }
 }

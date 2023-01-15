@@ -7,7 +7,7 @@ import { Post } from "./post.entity";
 @Entity()
 export class Comment extends Base {
   @ManyToOne(() => Profile)
-  @ApiProperty({ type: Profile })
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @ManyToOne(() => Post)

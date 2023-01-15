@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsLowercase, IsString, IsUUID } from "class-validator";
+import { IsLowercase, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreatePageInput {
   @IsString()
@@ -11,6 +11,7 @@ export class CreatePageInput {
   domain: string
 
   @IsUUID()
+  @IsOptional()
   @ApiProperty({ type: String })
   category?: string
 }

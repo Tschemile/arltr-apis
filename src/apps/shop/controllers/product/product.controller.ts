@@ -1,14 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreateProductInput, GetProductOutput, GetProductsOutput, UpdateProductInput } from "apps/shop/dtos";
+import { CreateProductInput, GetProductOutput, UpdateProductInput } from "apps/shop/dtos";
 import { ProductService } from "apps/shop/services";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Product'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.PRODUCT)
+@Controller(TableName.PRODUCT.toLowerCase())
 export class ProductController {
   constructor(
     private readonly productService: ProductService,
@@ -22,19 +20,7 @@ export class ProductController {
     @Request() req,
     @Body() input: CreateProductInput
   ): Promise<GetProductOutput> {
-    const { status, product } = await this.productService.create(req.user, input)
-
-    if (status === HTTP_STATUS.Bad_Request) {
-      return {
-        status,
-        message: 'Invalid request'
-      }
-    }
-
-    return {
-      status,
-      product,
-    }
+    return await this.productService.create(req.user, input)
   }
 
   @Get(':id')
@@ -42,84 +28,40 @@ export class ProductController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetProductOutput })
   async getById(
-    @Param() id: string,
+    @Param('id') id: string,
   ): Promise<GetProductOutput> {
-    const product = await this.productService.findOne({ id })
-
-    return {
-      status: HTTP_STATUS.OK,
-      product,
-    }
+    return await this.productService.findById(id)
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ type: GetProductOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdateProductInput,
   ): Promise<GetProductOutput> {
-    const { status, product } = await this.productService.update(
+    return await this.productService.update(
       req.user,
       id,
       input,
     )
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do it`,
-      }
-    } else if (status === HTTP_STATUS.Bad_Request) {
-      return {
-        status,
-        message: 'Invalid request'
-      }
-    }
-
-    return {
-      status,
-      product,
-    }
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
-  ) {
-    const { status } = await this.productService.remove(
+    @Param('id') id: string,
+  ): Promise<GetProductOutput> {
+    return await this.productService.remove(
       req.user,
       id,
     )
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do it`,
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
   }
 }

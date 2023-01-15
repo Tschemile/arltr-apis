@@ -6,6 +6,9 @@ import { SettingModule } from "apps/settings";
 import { PageController, ProfileController, RelationController } from "../controllers";
 import { Profile, Relation } from "../entities";
 import { PageService, ProfileService, RelationService } from "../services";
+import { GroupModule } from "apps/groups";
+import { PostModule } from "apps/posts";
+import { UploadModule } from "apps/uploads";
 
 @Module({
   imports: [
@@ -13,6 +16,9 @@ import { PageService, ProfileService, RelationService } from "../services";
     forwardRef(() => UserModule),
     forwardRef(() => AuthModule),
     forwardRef(() => SettingModule),
+    forwardRef(() => GroupModule),
+    forwardRef(() => PostModule),
+    forwardRef(() => UploadModule),
   ],
   controllers: [
     ProfileController, RelationController, PageController

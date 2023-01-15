@@ -1,13 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { FRIEND_STATUS, RELATION_TYPE } from "apps/profiles/constants";
 import { CreateRelationInput, QUERY_RELATION_TYPE } from "apps/profiles/dtos/relation";
-import { Profile, Relation } from "apps/profiles/entities";
-import { BaseService } from "base";
-import { userInfo } from "os";
+import { Relation } from "apps/profiles/entities";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { ProfileService } from "../profile";
 
 export const relateRelations = {
@@ -19,7 +18,7 @@ export const relateRelations = {
 export class RelationService extends BaseService<Relation> {
   constructor(
     @InjectRepository(Relation) private relationRepo: Repository<Relation>,
-    private profileService: ProfileService,
+    @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
     super(relationRepo)
   }
@@ -29,10 +28,7 @@ export class RelationService extends BaseService<Relation> {
 
     const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-        message: 'Profile not found'
-      }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     const existedRelation = await this.findOne({
@@ -57,7 +53,6 @@ export class RelationService extends BaseService<Relation> {
     await this.relationRepo.save(createRelation)
 
     return {
-      status: HTTP_STATUS.Created,
       relation: createRelation,
     }
   }
@@ -99,42 +94,39 @@ export class RelationService extends BaseService<Relation> {
       }
     }
 
-    const [data, total] = await Promise.all([
-      this.relationRepo.find({
-        relations: relateRelations,
-        where,
-      }),
-      this.relationRepo.count({ where })
-    ])
+    const { data: relations, total} = await this.find({
+      where,
+      relations: relateRelations,
+    })
 
-    return { data, total }
+    return { relations, total }
   }
 
   async getRelations(user: UserToken) {
-    const { total: totalFriends, data: friends = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FRIEND)
-    const friend1 = friends.map((x) => x.requester.id)
-    const friend2 = friends.map((x) => x.user.id)
+    const { total: totalFriends, relations: friendRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FRIEND)
+    const friend1 = friendRaws.map((x) => x.requester)
+    const friend2 = friendRaws.map((x) => x.user)
 
-    const friendIds = [...friend1, ...friend2]
+    const friends = [...friend1, ...friend2]
 
-    const { total: totalPages, data: pages = [] } = await this.findAll(user, QUERY_RELATION_TYPE.LIKED)
-    const pageIds = pages.map((x) => x.user.id)
+    const { total: totalPages, relations: pageRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.LIKED)
+    const pages = pageRaws.map((x) => x.user)
 
-    const { total: totalBlocks, data: blocks = [] } = await this.findAll(user, QUERY_RELATION_TYPE.BLOCKED)
-    const blockedIds = blocks.map((x) => x.user.id)
+    const { total: totalBlocks, relations: blockRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.BLOCKED)
+    const blocks = blockRaws.map((x) => x.user)
 
-    const { total: totalFollowers, data: followers = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWER)
-    const followerIds = followers.map((x) => x.requester.id)
+    const { total: totalFollowers, relations: followerRaws = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWER)
+    const followers = followerRaws.map((x) => x.requester)
 
-    const { total: totalFollowing, data: following = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWING)
-    const followingIds = following.map((x) => x.user.id)
+    const { total: totalFollowing, relations: followingRaw = [] } = await this.findAll(user, QUERY_RELATION_TYPE.FOLLOWING)
+    const followings = followingRaw.map((x) => x.user)
 
-    const data = {
-      friendIds,
-      pageIds,
-      blockedIds,
-      followerIds,
-      followingIds,
+    const relations = {
+      friends,
+      pages,
+      blocks,
+      followers,
+      followings,
     }
 
     const total = {
@@ -145,20 +137,20 @@ export class RelationService extends BaseService<Relation> {
       totalFollowing,
     }
 
-    return { data, total }
+    return { relations, total }
   }
 
   async update(user: UserToken, id: string) {
     const relation = await this.findOne({ id }, relateRelations)
     if (!relation) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(TableName.RELATION, HttpStatus.NOT_FOUND)
     }
 
     if (
       relation.user.id !== user.profile.id
       && relation.type !== RELATION_TYPE.FRIEND
     ) {
-      return { status: HTTP_STATUS.Forbidden }
+      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN)
     }
 
     await this.relationRepo.save({
@@ -166,24 +158,29 @@ export class RelationService extends BaseService<Relation> {
       id,
     })
 
-    return { status: HTTP_STATUS.OK }
+    return { 
+      relation: {
+        ...relation,
+        status: FRIEND_STATUS.ACCEPTED,
+      }
+    }
   }
 
   async remove(user: UserToken, id: string) {
     const relation = await this.findOne({ id }, relateRelations)
     if (!relation) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(TableName.RELATION, HttpStatus.NOT_FOUND)
     }
 
     if (
       relation.user.id !== user.profile.id
       || relation.requester.id !== user.profile.id
     ) {
-      return { status: HTTP_STATUS.Forbidden }
+      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN)
     }
 
-    await this.relationRepo.remove(relation)
-
-    return { status: HTTP_STATUS.OK }
+    return { 
+      relation: await this.relationRepo.softRemove(relation)
+    }
   }
 }

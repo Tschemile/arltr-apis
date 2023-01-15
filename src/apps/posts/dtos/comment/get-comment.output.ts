@@ -1,14 +1,13 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Comment } from "apps/posts/entities";
-import { BaseOutputResponse } from "base";
 
-export class GetCommentsOutput extends BaseOutputResponse {
-  @ApiProperty({ type: [Comment] })
+export class GetCommentsOutput {
+  @ApiProperty({ type: () => [Comment] })
   comments: Comment[]
 
 }
 
-export class GetCommentOutput extends OmitType(BaseOutputResponse, ['total'] as const) {
-  @ApiProperty({ type: Comment })
+export class GetCommentOutput {
+  @ApiProperty({ type: () => Comment })
   comment?: Comment
 }

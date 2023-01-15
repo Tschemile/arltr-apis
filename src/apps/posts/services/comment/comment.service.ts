@@ -1,11 +1,11 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateCommentInput, UpdateCommentInput } from "apps/posts/dtos";
-import { Comment, Post } from "apps/posts/entities";
-import { BaseService } from "base";
+import { Comment } from "apps/posts/entities";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { PostService } from "../post";
 
 export const commentRelation = {
@@ -27,9 +27,7 @@ export class CommentService extends BaseService<Comment> {
 
     const post = await this.postService.findOne({ id: postId })
     if (!post) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
     const createdComment = this.commentRepo.create({
@@ -38,23 +36,22 @@ export class CommentService extends BaseService<Comment> {
       post,
     })
     await this.commentRepo.save(createdComment)
-    const total = post.totalComments || 0
-    await this.postService.incrementComments(post.id, total + 1)
+    await this.postService.changeProperty({ id: post.id }, 'totalComments', 1, 'INCREMENT')
 
     return {
-      status: HTTP_STATUS.Created,
       comment: createdComment,
     }
   }
 
-  async findAll(post: Post, take: number) {
-    const where: FindOptionsWhere<Comment> = { isDeleted: false }
-    where.post = { id: post.id }
+  async findAll(postId: string, limit?: number) {
+    const where: FindOptionsWhere<Comment> = {}
+    where.post = { id: postId }
 
-    const [comments, total] = await Promise.all([
-      this.commentRepo.find({ where, relations: commentRelation, take }),
-      this.commentRepo.count({ where })
-    ])
+    const { data: comments, total } = await this.find({
+      where,
+      relations: commentRelation,
+      limit,
+    })
 
     return { comments, total }
   }
@@ -66,15 +63,11 @@ export class CommentService extends BaseService<Comment> {
   ) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
     await this.commentRepo.save({
@@ -83,7 +76,6 @@ export class CommentService extends BaseService<Comment> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       comment: { ...comment, ...input }
     }
   }
@@ -91,35 +83,17 @@ export class CommentService extends BaseService<Comment> {
   async remove(user: UserToken, id: string) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
-    await this.commentRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
-
-    const total = comment.post.totalComments || 0
-    await this.postService.incrementComments(comment.post.id, total - 1)
+    await this.postService.changeProperty({ id: comment.post.id }, 'totalComments', 1, 'DECREMENT')
 
     return {
-      status: HTTP_STATUS.OK,
+      comment: await this.commentRepo.softRemove(comment)
     }
-  }
-
-  async incrementReacts(id: string, total: number) {
-    await this.commentRepo.save({
-      id,
-      totalReacts: total,
-    })
   }
 }

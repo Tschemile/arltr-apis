@@ -1,13 +1,13 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { MEMBER_ROLE, MEMBER_STATUS } from "apps/groups/constants";
 import { InviteMemberInput, UpdateMemberInput } from "apps/groups/dtos";
 import { Group, Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { GroupService } from "../group";
 
 export const memberRelation = {
@@ -69,9 +69,7 @@ export class MemberService extends BaseService<Member> {
     // Check exist group
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     // Check current user is member of group
@@ -80,19 +78,14 @@ export class MemberService extends BaseService<Member> {
       group: { id: group.id }
     })
     if (!isMember) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     // Check exist profile
     const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
-
 
     // Check exist member
     const existedMember = await this.findOne({
@@ -101,7 +94,6 @@ export class MemberService extends BaseService<Member> {
     })
     if (existedMember) {
       return {
-        status: HTTP_STATUS.Created,
         member: existedMember,
       }
     }
@@ -115,13 +107,12 @@ export class MemberService extends BaseService<Member> {
     await this.memberRepo.save(createdMember)
 
     return {
-      status: HTTP_STATUS.Created,
       member: createdMember,
     }
   }
 
   async findAll(user: UserToken, group?: string) {
-    const where: FindOptionsWhere<Member> = { isDeleted: false }
+    const where: FindOptionsWhere<Member> = {}
 
     if (group) {
       where.group = { id: group }
@@ -131,10 +122,10 @@ export class MemberService extends BaseService<Member> {
 
     where.status = Not(MEMBER_STATUS.INVITING)
 
-    const [members, total] = await Promise.all([
-      this.memberRepo.find({ where, relations: memberRelation }),
-      this.memberRepo.count({ where })
-    ])
+    const { data: members, total } = await this.find({
+      where,
+      relations: memberRelation,
+    })
 
     return { members, total }
   }
@@ -147,9 +138,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id }, memberRelation)
     if (!member) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id === user.profile.id) {
@@ -157,8 +146,7 @@ export class MemberService extends BaseService<Member> {
         member.status === MEMBER_STATUS.INVITING
         && input.status === MEMBER_STATUS.ACTIVE
       ) {
-        const total = member.group.total || 0
-        await this.groupService.incrementTotal(member.group.id, total + 1)
+        await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'INCREMENT')
       }
     } else {
       // Check member has role to update
@@ -167,9 +155,7 @@ export class MemberService extends BaseService<Member> {
         group: { id: member.group.id }
       })
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        return {
-          status: HTTP_STATUS.Forbidden
-        }
+        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 
@@ -179,7 +165,6 @@ export class MemberService extends BaseService<Member> {
     })
 
     return {
-      status: HTTP_STATUS.OK,
       member: { ...member, ...input }
     }
   }
@@ -191,9 +176,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id }, memberRelation)
     if (!member) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id !== user.profile.id) {
@@ -202,23 +185,13 @@ export class MemberService extends BaseService<Member> {
         group: { id: member.group.id }
       })
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        return {
-          status: HTTP_STATUS.Forbidden
-        }
+        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 
-    await this.memberRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id,
-    })
-
-    const total = member.group.total || 0
-    await this.groupService.incrementTotal(member.group.id, total - 1)
-
+    await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'DECREMENT')
     return {
-      status: HTTP_STATUS.OK,
+      member: await this.memberRepo.softRemove(member)
     }
   }
 }

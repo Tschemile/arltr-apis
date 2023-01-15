@@ -1,13 +1,17 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
-import { USER_ROLE } from "apps/profiles/constants";
+import { GroupService } from "apps/groups";
+import { PostService } from "apps/posts";
+import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
+import { FileService } from "apps/uploads";
 import { User } from "apps/users";
-import { BaseService } from "base";
-import { Between, FindOptionsWhere, LessThan, Like, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { BaseError, BaseService } from "base";
+import { Between, FindOptionsWhere, Like, Not, Repository } from "typeorm";
+import { TableName } from "utils";
+import { relateRelations, RelationService } from "../relation";
 
 export const profileRelations = {
   user: true,
@@ -18,6 +22,10 @@ export class ProfileService extends BaseService<Profile> {
   constructor(
     @InjectRepository(Profile) private profileRepo: Repository<Profile>,
     @Inject(forwardRef(() => AuthService)) private authService: AuthService,
+    @Inject(forwardRef(() => PostService)) private postService: PostService,
+    @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
+    @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
+    @Inject(forwardRef(() => FileService)) private fileService: FileService,
   ) {
     super(profileRepo)
   }
@@ -29,13 +37,10 @@ export class ProfileService extends BaseService<Profile> {
         user: {
           id: user.id,
         },
-        isDeleted: false,
       }, profileRelations)
 
       if (existedProfile) {
-        return {
-          status: HTTP_STATUS.Conflict,
-        }
+        BaseError(TableName.PROFILE, HttpStatus.CONFLICT)
       }
     }
     const createdProfile = this.profileRepo.create({
@@ -44,10 +49,7 @@ export class ProfileService extends BaseService<Profile> {
     })
     await this.profileRepo.save(createdProfile)
 
-    return {
-      status: HTTP_STATUS.Created,
-      profile: createdProfile,
-    }
+    return { profile: createdProfile }
   }
 
   async findAll(user: UserToken, query: QueryProfileInput) {
@@ -61,7 +63,6 @@ export class ProfileService extends BaseService<Profile> {
     } = query || {}
 
     const where: FindOptionsWhere<Profile> = {
-      isDeleted: false,
       role: USER_ROLE.USER,
     }
 
@@ -97,27 +98,48 @@ export class ProfileService extends BaseService<Profile> {
     return { profiles, total }
   }
 
-  async findById(id: string) {
+  async findById(user: UserToken, domain: string) {
     const profile = await this.profileRepo.findOne({
-      where: { id },
+      where: { domain },
     })
+
+    const blocked = await this.relationService.findOne([
+      { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 
+      { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.BLOCKED },
+    ], relateRelations)
+
+    const { relations, total: totalRelations } = await this.relationService.getRelations(user)
+    const { posts, total: totalPosts } = await this.postService.findByUser(user, profile, 5)
+    const { groups, total: totalGroups } = await this.groupService.findByUser(user, 6)
+    const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
+
+    if (blocked) {
+      BaseError(TableName.PROFILE, HttpStatus.FORBIDDEN)
+    }
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+    }
+
+    const profileFully = {
+      ...profile,
+      ...relations,
+      ...totalRelations,
+      posts,
+      totalPosts,
+      groups,
+      totalGroups,
+      albums,
+      totalAlbums,
     }
     return {
-      status: HTTP_STATUS.OK,
-      profile
+      profile: profileFully
     }
   }
 
   async update(user: UserToken, input: UpdateProfileInput) {
     const profile = await this.findOne({ id: user.profile.id })
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
     await this.profileRepo.save({
       ...input,
@@ -126,39 +148,29 @@ export class ProfileService extends BaseService<Profile> {
 
     const updateProfile = { ...profile, ...input }
     return {
-      status: HTTP_STATUS.OK,
       profile: updateProfile,
     }
   }
 
   async remove(user: UserToken) {
-    const profile = await this.findOne({ id: user.profile.id })
+    const profile = await this.findOne({ id: user.profile.id }, profileRelations)
     if (!profile) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
-    await this.profileRepo.save({
-      id: profile.id,
-      isDeleted: true,
-      deleteAt: new Date(),
-    })
-
     return {
-      status: HTTP_STATUS.OK,
+      profile: await this.profileRepo.softRemove(profile)
     }
   }
 
   async switch(user: User, id: string) {
     const profile = await this.findOne({ id })
     if (!profile) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
     if (user.id !== profile.user.id) {
-      return { status: HTTP_STATUS.Unauthorized }
+      BaseError(TableName.PROFILE, HttpStatus.FORBIDDEN)
     }
     return {
-      status: HTTP_STATUS.OK,
       token: this.authService.generateToken(user, profile),
     }
   }

@@ -4,12 +4,10 @@ import { JwtAuthGuard } from "apps/auth";
 import { CreateReviewInput } from "apps/shop/dtos";
 import { GetReviewOutput, GetReviewsOutput } from "apps/shop/dtos/review/get-review.output";
 import { ReviewService } from "apps/shop/services";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Review'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.REVIEW)
+@Controller(TableName.REVIEW.toLowerCase())
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService
@@ -23,19 +21,7 @@ export class ReviewController {
     @Request() req,
     @Body() input: CreateReviewInput
   ): Promise<GetReviewOutput> {
-    const { status, review } = await this.reviewService.create(req.user, input)
-
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Invalid request'
-      }
-    }
-
-    return {
-      status,
-      review,
-    }
+    return await this.reviewService.create(req.user, input)
   }
 
   @Get()
@@ -45,12 +31,6 @@ export class ReviewController {
   async getById(
     @Query('product') product: string,
   ): Promise<GetReviewsOutput> {
-    const { reviews, total } = await this.reviewService.findAll(product)
-
-    return {
-      status: HTTP_STATUS.OK,
-      reviews,
-      total,
-    }
+    return await this.reviewService.findAll(product)
   }
 }

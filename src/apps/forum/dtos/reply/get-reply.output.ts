@@ -1,8 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Reply } from "apps/forum/entities";
-import { BaseOutputResponse } from "base";
 
-export class GetReplyOutput extends BaseOutputResponse {
-  @ApiProperty({ type: Reply })
+export class GetReplyOutput {
+  @ApiProperty({ type: () => Reply })
   reply?: Reply
+}
+
+export class GetRepliesOutput {
+  @ApiProperty({ type: () => [Reply] })
+  replies: Reply[]
+
+  @ApiProperty({ type: Number })
+  total: number
 }

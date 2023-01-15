@@ -1,3 +1,4 @@
+export * from './enum'
 export * from './http'
 export * from './logging'
 export * from './slugify'

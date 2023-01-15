@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { CreateReviewInput } from "apps/shop/dtos";
 import { Review } from "apps/shop/entities";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { ProductService } from "../product";
 
 export const reviewRelations = {
@@ -27,9 +27,7 @@ export class ReviewService extends BaseService<Review> {
 
     const product = await this.productService.findOne({ id: productId })
     if (!product) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
     }
 
     const createdReview = this.reviewRepo.create({
@@ -39,18 +37,17 @@ export class ReviewService extends BaseService<Review> {
     })
     await this.reviewRepo.save(createdReview)
 
-    const newNumReviews = product.numReviews + 1
-    const newRating = (rating + product.rating) / newNumReviews
-    await this.productService.incrementReview(
-      product.id,
-      newRating,
-      newNumReviews,
+    const distance = product.rating - ((rating + product.rating) / (product.numReviews + 1))
+
+    await this.productService.changeProperty({ id: product.id }, 'numReviews', 1, 'INCREMENT')
+    await this.productService.changeProperty(
+      { id: product.id },
+      'rating',
+      Math.abs(distance),
+      distance > 0 ? 'INCREMENT' : 'DECREMENT',
     )
 
-    return {
-      status: HTTP_STATUS.Created,
-      review: createdReview,
-    }
+    return { review: createdReview, }
   }
 
   async findAll(product: string) {
@@ -60,10 +57,10 @@ export class ReviewService extends BaseService<Review> {
       }
     }
 
-    const [reviews, total] = await Promise.all([
-      this.reviewRepo.find({ relations: reviewRelations, where }),
-      this.reviewRepo.count({ where })
-    ])
+    const { data: reviews, total } = await this.find({
+      where,
+      relations: reviewRelations,
+    })
 
     return { reviews, total }
   }

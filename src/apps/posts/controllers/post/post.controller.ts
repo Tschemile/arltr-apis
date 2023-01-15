@@ -3,12 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreatePostInput, GetPostOutput, GetPostsOutput, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Post'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.POST)
+@Controller(TableName.POST.toLowerCase())
 export class PostController {
   constructor(
     private readonly postService: PostService
@@ -24,20 +22,7 @@ export class PostController {
     @Request() req,
     @Body() input: CreatePostInput,
   ): Promise<GetPostOutput> {
-    const { status, post } = await this.postService.create(req.user, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: 'Group not found'
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return { status, post }
+    return await this.postService.create(req.user, input)
   }
 
   @Get()
@@ -53,76 +38,38 @@ export class PostController {
     @Query('type') type,
     @Query('limit') limit,
   ): Promise<GetPostsOutput> {
-    const { posts, total } = await this.postService.findAll(
+    return await this.postService.findAll(
       req.user,
       { type, limit }
     )
-
-    return {
-      status: HTTP_STATUS.OK,
-      posts,
-      total,
-    }
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetPostOutput })
   async patch(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
     @Body() input: UpdatePostInput,
   ): Promise<GetPostOutput> {
-    const { status, post } = await this.postService.update(req.user, id, input)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      post,
-    }
+    return await this.postService.update(req.user, id, input)
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
-    @Param() id: string,
+    @Param('id') id: string,
   ) {
-    const { status } = await this.postService.remove(req.user, id)
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      }
-    } else if (status === HTTP_STATUS.Forbidden) {
-      return {
-        status,
-        message: `You don't have permission to do that`
-      }
-    }
-
-    return {
-      status,
-      message: 'Deleted successfully',
-    }
+    return await this.postService.remove(req.user, id)
   }
 }

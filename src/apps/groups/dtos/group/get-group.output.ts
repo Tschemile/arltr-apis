@@ -1,15 +1,14 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Group } from "apps/groups/entities";
-import { BaseOutputResponse } from "base";
 import { IsArray } from "class-validator";
 
-export class GetGroupsOutput extends BaseOutputResponse {
+export class GetGroupsOutput {
   @IsArray()
-  @ApiProperty({ type: [Group ] })
+  @ApiProperty({ type: () => [Group] })
   groups: Group[]
 }
 
-export class GetGroupOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-  @ApiProperty({ type: Group })
+export class GetGroupOutput {
+  @ApiProperty({ type: () => Group })
   group?: Group
 }

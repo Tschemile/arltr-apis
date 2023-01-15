@@ -1,31 +1,26 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { BLOG_STATUS } from "apps/forum/constants";
 import { CreateBlogInput, QueryBlogInput, UpdateBlogInput } from "apps/forum/dtos";
 import { Blog } from "apps/forum/entities";
 import { CategoryService } from "apps/settings";
+import { BaseError, BaseService } from "base";
 import { ArrayContains, FindOptionsWhere, In, Like, Repository } from "typeorm";
-import { generateSlug, HTTP_STATUS } from "utils";
+import { generateSlug, TableName } from "utils";
 
-const relations = {
+export const blogRelation = {
   author: true,
   category: true,
 }
 
 @Injectable()
-export class BlogService {
+export class BlogService extends BaseService<Blog> {
   constructor(
     @InjectRepository(Blog) private blogRepo: Repository<Blog>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
-  ) { }
-
-  async findOne(where: FindOptionsWhere<Blog>[] | FindOptionsWhere<Blog>) {
-    const blog = await this.blogRepo.findOne({
-      relations,
-      where,
-    })
-    return blog
+  ) { 
+    super(blogRepo)
   }
 
   async create(user: UserToken, input: CreateBlogInput) {
@@ -33,9 +28,7 @@ export class BlogService {
     
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     const createdBlog = this.blogRepo.create({
@@ -46,16 +39,11 @@ export class BlogService {
     })
     await this.blogRepo.save(createdBlog)
 
-    return {
-      status: HTTP_STATUS.Created,
-      blog: createdBlog
-    }
+    return { blog: createdBlog }
   }
 
   async findAll(user: UserToken, input: QueryBlogInput) {
-    const where: FindOptionsWhere<Blog> = {
-      isDeleted: false,
-    }
+    const where: FindOptionsWhere<Blog> = {}
 
     const { type, search, categories, tags, author, status, limit = 12 } = input
     switch(type) {
@@ -88,10 +76,11 @@ export class BlogService {
       where.author = { id: author }
     }
 
-    const [blogs, total] = await Promise.all([
-      this.blogRepo.find({ relations, where, take: limit }),
-      this.blogRepo.count({ where })
-    ])
+    const { data: blogs, total } = await this.find({
+      where,
+      relations: blogRelation,
+      limit,
+    })
 
     return { blogs, total }
   }
@@ -101,71 +90,46 @@ export class BlogService {
     id: string,
     input: UpdateBlogInput
   ) {
-    const blog = await this.findOne({ id })
-    
+    const blog = await this.findOne({ id }, blogRelation)
     if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
     }
 
     const { title, category: categoryId } = input
     
-    const category = await this.categoryService.findOne({ id: categoryId })
-    if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
+    if (categoryId && categoryId !== blog.category.id) {
+      const category = await this.categoryService.findOne({ id: categoryId })
+      if (!category) {
+        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
       }
+      blog.category = category
     }
 
     const slug = title ? generateSlug(title) : blog.slug
 
     await this.blogRepo.save({
       ...input,
-      category,
+      category: blog.category,
       slug,
       id
     })
 
-    const updatedBlog = { ...blog, ...input, category, slug }
-    return {
-      status: HTTP_STATUS.OK,
-      blog: updatedBlog
-    }
+    const updatedBlog = { ...blog, ...input, category: blog.category, slug }
+    return { blog: updatedBlog }
   }
 
   async remove(user: UserToken, id: string) {
-    const blog = await this.findOne({ id })
-    
+    const blog = await this.findOne({ id }, blogRelation)
     if (!blog) {
-      return {
-        status: HTTP_STATUS.Not_Found
-      }
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
     }
-
-    await this.blogRepo.save({
-      isDeleted: true,
-      deletedAt: new Date(),
-      id
-    })
 
     return {
-      status: HTTP_STATUS.OK
+      blog: await this.blogRepo.softRemove(blog)
     }
-  }
-
-  async updateVote(id: string, votes: number) {
-    await this.blogRepo.save({
-      votes,
-      id,
-    })
   }
 }
