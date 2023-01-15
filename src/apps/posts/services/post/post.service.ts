@@ -11,6 +11,8 @@ import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
 import { TableName } from "utils";
 import { CommentService } from "../comment";
+import { ReactService } from "../react";
+import { formatData } from "./formatData";
 
 export const postRelation = {
   author: true,
@@ -21,6 +23,7 @@ export const postRelation = {
 export class PostService extends BaseService<Post> {
   constructor(
     @InjectRepository(Post) private postRepo: Repository<Post>,
+    @Inject(forwardRef(() => ReactService)) private reactService: ReactService,
     @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
     @Inject(forwardRef(() => MemberService)) private memberService: MemberService,
     @Inject(forwardRef(() => CommentService)) private commentService: CommentService,
@@ -70,7 +73,7 @@ export class PostService extends BaseService<Post> {
 
   async findAll(user: UserToken, query: QueryPostInput) {
     const { limit, type, } = query
-    const singleWhere: FindOptionsWhere<Post> = {}  
+    const singleWhere: FindOptionsWhere<Post> = {}
     singleWhere.type = type || POST_TYPE.POST
 
     const { relations } = await this.relationService.getRelations(user)
@@ -103,13 +106,13 @@ export class PostService extends BaseService<Post> {
 
   async findByUser(user: UserToken, profile: Profile, limit: number) {
     const relation = await this.relationService.findOne([
-      { requester: { id: user.profile.id }, user: { id: profile.id  }, type: RELATION_TYPE.FRIEND }, 
-      { requester: { id: profile.id  }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+      { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND },
+      { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
     ], relateRelations)
 
     const where: FindOptionsWhere<Post> = {
       group: { id: null },
-      author: { 
+      author: {
         id: profile.id,
       }
     }
@@ -119,7 +122,7 @@ export class PostService extends BaseService<Post> {
       } else {
         where.mode = POST_MODE.PUBLIC
       }
-    } 
+    }
 
     const { data: posts, total } = await this.find({
       where,
@@ -127,7 +130,10 @@ export class PostService extends BaseService<Post> {
       limit,
     })
 
-    return { posts, total }
+    const postIds = posts.map((x) => x.id)
+    const { reacts } = await this.reactService.findAll({ postIds, user: user.profile.id })
+
+    return { posts: formatData({ posts, reacts }), total }
   }
 
   async findById(user: UserToken, id: string) {

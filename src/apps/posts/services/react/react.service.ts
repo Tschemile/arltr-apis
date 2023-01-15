@@ -1,10 +1,10 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { UpsertReactInput } from "apps/posts/dtos";
+import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
 import { React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, Repository } from "typeorm";
+import { FindOptionsWhere, In, Repository } from "typeorm";
 import { TableName } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
@@ -105,5 +105,25 @@ export class ReactService extends BaseService<React> {
         react: await this.reactRepo.save(createdReact)
       }
     }
+  }
+
+  async findAll(query: QueryReactInput) {
+    const { postIds, user: userId } = query
+    const where: FindOptionsWhere<React> = {}
+
+    if (userId) {
+      where.user = { id: userId }
+    }
+
+    if (postIds && postIds.length > 0) {
+      where.post = { id: In(postIds) }
+    }
+
+    const { data: reacts, total } = await this.find({
+      where,
+      relations: reactRelation,
+    })
+
+    return { reacts, total }
   }
 }
