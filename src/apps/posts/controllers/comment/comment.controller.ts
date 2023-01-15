@@ -25,7 +25,7 @@ export class CommentController {
     return await this.commentService.create(req.user, input)
   }
 
-  @Get(':id')
+  @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'post' })
