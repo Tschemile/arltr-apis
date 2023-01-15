@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService, UserToken } from 'apps/auth';
 import { ProfileService, USER_ROLE } from 'apps/profiles';
@@ -7,9 +7,7 @@ import { User } from 'apps/users/entities';
 import { BaseError, BaseService } from 'base';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { HTTP_STATUS } from 'utils/http';
-
-const MODULE_NAME = 'User'
+import { TableName } from 'utils';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -35,7 +33,7 @@ export class UserService extends BaseService<User> {
       { username }, { email }
     ])
     if (existedUser) {
-      BaseError(MODULE_NAME, HttpStatus.CONFLICT)
+      BaseError(TableName.USER, HttpStatus.CONFLICT)
     }
     const password = await bcrypt.hash(enteredPassword, 12)
     const createdUser = this.userRepo.create({
@@ -67,11 +65,11 @@ export class UserService extends BaseService<User> {
       .getOne()
 
     if (!user) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.USER, HttpStatus.NOT_FOUND)
     }
     console.log(user)
     if (!await (bcrypt.compare(password, user.password))) {
-      BaseError(MODULE_NAME, HttpStatus.BAD_REQUEST)
+      BaseError(TableName.USER, HttpStatus.BAD_REQUEST)
     }
     const profile = await this.profileService.findOne({
       user: {
@@ -79,18 +77,20 @@ export class UserService extends BaseService<User> {
       }
     })
     if (!profile) {
-      return { status: HTTP_STATUS.Not_Found }
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
     const token = this.authService.generateToken(user, profile)
     return { token }
   }
 
-  async delete(user: UserToken) {
+  async remove(user: UserToken) {
     const exist = await this.findOne({ id: user.id })
     if (!exist) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.USER, HttpStatus.NOT_FOUND)
     }
 
-    await this.userRepo.softRemove(user)
+    return {
+      user: await this.userRepo.softRemove(user)
+    }
   }
 }

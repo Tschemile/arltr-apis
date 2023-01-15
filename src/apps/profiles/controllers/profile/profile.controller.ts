@@ -1,39 +1,23 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreateProfileInput, GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
+import { GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
 import { GetUserTokenOutput } from "apps/users/dtos";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Profile'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.PROFILE)
+@Controller(TableName.PROFILE.toLowerCase())
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
   ) { }
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiConflictResponse({ description: `${MODULE_NAME} has already existed` })
-  @ApiCreatedResponse({ type: GetProfileOutput })
-  async post(
-    @Request() req,
-    @Body() input: CreateProfileInput,
-  ) {
-    return await this.profileService.create(
-      input,
-      req.user,
-    )
-  }
-
   @Get('switch')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
-  @ApiForbiddenResponse({ description: `You dont have permission to do that` })
+  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async switch(
     @Request() req,
@@ -72,7 +56,7 @@ export class ProfileController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
   async getMyProfile(
     @Request() req
@@ -84,7 +68,7 @@ export class ProfileController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'domain' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetProfileFullyOutput })
   async getByDomain(
@@ -97,12 +81,12 @@ export class ProfileController {
   @Patch()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
   async patch(
     @Request() req,
     @Body() input: UpdateProfileInput,
-  ) {
+  ): Promise<GetProfileOutput> {
     return await this.profileService.update(
       req.user,
       input,
@@ -112,11 +96,11 @@ export class ProfileController {
   @Delete()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(
     @Request() req,
-  ) {
+  ): Promise<GetProfileOutput> {
     return await this.profileService.remove(req.user)
   }
 }

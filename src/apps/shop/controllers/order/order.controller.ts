@@ -4,11 +4,10 @@ import { JwtAuthGuard } from "apps/auth";
 import { CreateOrderInput, UpdateOrderInput } from "apps/shop/dtos";
 import { GetOrderOutput } from "apps/shop/dtos/order/get-order.output";
 import { OrderService } from "apps/shop/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Order'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.ORDER)
+@Controller(TableName.ORDER.toLowerCase())
 export class OrderController {
   constructor(
     private readonly orderService: OrderService
@@ -17,7 +16,7 @@ export class OrderController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiCreatedResponse({ type: GetOrderOutput })
   async post(
     @Request() req,
@@ -31,19 +30,16 @@ export class OrderController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetOrderOutput })
   async getById(
+    @Request() req,
     @Param('id') id: string,
   ): Promise<GetOrderOutput> {
-    const order = await this.orderService.findOne({ id })
-
-    return {
-      order,
-    }
+    return await this.orderService.findById(req.user, id)
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiOkResponse({ type: GetOrderOutput })
   async patch(
     @Request() req,
@@ -60,7 +56,7 @@ export class OrderController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,

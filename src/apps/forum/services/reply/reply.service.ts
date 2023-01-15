@@ -5,9 +5,8 @@ import { CreateReplyInput, UpdateReplyInput } from "apps/forum/dtos";
 import { Reply } from "apps/forum/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
+import { TableName } from "utils";
 import { BlogService } from "../blog";
-
-const MODULE_NAME = 'Reply'
 
 export const replyRelation = {
   user: true,
@@ -28,7 +27,7 @@ export class ReplyService extends BaseService<Reply> {
     
     const blog = await this.blogService.findOne({ id: blogId })
     if (!blog) {
-      BaseError('Blog', HttpStatus.NOT_FOUND)
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     }
 
     const createdReply = this.replyRepo.create({
@@ -61,9 +60,9 @@ export class ReplyService extends BaseService<Reply> {
   ) {
     const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
     }
 
     await this.replyRepo.save({
@@ -79,18 +78,13 @@ export class ReplyService extends BaseService<Reply> {
   async remove(user: UserToken, id: string) {
     const reply = await this.findOne({ id }, replyRelation)
     if (!reply) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
     }
 
-    await this.replyRepo.softRemove(reply)
-  }
-
-  async updateVote(id: string, votes: number) {
-    await this.replyRepo.save({
-      votes,
-      id,
-    })
+    return {
+      reply: await this.replyRepo.softRemove(reply)
+    }
   }
 }

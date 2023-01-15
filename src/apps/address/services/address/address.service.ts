@@ -5,10 +5,9 @@ import { Address } from "apps/address/entities";
 import { UserToken } from "apps/auth";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Address'
-
-const addressRelations = {
+export const addressRelations = {
   user: true,
 }
 
@@ -31,7 +30,7 @@ export class AddressService extends BaseService<Address> {
     return { address: createdAddress }
   }
 
-  async findAll(user: UserToken, take: number) {
+  async findAll(user: UserToken, limit: number) {
     const where: FindOptionsWhere<Address> = {}
 
     where.user = {
@@ -41,10 +40,20 @@ export class AddressService extends BaseService<Address> {
     const { data: addresses, total } = await this.find({
       where,
       relations: addressRelations,
-      take,
+      limit,
     })
 
     return { addresses, total }
+  }
+
+  async findById(user: UserToken, id: string) {
+    const address = await this.findOne({ id }, addressRelations)
+
+    if (address.user.id !== user.profile.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
+    }
+
+    return { address }
   }
 
   async update(
@@ -54,9 +63,9 @@ export class AddressService extends BaseService<Address> {
   ) {
     const address = await this.findOne({ id }, addressRelations)
     if (!address) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
     }
 
     await this.addressRepo.save({
@@ -74,10 +83,12 @@ export class AddressService extends BaseService<Address> {
   ) {
     const address = await this.findOne({ id }, addressRelations)
     if (!address) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
     }
-    await this.addressRepo.softRemove(address)
+    return {
+      address: await this.addressRepo.softRemove(address)
+    }
   }
 }

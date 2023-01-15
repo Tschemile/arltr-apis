@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nes
 import { JwtAuthGuard } from "apps/auth";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { VoteService } from "apps/forum/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Vote'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.VOTE)
+@Controller(TableName.VOTE.toLowerCase())
 export class VoteController {
   constructor(
     private readonly voteService: VoteService

@@ -1,10 +1,11 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { UpsertReactInput } from "apps/posts/dtos";
+import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
 import { React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, In, Repository } from "typeorm";
+import { TableName } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
 
@@ -24,74 +25,105 @@ export class ReactService extends BaseService<React> {
     super(reactRepo)
   }
 
-  async upsert(user: UserToken, input: UpsertReactInput) {
-    const { type, post: postId, comment: commentId } = input
+  async validInput(input: UpsertReactInput) {
+    let id: string
+    let isPost: boolean
 
+    const where: FindOptionsWhere<React> = {}
+
+    const { post: postId, comment: commentId } = input
     if (postId) {
       const post = await this.postService.findOne({ id: postId })
       if (!post) {
-        BaseError(`Product`, HttpStatus.NOT_FOUND)
+        BaseError(TableName.POST, HttpStatus.NOT_FOUND)
       }
 
-      let total = post.totalReacts || 0
-      const reacted = await this.findOne({
-        post: { id: post.id },
-        user: { id: user.profile.id }
-      })
-
-      if (reacted) {
-        if (reacted.type === type) {
-          await this.reactRepo.remove(reacted)
-          total = total - 1
-        } else {
-          await this.reactRepo.save({
-            type,
-            id: reacted.id,
-          })
-        }
-      } else {
-        const createdReact = this.reactRepo.create({
-          post,
-          user: user.profile,
-          type,
-        })
-        await this.reactRepo.save(createdReact)
-        total = total + 1
-      }
-      await this.postService.incrementReacts(post.id, total)
+      id = post.id
+      isPost = true
+      where.post = { id: post.id }
     }
     if (commentId) {
       const comment = await this.commentService.findOne({ id: commentId })
       if (!comment) {
-        BaseError(`Comment`, HttpStatus.NOT_FOUND)
+        BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
       }
 
-      let total = comment.totalReacts || 0
-      const reacted = await this.findOne({
-        comment: { id: comment.id },
-        user: { id: user.profile.id }
-      })
+      id = comment.id
+      isPost = false
+      where.comment = { id: comment.id }
+    }
 
-      if (reacted) {
-        if (reacted.type === type) {
-          await this.reactRepo.remove(reacted)
-          total = total - 1
+    return { id, isPost, type: input.type, where }
+  }
+
+  async upsert(user: UserToken, input: UpsertReactInput) {
+    const { 
+      id, 
+      isPost, 
+      type,
+      where,
+    } = await this.validInput(input)
+
+    const reacted = await this.findOne({
+      ...where,
+      user: { id: user.profile.id },
+    }) 
+
+    if (reacted) {
+      // Un reacted
+      if (reacted.type === type) {
+        if (isPost) {
+          await this.postService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
         } else {
-          await this.reactRepo.save({
+          await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
+        }
+        return {
+          react: await this.reactRepo.softRemove(reacted)
+        }
+      } else {
+        // Change react
+        return{
+          react: await this.reactRepo.save({
             type,
             id: reacted.id,
           })
-        }
-      } else {
-        const createdReact = this.reactRepo.create({
-          comment,
-          user: user.profile,
-          type,
-        })
-        await this.reactRepo.save(createdReact)
-        total = total + 1
+        } 
       }
-      await this.commentService.incrementReacts(comment.id, total)
+    } else {
+      const createdReact = this.reactRepo.create({
+        type,
+        user: user.profile,
+        post: isPost  ? { id: id } : null,
+        comment: isPost ? null : { id: id }
+      })
+      if (isPost) {
+        await this.postService.changeProperty({ id }, 'totalReacts', 1, 'INCREMENT')
+      } else {
+        await this.commentService.changeProperty({ id }, 'totalReacts',1, 'INCREMENT')
+      }
+      return {
+        react: await this.reactRepo.save(createdReact)
+      }
     }
+  }
+
+  async findAll(query: QueryReactInput) {
+    const { postIds, user: userId } = query
+    const where: FindOptionsWhere<React> = {}
+
+    if (userId) {
+      where.user = { id: userId }
+    }
+
+    if (postIds && postIds.length > 0) {
+      where.post = { id: In(postIds) }
+    }
+
+    const { data: reacts, total } = await this.find({
+      where,
+      relations: reactRelation,
+    })
+
+    return { reacts, total }
   }
 }

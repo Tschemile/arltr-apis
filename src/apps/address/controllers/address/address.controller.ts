@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { CreateAddressInput, GetAddressesOutput, GetAddressOutput, UpdateAddressInput } from "apps/address/dtos";
 import { AddressService } from "apps/address/services";
 import { JwtAuthGuard } from "apps/auth";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Address'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.ADDRESS)
+@Controller(TableName.ADDRESS.toLowerCase())
 export class AddressController {
   constructor(
     private readonly addressService: AddressService,
@@ -40,17 +39,17 @@ export class AddressController {
   @ApiParam({ name: 'id' })
   @ApiOkResponse({ type: GetAddressOutput })
   async getById(
+    @Request() req,
     @Param('id') id: string,
   ): Promise<GetAddressOutput> {
-    const address = await this.addressService.findOne({ id })
-    return { address }
+    return await this.addressService.findById(req.user, id)
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ type: GetAddressOutput })
   async patch(
@@ -69,13 +68,13 @@ export class AddressController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetAddressOutput>  {
     return await this.addressService.remove(
       req.user,
       id,

@@ -1,13 +1,13 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { GENDER, RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreatePageInput, QueryPageInput, UpdatePageInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
 import { CategoryService } from "apps/settings";
-import { BaseService } from "base";
+import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { TableName } from "utils";
 import { relateRelations, RelationService } from "../relation";
 
 export const pageRelations = {
@@ -29,9 +29,7 @@ export class PageService extends BaseService<Profile> {
 
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     const createdPage = this.pageRepo.create({
@@ -43,13 +41,12 @@ export class PageService extends BaseService<Profile> {
       user,
     })
     await this.pageRepo.save(createdPage)
-    await this.relationService.create(user, { 
+    await this.relationService.create(user, {
       user: createdPage.id,
       type: RELATION_TYPE.OWNER,
     })
 
     return {
-      status: HTTP_STATUS.Created,
       page: createdPage,
     }
   }
@@ -58,7 +55,7 @@ export class PageService extends BaseService<Profile> {
     const {
       search = '',
       category: categoryId = '',
-      limit: take = 10,
+      limit,
     } = query || {}
 
     const where: FindOptionsWhere<Profile> = {
@@ -72,32 +69,34 @@ export class PageService extends BaseService<Profile> {
     if (categoryId) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        return {
-          status: HTTP_STATUS.Not_Found,
-        }
+        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
       }
 
       where.category = { id: category.id }
     }
 
-    const [pages, total] = await Promise.all([
-      this.pageRepo.find({ where, take, relations: pageRelations }),
-      this.pageRepo.count({ where })
-    ])
+    const { data: pages, total } = await this.find({
+      where,
+      relations: pageRelations,
+      limit,
+    })
 
     return {
-      status: HTTP_STATUS.OK,
-      pages, 
-      total 
+      pages,
+      total
     }
   }
 
+  async findById(id: string) {
+    const page = await this.findOne({ id }, pageRelations)
+
+    return { page }
+  }
+
   async validAuthorization(user: UserToken, id: string) {
-    const page = await this.findOne({ id })
+    const page = await this.findOne({ id }, pageRelations)
     if (!page) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      }
+      BaseError(TableName.PAGE, HttpStatus.NOT_FOUND)
     }
 
     const relation = await this.relationService.findOne({
@@ -106,62 +105,49 @@ export class PageService extends BaseService<Profile> {
       user: { id: page.id }
     }, relateRelations)
     if (!relation) {
-      return {
-        status: HTTP_STATUS.Forbidden
-      }
+      BaseError(TableName.PAGE, HttpStatus.FORBIDDEN)
     }
 
-    return {
-      status: HTTP_STATUS.OK,
-      page,
-    }
+    return { page }
   }
 
   async update(
-    user: UserToken, 
+    user: UserToken,
     id: string,
     input: UpdatePageInput,
-  ) { 
-    const { status, page } = await this.validAuthorization(user, id)
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
-    }
-
+  ) {
+    const { page } = await this.validAuthorization(user, id)
     const { category: categoryId } = input
 
-    const category = await this.categoryService.findOne({ id: categoryId })
-    if (!category) {
-      return {
-        status: HTTP_STATUS.Not_Found,
+    let newCategory = page.category
+    if (categoryId) {
+      const category = await this.categoryService.findOne({ id: categoryId })
+      if (!category) {
+        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
       }
+      newCategory = category
     }
 
     await this.pageRepo.save({
       ...input,
-      category,
+      category: newCategory,
       id,
     })
 
     return {
-      status: HTTP_STATUS.OK,
       page: {
         ...page,
         ...input,
-        category,
+        category: newCategory,
       }
     }
   }
 
   async remove(user: UserToken, id: string) {
-    const { status } = await this.validAuthorization(user, id)
-    if (status !== HTTP_STATUS.OK) {
-      return { status }
-    }
-
-    await this.pageRepo.softRemove(user.profile)
+    const { page } = await this.validAuthorization(user, id)
 
     return {
-      status: HTTP_STATUS.OK,
+      page: await this.pageRepo.softRemove(page)
     }
   }
 }

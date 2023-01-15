@@ -6,10 +6,8 @@ import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups
 import { Group } from 'apps/groups/entities';
 import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
-import { generateSlug } from 'utils';
+import { generateSlug, TableName } from 'utils';
 import { MemberService } from '../member';
-
-const MODULE_NAME = 'Group'
 
 @Injectable()
 export class GroupService extends BaseService<Group> {
@@ -40,7 +38,7 @@ export class GroupService extends BaseService<Group> {
 
   async findAll(user: UserToken, query: QueryGroupInput) {
     const where: FindOptionsWhere<Group> = {}
-    const take = query.limit || 10
+    const limit = query.limit || 10
 
     switch (query.type) {
       case QUERY_TYPE.COMMUNICATE: {
@@ -60,13 +58,13 @@ export class GroupService extends BaseService<Group> {
 
     const { data: groups, total } = await this.find({
       where,
-      take,
+      limit,
     })
 
     return { groups, total }
   }
 
-  async findByUser(user: UserToken, take: number) {
+  async findByUser(user: UserToken, limit: number) {
     const where: FindOptionsWhere<Group> = {}
 
     const { members } = await this.memberService.findAll(user)
@@ -75,7 +73,7 @@ export class GroupService extends BaseService<Group> {
 
     const { data: groups, total} = await this.find({
       where,
-      take,
+      limit,
     })
 
     return { groups, total }
@@ -88,7 +86,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -96,7 +94,7 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     await this.groupRepo.save({
@@ -118,7 +116,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -126,16 +124,9 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
-    await this.groupRepo.softRemove(group)
-  }
-
-  async incrementTotal(id: string, total: number) {
-    await this.groupRepo.save({
-      total,
-      id,
-    })
+    return await this.groupRepo.softRemove(group)
   }
 }

@@ -7,9 +7,7 @@ import { CreateProductInput, UpdateProductInput } from "apps/shop/dtos";
 import { Product } from "apps/shop/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { generateSlug } from "utils";
-
-const MODULE_NAME = 'Product'
+import { generateSlug, TableName } from "utils";
 
 export const productRelations = {
   shop: true,
@@ -23,7 +21,7 @@ export class ProductService extends BaseService<Product> {
     @InjectRepository(Product) private productRepo: Repository<Product>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
     @Inject(forwardRef(() => AddressService)) private addressService: AddressService,
-  ) { 
+  ) {
     super(productRepo)
   }
 
@@ -35,11 +33,11 @@ export class ProductService extends BaseService<Product> {
     const address = await this.addressService.findOne({ id: addressId })
 
     if (!category) {
-      BaseError(`Category`, HttpStatus.NOT_FOUND)
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     if (!address) {
-      BaseError(`Address`, HttpStatus.NOT_FOUND)
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     }
 
     return {
@@ -50,7 +48,7 @@ export class ProductService extends BaseService<Product> {
 
   async create(user: UserToken, input: CreateProductInput) {
     const { name, category: categoryId, address: addressId } = input
-    
+
     const { category, address } = await this.checkValidUpsert({
       categoryId,
       addressId,
@@ -83,6 +81,11 @@ export class ProductService extends BaseService<Product> {
     return { products, total }
   }
 
+  async findById(id: string) {
+    const product = await this.findOne({ id }, productRelations)
+    return { product }
+  }
+
   async update(
     user: UserToken,
     id: string,
@@ -92,9 +95,9 @@ export class ProductService extends BaseService<Product> {
 
     const product = await this.findOne({ id }, productRelations)
     if (!product) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
     }
 
     const { category, address } = await this.checkValidUpsert({
@@ -102,23 +105,24 @@ export class ProductService extends BaseService<Product> {
       addressId,
     })
 
-    await this.productRepo.save({
+    const updatedProduct = {
       ...input,
-      category,
-      address,
       slug: generateSlug(name),
+      category,
+      address
+    }
+
+    await this.productRepo.save({
+      ...updatedProduct,
       id,
     })
 
-    const updatedProduct = { 
-      ...product, 
-      ...input, 
-      slug: generateSlug(name), 
-      category, 
-      address 
+    return {
+      product: {
+        ...product,
+        ...updatedProduct,
+      }
     }
-
-    return { product: updatedProduct }
   }
 
   async remove(
@@ -127,19 +131,13 @@ export class ProductService extends BaseService<Product> {
   ) {
     const product = await this.findOne({ id }, productRelations)
     if (!product) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
     }
 
-    await this.productRepo.softRemove(product)
-  }
-
-  async incrementReview(id: string, rating: number, numReview: number) {
-    await this.productRepo.save({
-      rating,
-      numReview,
-      id,
-    })
+    return {
+      product: await this.productRepo.softRemove(product)
+    }
   }
 }

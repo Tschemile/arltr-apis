@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateGroupInput, GetGroupOutput, GetGroupsOutput, UpdateGroupInput } from "apps/groups/dtos";
 import { GroupService } from "apps/groups/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Group'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.GROUP)
+@Controller(TableName.GROUP.toLowerCase())
 export class GroupController {
   constructor(
     private readonly groupService: GroupService,
@@ -16,7 +15,7 @@ export class GroupController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiCreatedResponse({ type: GetGroupOutput })
   async post(
     @Request() req,
@@ -53,7 +52,7 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiOkResponse({ type: GetGroupOutput })
   async getById(
     @Param('id') id: string
@@ -66,7 +65,7 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetGroupOutput })
   async patch(
@@ -85,7 +84,7 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(

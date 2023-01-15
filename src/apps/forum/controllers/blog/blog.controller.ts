@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateBlogInput, GetBlogOutput, GetBlogsOutput, QUERY_TYPE, UpdateBlogInput } from "apps/forum/dtos";
 import { BlogService } from "apps/forum/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Blog'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.BLOG)
+@Controller(TableName.BLOG.toLowerCase())
 export class BlogController {
   constructor(
     private readonly blogService: BlogService
@@ -16,7 +15,7 @@ export class BlogController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiNotFoundResponse({ description: `${TableName.CATEGORY} not found` })
   @ApiCreatedResponse({ type: GetBlogOutput })
   async post(
     @Request() req,
@@ -43,7 +42,7 @@ export class BlogController {
     @Query('tags') tags?: string[],
     @Query('author') author?: string,
     @Query('status') status?: string,
-  ) {
+  ): Promise<GetBlogsOutput>  {
     return await this.blogService.findAll(req.user, {
       type,
       search,
@@ -58,7 +57,7 @@ export class BlogController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.BLOG} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetBlogOutput })
   async patch(
@@ -73,13 +72,13 @@ export class BlogController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.BLOG} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetBlogOutput>  {
     return await this.blogService.remove(req.user, id)
   }
 }

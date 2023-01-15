@@ -5,9 +5,8 @@ import { CreateCommentInput, UpdateCommentInput } from "apps/posts/dtos";
 import { Comment } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
+import { TableName } from "utils";
 import { PostService } from "../post";
-
-const MODULE_NAME = 'Comment'
 
 export const commentRelation = {
   user: true,
@@ -28,7 +27,7 @@ export class CommentService extends BaseService<Comment> {
 
     const post = await this.postService.findOne({ id: postId })
     if (!post) {
-      BaseError(`Post`, HttpStatus.NOT_FOUND)
+      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
     const createdComment = this.commentRepo.create({
@@ -37,22 +36,21 @@ export class CommentService extends BaseService<Comment> {
       post,
     })
     await this.commentRepo.save(createdComment)
-    const total = post.totalComments || 0
-    await this.postService.incrementComments(post.id, total + 1)
+    await this.postService.changeProperty({ id: post.id }, 'totalComments', 1, 'INCREMENT')
 
     return {
       comment: createdComment,
     }
   }
 
-  async findAll(postId: string, take?: number) {
+  async findAll(postId: string, limit?: number) {
     const where: FindOptionsWhere<Comment> = {}
     where.post = { id: postId }
 
     const { data: comments, total } = await this.find({
       where,
       relations: commentRelation,
-      take,
+      limit,
     })
 
     return { comments, total }
@@ -65,11 +63,11 @@ export class CommentService extends BaseService<Comment> {
   ) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
     await this.commentRepo.save({
@@ -85,23 +83,17 @@ export class CommentService extends BaseService<Comment> {
   async remove(user: UserToken, id: string) {
     const comment = await this.findOne({ id }, commentRelation)
     if (!comment) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
-    await this.commentRepo.softRemove(comment)
+    await this.postService.changeProperty({ id: comment.post.id }, 'totalComments', 1, 'DECREMENT')
 
-    const total = comment.post.totalComments || 0
-    await this.postService.incrementComments(comment.post.id, total - 1)
-  }
-
-  async incrementReacts(id: string, total: number) {
-    await this.commentRepo.save({
-      id,
-      totalReacts: total,
-    })
+    return {
+      comment: await this.commentRepo.softRemove(comment)
+    }
   }
 }
