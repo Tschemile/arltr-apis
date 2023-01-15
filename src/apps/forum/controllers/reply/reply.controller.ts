@@ -1,13 +1,12 @@
-import { Body, Controller, Delete, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreateReplyInput, GetReplyOutput, UpdateReplyInput } from "apps/forum/dtos";
+import { CreateReplyInput, GetRepliesOutput, GetReplyOutput, UpdateReplyInput } from "apps/forum/dtos";
 import { ReplyService } from "apps/forum/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Reply'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.REPLY)
+@Controller(TableName.REPLY.toLowerCase())
 export class ReplyController {
   constructor(
     private readonly replyService: ReplyService
@@ -25,11 +24,21 @@ export class ReplyController {
     return await this.replyService.create(req.user, input)
   }
 
+  @Get(':blog')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'blog' })
+  async getByBlog(
+    @Param('blog') blog: string
+  ): Promise<GetRepliesOutput> {
+    return await this.replyService.findAll(blog)
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetReplyOutput })
   async patch(
@@ -44,13 +53,13 @@ export class ReplyController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetReplyOutput> {
     return await this.replyService.remove(req.user, id)
   }
 }

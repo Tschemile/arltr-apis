@@ -5,3 +5,11 @@ export class GetReplyOutput {
   @ApiProperty({ type: () => Reply })
   reply?: Reply
 }
+
+export class GetRepliesOutput {
+  @ApiProperty({ type: () => [Reply] })
+  replies: Reply[]
+
+  @ApiProperty({ type: Number })
+  total: number
+}

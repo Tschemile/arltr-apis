@@ -4,7 +4,8 @@ import { UserToken } from "apps/auth";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { Vote } from "apps/forum/entities";
 import { BaseError, BaseService } from "base";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
+import { TableName } from "utils";
 import { BlogService } from "../blog";
 import { ReplyService } from "../reply";
 
@@ -20,84 +21,99 @@ export class VoteService extends BaseService<Vote> {
     @InjectRepository(Vote) private voteRepo: Repository<Vote>,
     private blogService: BlogService,
     private replyService: ReplyService,
-  ) { 
+  ) {
     super(voteRepo)
   }
 
-  async upsert(user: UserToken, input: UpsertVoteInput) {
-    const { vote, blog: blogId, reply: replyId } = input
+  async validInput(input: UpsertVoteInput) {
+    let id: string
+    let isBlog: boolean
 
+    const where: FindOptionsWhere<Vote> = {}
+
+    const { blog: blogId, reply: replyId } = input
     if (blogId) {
       const blog = await this.blogService.findOne({ id: blogId })
       if (!blog) {
-        BaseError('Blog', HttpStatus.NOT_FOUND)
+        BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
       }
-  
-      let total = blog.votes || 0
-  
-      const voted = await this.findOne({
-        user: { id: user.profile.id },
-        blog: { id: blog.id }
-      }, voteRelations)
-  
-      if (voted) {
-        if (voted.vote === vote) {
-          await this.voteRepo.remove(voted)
-          total = vote ? total - 1 : total + 1
-        } else {
-          await this.voteRepo.save({
-            vote,
-            id: voted.id,
-          })
-          total = vote ? total + 2 : total - 2
-        }
-      } else {
-        const createdVote = this.voteRepo.create({
-          user: user.profile,
-          blog,
-          vote,
-        })
-        await this.voteRepo.save(createdVote)
-        total = vote ? total + 1 : total - 1
-      }
-  
-      await this.blogService.updateVote(blog.id, total)
+
+      id = blog.id
+      isBlog = true
+      where.blog = { id: blog.id }
     }
     if (replyId) {
       const reply = await this.replyService.findOne({ id: replyId })
       if (!reply) {
-        BaseError('Reply', HttpStatus.NOT_FOUND)
+        BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
       }
-  
-      let total = reply.votes || 0
-  
-      const voted = await this.findOne({
-        user: { id: user.profile.id },
-        reply: { id: reply.id }
-      }, voteRelations)
-  
-      if (voted) {
-        if (voted.vote === vote) {
-          await this.voteRepo.remove(voted)
-          total = vote ? total - 1 : total + 1
+
+      id = reply.id
+      isBlog = false
+      where.reply = { id: reply.id }
+    }
+
+    return { id, isBlog, where, vote: input.vote }
+  }
+
+  async upsert(user: UserToken, input: UpsertVoteInput) {
+    const {
+      id,
+      isBlog,
+      vote,
+      where,
+    } = await this.validInput(input)
+
+    const voted = await this.findOne({
+      ...where,
+      user: { id: user.profile.id },
+    }, voteRelations)
+
+    if (voted) {
+      if (voted.vote) {
+        if (isBlog) {
+          await this.blogService.changeProperty({ id }, 'votes', vote ? 1 : 2, 'DECREMENT')
         } else {
-          await this.voteRepo.save({
+          await this.replyService.changeProperty({ id }, 'votes', vote ? 1 : 2, 'DECREMENT')
+        }
+        return vote
+          ? await this.voteRepo.softRemove(voted)
+          : await this.voteRepo.save({
             vote,
             id: voted.id,
           })
-          total = vote ? total + 2 : total - 2
+      } else {
+        if (isBlog) {
+          await this.blogService.changeProperty({ id }, 'votes', vote ? 2 : 1, 'INCREMENT')
+        } else {
+          await this.replyService.changeProperty({ id }, 'votes', vote ? 2 : 1, 'INCREMENT')
+        }
+        return vote
+          ? await this.voteRepo.save({
+            vote,
+            id: voted.id,
+          })
+          : await this.voteRepo.softRemove(voted)
+      }
+    } else {
+      const createdVote = this.voteRepo.create({
+        user: user.profile,
+        vote,
+      })
+      if (vote) {
+        if (isBlog) {
+          await this.blogService.changeProperty({ id }, 'votes', 1, 'DECREMENT')
+        } else {
+          await this.replyService.changeProperty({ id }, 'votes', 1, 'DECREMENT')
         }
       } else {
-        const createdVote = this.voteRepo.create({
-          user: user.profile,
-          reply,
-          vote,
-        })
-        await this.voteRepo.save(createdVote)
-        total = vote ? total + 1 : total - 1
+        if (isBlog) {
+          await this.blogService.changeProperty({ id }, 'votes', 1, 'INCREMENT')
+        } else {
+          await this.replyService.changeProperty({ id }, 'votes', 1, 'INCREMENT')
+        }
       }
-  
-      await this.replyService.updateVote(reply.id, total)
+      return await this.voteRepo.save(createdVote)
     }
   }
 }

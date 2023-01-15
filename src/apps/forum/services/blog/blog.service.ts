@@ -7,11 +7,9 @@ import { Blog } from "apps/forum/entities";
 import { CategoryService } from "apps/settings";
 import { BaseError, BaseService } from "base";
 import { ArrayContains, FindOptionsWhere, In, Like, Repository } from "typeorm";
-import { generateSlug } from "utils";
+import { generateSlug, TableName } from "utils";
 
-const MODULE_NAME = 'Blog'
-
-const blogRelation = {
+export const blogRelation = {
   author: true,
   category: true,
 }
@@ -30,7 +28,7 @@ export class BlogService extends BaseService<Blog> {
     
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      BaseError('Category', HttpStatus.NOT_FOUND)
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     const createdBlog = this.blogRepo.create({
@@ -81,7 +79,7 @@ export class BlogService extends BaseService<Blog> {
     const { data: blogs, total } = await this.find({
       where,
       relations: blogRelation,
-      take: limit,
+      limit,
     })
 
     return { blogs, total }
@@ -94,9 +92,9 @@ export class BlogService extends BaseService<Blog> {
   ) {
     const blog = await this.findOne({ id }, blogRelation)
     if (!blog) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
     }
 
     const { title, category: categoryId } = input
@@ -104,7 +102,7 @@ export class BlogService extends BaseService<Blog> {
     if (categoryId && categoryId !== blog.category.id) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        BaseError('Category', HttpStatus.NOT_FOUND)
+        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
       }
       blog.category = category
     }
@@ -125,18 +123,13 @@ export class BlogService extends BaseService<Blog> {
   async remove(user: UserToken, id: string) {
     const blog = await this.findOne({ id }, blogRelation)
     if (!blog) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
     }
 
-    await this.blogRepo.softRemove(blog)
-  }
-
-  async updateVote(id: string, votes: number) {
-    await this.blogRepo.save({
-      votes,
-      id,
-    })
+    return {
+      blog: await this.blogRepo.softRemove(blog)
+    }
   }
 }

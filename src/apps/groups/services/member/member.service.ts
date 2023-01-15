@@ -7,9 +7,8 @@ import { Group, Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Not, Repository } from "typeorm";
+import { TableName } from "utils";
 import { GroupService } from "../group";
-
-const MODULE_NAME = 'Member'
 
 export const memberRelation = {
   user: true,
@@ -70,7 +69,7 @@ export class MemberService extends BaseService<Member> {
     // Check exist group
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      BaseError(`Group`, HttpStatus.NOT_FOUND)
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     // Check current user is member of group
@@ -79,15 +78,14 @@ export class MemberService extends BaseService<Member> {
       group: { id: group.id }
     })
     if (!isMember) {
-      BaseError(`Group`, HttpStatus.FORBIDDEN)
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     // Check exist profile
     const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
-      BaseError(`Profile`, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
-
 
     // Check exist member
     const existedMember = await this.findOne({
@@ -127,7 +125,6 @@ export class MemberService extends BaseService<Member> {
     const { data: members, total } = await this.find({
       where,
       relations:memberRelation,
-      take: 5,
     })
 
     return { members, total }
@@ -141,7 +138,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id }, memberRelation)
     if (!member) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id === user.profile.id) {
@@ -149,8 +146,7 @@ export class MemberService extends BaseService<Member> {
         member.status === MEMBER_STATUS.INVITING
         && input.status === MEMBER_STATUS.ACTIVE
       ) {
-        const total = member.group.total || 0
-        await this.groupService.incrementTotal(member.group.id, total + 1)
+        await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'INCREMENT')
       }
     } else {
       // Check member has role to update
@@ -159,7 +155,7 @@ export class MemberService extends BaseService<Member> {
         group: { id: member.group.id }
       })
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 
@@ -180,7 +176,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id }, memberRelation)
     if (!member) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id !== user.profile.id) {
@@ -189,12 +185,11 @@ export class MemberService extends BaseService<Member> {
         group: { id: member.group.id }
       })
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 
-    await this.memberRepo.softRemove(member)
-
-    const total = member.group.total || 0
+    await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'DECREMENT')
+    return await this.memberRepo.softRemove(member)
   }
 }

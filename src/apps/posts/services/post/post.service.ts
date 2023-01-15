@@ -71,7 +71,6 @@ export class PostService extends BaseService<Post> {
 
   async findAll(user: UserToken, query: QueryPostInput) {
     const { limit, type, } = query
-    const take = limit || 10
     const singleWhere: FindOptionsWhere<Post> = {}  
     singleWhere.type = type || POST_TYPE.POST
 
@@ -97,20 +96,23 @@ export class PostService extends BaseService<Post> {
     const { data: posts, total } = await this.find({
       where,
       relations: postRelation,
-      take,
+      limit,
     })
 
     return { posts, total }
   }
 
-  async findByUser(user: UserToken, profile: Profile, take: number) {
+  async findByUser(user: UserToken, profile: Profile, limit: number) {
     const relation = await this.relationService.findOne([
       { requester: { id: user.profile.id }, user: { id: profile.id  }, type: RELATION_TYPE.FRIEND }, 
       { requester: { id: profile.id  }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
     ], relateRelations)
 
     const where: FindOptionsWhere<Post> = {
-      group: { id: null }
+      group: { id: null },
+      author: { 
+        id: profile.id,
+      }
     }
     if (user.profile.id !== profile.id) {
       if (relation) {
@@ -123,7 +125,7 @@ export class PostService extends BaseService<Post> {
     const { data: posts, total } = await this.find({
       where,
       relations: postRelation,
-      take,
+      limit,
     })
 
     return { posts, total }
@@ -191,19 +193,5 @@ export class PostService extends BaseService<Post> {
     }
 
     await this.postRepo.softRemove(post)
-  }
-
-  async incrementReacts(id: string, total: number) {
-    await this.postRepo.save({
-      id,
-      totalReacts: total,
-    })
-  }
-
-  async incrementComments(id: string, total: number) {
-    await this.postRepo.save({
-      id,
-      totalComments: total,
-    })
   }
 }

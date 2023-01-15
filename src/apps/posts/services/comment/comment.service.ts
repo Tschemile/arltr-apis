@@ -38,21 +38,21 @@ export class CommentService extends BaseService<Comment> {
     })
     await this.commentRepo.save(createdComment)
     const total = post.totalComments || 0
-    await this.postService.incrementComments(post.id, total + 1)
+    await this.postService.changeProperty({ id: post.id }, 'totalComments', total, 'INCREMENT')
 
     return {
       comment: createdComment,
     }
   }
 
-  async findAll(postId: string, take?: number) {
+  async findAll(postId: string, limit?: number) {
     const where: FindOptionsWhere<Comment> = {}
     where.post = { id: postId }
 
     const { data: comments, total } = await this.find({
       where,
       relations: commentRelation,
-      take,
+      limit,
     })
 
     return { comments, total }
@@ -95,7 +95,7 @@ export class CommentService extends BaseService<Comment> {
     await this.commentRepo.softRemove(comment)
 
     const total = comment.post.totalComments || 0
-    await this.postService.incrementComments(comment.post.id, total - 1)
+    await this.postService.changeProperty({ id: comment.post.id }, 'totalComments', total - 1, 'DECREMENT')
   }
 
   async incrementReacts(id: string, total: number) {
