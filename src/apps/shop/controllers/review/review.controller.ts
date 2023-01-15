@@ -4,11 +4,10 @@ import { JwtAuthGuard } from "apps/auth";
 import { CreateReviewInput } from "apps/shop/dtos";
 import { GetReviewOutput, GetReviewsOutput } from "apps/shop/dtos/review/get-review.output";
 import { ReviewService } from "apps/shop/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Review'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.REVIEW)
+@Controller(TableName.REVIEW.toLowerCase())
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService

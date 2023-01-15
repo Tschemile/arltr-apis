@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, 
 import { JwtAuthGuard } from "apps/auth";
 import { CreateProductInput, GetProductOutput, UpdateProductInput } from "apps/shop/dtos";
 import { ProductService } from "apps/shop/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Product'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.PRODUCT)
+@Controller(TableName.PRODUCT.toLowerCase())
 export class ProductController {
   constructor(
     private readonly productService: ProductService,
@@ -31,14 +30,13 @@ export class ProductController {
   async getById(
     @Param('id') id: string,
   ): Promise<GetProductOutput> {
-    const product = await this.productService.findOne({ id })
-    return { product}
+    return await this.productService.findById(id)
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ type: GetProductOutput })
   async patch(
     @Request() req,
@@ -55,12 +53,12 @@ export class ProductController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetProductOutput> {
     return await this.productService.remove(
       req.user,
       id,
