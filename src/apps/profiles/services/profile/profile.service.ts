@@ -10,9 +10,8 @@ import { FileService } from "apps/uploads";
 import { User } from "apps/users";
 import { BaseError, BaseService } from "base";
 import { Between, FindOptionsWhere, Like, Not, Repository } from "typeorm";
+import { TableName } from "utils";
 import { relateRelations, RelationService } from "../relation";
-
-const MODULE_NAME = 'Profile'
 
 export const profileRelations = {
   user: true,
@@ -41,7 +40,7 @@ export class ProfileService extends BaseService<Profile> {
       }, profileRelations)
 
       if (existedProfile) {
-        BaseError(MODULE_NAME, HttpStatus.CONFLICT)
+        BaseError(TableName.PROFILE, HttpStatus.CONFLICT)
       }
     }
     const createdProfile = this.profileRepo.create({
@@ -115,10 +114,10 @@ export class ProfileService extends BaseService<Profile> {
     const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
 
     if (blocked) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.PROFILE, HttpStatus.FORBIDDEN)
     }
     if (!profile) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     const profileFully = {
@@ -140,7 +139,7 @@ export class ProfileService extends BaseService<Profile> {
   async update(user: UserToken, input: UpdateProfileInput) {
     const profile = await this.findOne({ id: user.profile.id })
     if (!profile) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
     await this.profileRepo.save({
       ...input,
@@ -156,18 +155,20 @@ export class ProfileService extends BaseService<Profile> {
   async remove(user: UserToken) {
     const profile = await this.findOne({ id: user.profile.id }, profileRelations)
     if (!profile) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
-    await this.profileRepo.softRemove(profile)
+    return {
+      profile: await this.profileRepo.softRemove(profile)
+    }
   }
 
   async switch(user: User, id: string) {
     const profile = await this.findOne({ id })
     if (!profile) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
     if (user.id !== profile.user.id) {
-      BaseError(MODULE_NAME, HttpStatus.FORBIDDEN)
+      BaseError(TableName.PROFILE, HttpStatus.FORBIDDEN)
     }
     return {
       token: this.authService.generateToken(user, profile),

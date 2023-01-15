@@ -18,6 +18,7 @@ export enum TableName {
   MEMBER = 'Member',
   MESSAGE = 'Message',
   ORDER = 'Order',
+  PAGE = 'Page',
   PARTICIPANT = 'Participant',
   POLICY = 'Policy',
   POST = 'Post',

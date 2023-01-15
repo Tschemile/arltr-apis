@@ -3,18 +3,17 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedRe
 import { JwtAuthGuard } from "apps/auth";
 import { GetUserTokenOutput, LoginInput, RegisterInput } from "apps/users/dtos";
 import { UserService } from "apps/users/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'User'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.USER)
+@Controller(TableName.USER.toLowerCase())
 export class UserController {
   constructor(
     private readonly userService: UserService,
   ) { }
 
   @Post('login')
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
   @ApiBadRequestResponse({ description: 'Email or password incorrect' })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async login(@Body() loginUserInput: LoginInput): Promise<GetUserTokenOutput> {
@@ -22,14 +21,14 @@ export class UserController {
   }
 
   @Post()
-  @ApiConflictResponse({ description: `${MODULE_NAME} already existed` })
+  @ApiConflictResponse({ description: `${TableName.USER} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
   async create(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
     return await this.userService.register(registerInput)
   }
 
   @Post('admin')
-  @ApiConflictResponse({ description: `${MODULE_NAME} already existed` })
+  @ApiConflictResponse({ description: `${TableName.USER} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
   async createAdmin(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
     return await this.userService.register(registerInput, true)
@@ -38,11 +37,11 @@ export class UserController {
   @Delete()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(
     @Request() req,
   ) {
-    return await this.userService.delete(req.user)
+    return await this.userService.remove(req.user)
   }
 }

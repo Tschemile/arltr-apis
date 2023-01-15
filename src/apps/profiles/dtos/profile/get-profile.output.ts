@@ -3,8 +3,6 @@ import { Group } from "apps/groups";
 import { Post } from "apps/posts";
 import { Profile } from "apps/profiles/entities";
 import { File } from "apps/uploads";
-import { IsArray, IsNumber } from "class-validator";
-
 
 export class ProfileFully extends Profile {
   @ApiProperty({ type: () => [Post] })
@@ -16,51 +14,50 @@ export class ProfileFully extends Profile {
   @ApiProperty({ type: () => [Profile] })
   friends: Profile[];
 
+  @ApiProperty({ type: Number })
+  totalFriends: number;
+  
   @ApiProperty({ type: () => [Profile] })
   pages: Profile[];
 
+  @ApiProperty({ type: Number })
+  totalPages: number;
+  
   @ApiProperty({ type: () => [Profile] })
   blocks: Profile[];
 
+  @ApiProperty({ type: Number })
+  totalBlocks: number;
+
   @ApiProperty({ type: () => [Profile] })
   followers: Profile[];
+
+  @ApiProperty({ type: Number })
+  totalFollowers: number;
 
   @ApiProperty({ type: () => [Profile] })
   followings: Profile[];
 
   @ApiProperty({ type: Number })
-  totalFriends: number;
-
-  @ApiProperty({ type: Number })
-  totalBlocks: number;
-
-  @ApiProperty({ type: Number })
-  totalPages: number;
-
-  @ApiProperty({ type: Number })
-  totalFollowers: number;
-
-  @ApiProperty({ type: Number })
   totalFollowing: number;
 
-  @ApiProperty({ type: [Group] })
+  @ApiProperty({ type: () => [Group] })
   groups: Group[]
 
   @ApiProperty({ type: Number })
   totalGroups: number
 
-  @ApiProperty({ type: [File] })
+  @ApiProperty({ type: () => [File] })
   albums: File[]
 
   @ApiProperty({ type: Number })
   totalAlbums: number
 }
+
 export class GetProfilesOutput {
-  @IsArray()
   @ApiProperty({ type: () => [Profile] })
   profiles: Profile[]
 
-  @IsNumber()
   @ApiProperty({ type: Number })
   total: number
 }

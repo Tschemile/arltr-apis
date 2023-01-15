@@ -1,8 +1,6 @@
 import { FindOptionsOrder, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
 import { Base } from "./base.entity";
 
-const BASE_LIMIT = 10
-
 export class BaseService<Entity extends Base> {
   constructor(
     public repository: Repository<Entity>,
@@ -30,12 +28,10 @@ export class BaseService<Entity extends Base> {
     data: Entity[],
     total: number,
   }> {
-    const take = limit || BASE_LIMIT
-
     const results = await this.repository.findAndCount({
       where,
       relations,
-      take,
+      take: limit,
       order,
     })
 

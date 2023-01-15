@@ -1,15 +1,15 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles/entities";
-import { BaseOutputResponse } from "base";
-import { IsArray } from "class-validator";
 
-export class GetPagesOutput extends BaseOutputResponse {
-  @IsArray()
+export class GetPagesOutput {
   @ApiProperty({ type: () => [Profile] })
   pages: Profile[]
+
+  @ApiProperty({ type: Number })
+  total: number
 }
 
-export class GetPageOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
+export class GetPageOutput {
   @ApiProperty({ type: () => Profile })
-  page?: Profile
+  page: Profile
 }
