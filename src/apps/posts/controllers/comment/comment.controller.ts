@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { JwtAuthGuard } from "apps/auth";
 import { CreateCommentInput, GetCommentOutput, GetCommentsOutput, UpdateCommentInput } from "apps/posts/dtos";
 import { CommentService } from "apps/posts/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'Comment'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.COMMENT)
+@Controller(TableName.COMMENT.toLowerCase())
 export class CommentController {
   constructor(
     private readonly commentService: CommentService
@@ -16,7 +15,7 @@ export class CommentController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: 'Group not found' })
+  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiCreatedResponse({ type: GetCommentOutput })
   async post(
@@ -29,22 +28,22 @@ export class CommentController {
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiParam({ name: 'id' })
+  @ApiQuery({ name: 'post' })
   @ApiQuery({ name: 'limit', required: false })
   @ApiOkResponse({ type: GetCommentsOutput })
   async get(
     @Request() req,
-    @Param('id') id: string,
+    @Query('post') post: string,
     @Query('limit') limit?: number
   ): Promise<GetCommentsOutput> {
-    return await this.commentService.findAll(id, limit)
+    return await this.commentService.findAll(post, limit)
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetCommentOutput })
   async patch(
@@ -59,7 +58,7 @@ export class CommentController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${MODULE_NAME} not found` })
+  @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

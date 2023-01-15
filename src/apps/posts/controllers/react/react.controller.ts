@@ -3,11 +3,10 @@ import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nes
 import { JwtAuthGuard } from "apps/auth";
 import { UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
+import { TableName } from "utils";
 
-const MODULE_NAME = 'React'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.REACT)
+@Controller(TableName.REACT.toLowerCase())
 export class ReactController {
   constructor (
     private readonly reactService: ReactService
@@ -16,7 +15,7 @@ export class ReactController {
   @Put()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: 'Post not found' })
+  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
   @ApiOkResponse()
   async put(
     @Request() req,

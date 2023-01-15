@@ -77,13 +77,17 @@ export class ReactService extends BaseService<React> {
         } else {
           await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
         }
-        return await this.reactRepo.softRemove(reacted)
+        return {
+          react: await this.reactRepo.softRemove(reacted)
+        }
       } else {
         // Change react
-        return await this.reactRepo.save({
-          type,
-          id: reacted.id,
-        })
+        return{
+          react: await this.reactRepo.save({
+            type,
+            id: reacted.id,
+          })
+        } 
       }
     } else {
       const createdReact = this.reactRepo.create({
@@ -97,7 +101,9 @@ export class ReactService extends BaseService<React> {
       } else {
         await this.commentService.changeProperty({ id }, 'totalReacts',1, 'INCREMENT')
       }
-      return await this.reactRepo.save(createdReact)
+      return {
+        react: await this.reactRepo.save(createdReact)
+      }
     }
   }
 }

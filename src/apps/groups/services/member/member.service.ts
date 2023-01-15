@@ -124,7 +124,7 @@ export class MemberService extends BaseService<Member> {
 
     const { data: members, total } = await this.find({
       where,
-      relations:memberRelation,
+      relations: memberRelation,
     })
 
     return { members, total }
@@ -190,6 +190,8 @@ export class MemberService extends BaseService<Member> {
     }
 
     await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'DECREMENT')
-    return await this.memberRepo.softRemove(member)
+    return {
+      member: await this.memberRepo.softRemove(member)
+    }
   }
 }
