@@ -3,13 +3,12 @@ import { JobsService } from '../../services/job/jobs.service';
 import { CreateJobDto } from '../../dtos/job/create-job.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'apps/auth';
-import { HTTP_STATUS } from 'utils';
-import { GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
+import { GetJobOutput, GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Job';
 
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.JOB)
+@Controller(TableName.JOB.toLowerCase())
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
@@ -42,46 +41,27 @@ export class JobsController {
     @Query('jobIds') jobIds,
     @Query('categoryIds') categoryIds,
   ): Promise<GetJobsOutput> {
-    const { jobs, total } = await this.jobsService.findAll({ search, type, limit, jobIds, categoryIds });
-    return {
-      status: HTTP_STATUS.OK,
-      jobs,
-      total,
-    };
+    return await this.jobsService.findAll({ search, type, limit, jobIds, categoryIds });
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async findOne(@Param('id') id: string) {
-    const job = await this.jobsService.findById(id);
-    return {
-      job,
-      status: HTTP_STATUS.OK,
-    };
+  async findOne(@Param('id') id: string): Promise<GetJobOutput> {
+    return await this.jobsService.findById(id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
-    const { status, job } = await this.jobsService.update(id, updateJobDto);
-    if (status === HTTP_STATUS.Not_Found) {
-      return {
-        status,
-        message: `${MODULE_NAME} not found`,
-      };
-    }
-    return {
-      status,
-      job,
-    };
+  async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @Request() req) {
+   return await this.jobsService.update(id, updateJobDto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async remove(@Param('id') id: string) {
-    return await this.jobsService.remove(id);
+  async remove(@Param('id') id: string, @Request() req) {
+    return await this.jobsService.remove(id, req.user);
   }
 }

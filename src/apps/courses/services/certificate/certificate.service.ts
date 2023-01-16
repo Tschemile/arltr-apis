@@ -1,155 +1,142 @@
-import { forwardRef, Inject } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { UserToken } from "apps/auth";
-import { CreateCertificateDto } from "apps/courses/dto/certificate/create-certificate.dto";
-import { QueryCertificateInput } from "apps/courses/dto/certificate/query-certificate.dto";
-import { UpdateCertificateDto } from "apps/courses/dto/certificate/update-certificate.dto";
-import { Certificate } from "apps/courses/entities/certificate.entity";
-import { ProfileService } from "apps/profiles";
-import { BaseService } from "base";
-import { Any, FindOptionsWhere, IsNull, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
-import { CourseService } from "../course";
+import { forwardRef, HttpStatus, Inject } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserToken } from 'apps/auth';
+import { CreateCertificateDto } from 'apps/courses/dto/certificate/create-certificate.dto';
+import { QueryCertificateInput } from 'apps/courses/dto/certificate/query-certificate.dto';
+import { UpdateCertificateDto } from 'apps/courses/dto/certificate/update-certificate.dto';
+import { Certificate } from 'apps/courses/entities/certificate.entity';
+import { BaseError, BaseService } from 'base';
+import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
+import { TableName } from 'utils';
+import { CourseService } from '../course';
 
 const relations = {
-    course: true,
-    user: true,
-}
+  course: true,
+  user: true,
+};
 
 export class CertificateService extends BaseService<Certificate> {
-    constructor(
-        @InjectRepository(Certificate)
-        private certificateRepository: Repository<Certificate>,
-        @Inject(forwardRef(()=> CourseService)) private courseService: CourseService,
-    ) {
-        super(certificateRepository)
+  constructor(
+    @InjectRepository(Certificate)
+    private certificateRepository: Repository<Certificate>,
+    @Inject(forwardRef(() => CourseService))
+    private courseService: CourseService,
+  ) {
+    super(certificateRepository);
+  }
+
+  async create(createCertificateDto: CreateCertificateDto, user: UserToken) {
+    const { course: courseId } = createCertificateDto;
+    const course = await this.courseService.findOne({ id: courseId });
+
+    if (!course) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
 
-    async create(createCertificateDto: CreateCertificateDto, user: UserToken) {
-        const { course: courseId } = createCertificateDto;
-        const course = await this.courseService.findOne({ id: courseId });
+    const certificate = await this.findOne({
+      course: { id: courseId },
+      user: { id: user.profile.id },
+    });
 
-        if(!course) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-
-        const certificate = await this.findOne({course: { id: courseId}, user: { id: user.profile.id }});
-
-        if(certificate) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-        
-        const createCertificate = this.certificateRepository.create({
-            ...createCertificateDto,
-            course,
-            user: user.profile,
-        });
-
-        await this.certificateRepository.save(createCertificate);
-
-        return {
-            status: HTTP_STATUS.OK,
-            certificate: createCertificate,
-        }
+    if (certificate) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
 
-    async findAll(query: QueryCertificateInput) {
-        const {
-            search = '', limit: take = 10,
-        } = query || {}
+    const createCertificate = this.certificateRepository.create({
+      ...createCertificateDto,
+      course,
+      user: user.profile,
+    });
 
-        const where: FindOptionsWhere<Certificate> = {
-            course: query.courses ? Any([query.courses]) : Not(IsNull()),
-        }
+    await this.certificateRepository.save(createCertificate);
 
-        const result = await this.certificateRepository.findAndCount({
-            relations,
-            where,
-            take,
-        });
+    return {
+      certificate: createCertificate,
+    };
+  }
 
-        const itemCount = result[1];
-        return {
-        certificates: result[0],
-        total: itemCount,
-        };
+  async findAll(query: QueryCertificateInput) {
+    const { search = '', limit: take = 10 } = query || {};
+
+    const where: FindOptionsWhere<Certificate> = {
+      course: query.courses ? Any([query.courses]) : Not(IsNull()),
+    };
+
+    const result = await this.certificateRepository.findAndCount({
+      relations,
+      where,
+      take,
+    });
+
+    const itemCount = result[1];
+    return {
+      certificates: result[0],
+      total: itemCount,
+    };
+  }
+
+  async findById(id: string) {
+    const certificate = await this.findOne({ id });
+
+    if (!certificate) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
 
-    async findById(id: string) {
-        const certificate = await this.findOne({ id });
+    return {
+      certificate,
+    };
+  }
 
-        if(!certificate) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
+  async update(
+    id: string,
+    updateCertificateDto: UpdateCertificateDto,
+    user: UserToken,
+  ) {
+    const certificate = await this.findOne({ id });
 
-        return {
-            status: HTTP_STATUS.OK,
-            certificate,
-        }
+    if (!certificate) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
 
-    async update(id: string, updateCertificateDto: UpdateCertificateDto, user: UserToken) {
-        const certificate = await this.findOne({ id });
+    const course = await this.courseService.findOne({
+      id: updateCertificateDto.course,
+    });
 
-        if(!certificate) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-        
-        const course = await this.courseService.findOne({ id: updateCertificateDto.course });
-
-        if(!course) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-
-        if(user.profile.id !== certificate.user.id) {
-            return {
-                status: HTTP_STATUS.Forbidden,
-            }
-        }
-
-        await this.certificateRepository.save({
-            ...updateCertificateDto,
-            id: certificate.id,
-            course,
-            user: user.profile,
-        });
-
-        return {
-            status: HTTP_STATUS.OK,
-            certificate: {...certificate, ...updateCertificateDto}
-        }
-
+    if (!course) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
 
-    async remove(id: string, user: UserToken) {
-        const certificate = await this.findOne({ id }, relations);
-
-        if(!certificate) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-
-        if(user.profile.id !== certificate.user.id) {
-            return {
-                status: HTTP_STATUS.Forbidden,
-            }
-        }
-
-        await this.certificateRepository.softRemove(certificate);
-
-        return {
-            status: HTTP_STATUS.OK,
-        }
+    if (user.profile.id !== certificate.user.id) {
+      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
     }
+
+    await this.certificateRepository.save({
+      ...updateCertificateDto,
+      id: certificate.id,
+      course,
+      user: user.profile,
+    });
+
+    return {
+      certificate: { ...certificate, ...updateCertificateDto },
+    };
+  }
+
+  async remove(id: string, user: UserToken) {
+    const certificate = await this.findOne({ id }, relations);
+
+    if (!certificate) {
+      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+    }
+
+    if (user.profile.id !== certificate.user.id) {
+      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
+    }
+
+    await this.certificateRepository.softRemove(certificate);
+
+    return {
+      certificate: await this.certificateRepository.softRemove(certificate),
+    };
+  }
 }

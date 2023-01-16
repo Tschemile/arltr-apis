@@ -9,9 +9,11 @@ export class Certificate extends Base {
   @ManyToOne(() => Course, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Course })
   course: Course
 
-  @ManyToOne(() => Profile)
+  @ManyToOne(() => Profile, { cascade: true})
+  @ApiProperty({ type: () => Profile })
   user: Profile
 
   @Column({ default: 0 })
