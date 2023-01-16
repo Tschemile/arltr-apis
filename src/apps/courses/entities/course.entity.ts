@@ -9,6 +9,7 @@ export class Course extends Base {
   @ManyToOne(() => Profile, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Profile })
   author: Profile
 
   @Column()
@@ -18,6 +19,7 @@ export class Course extends Base {
   @ManyToOne(() => Category, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column()

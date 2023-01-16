@@ -8,6 +8,7 @@ export class Lesson extends Base {
   @ManyToOne(() => Course, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Course })
   course: Course
 
   @Column()

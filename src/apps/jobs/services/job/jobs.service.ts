@@ -1,12 +1,20 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { UserToken } from 'apps/auth';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BaseService } from 'base';
+import { BaseError, BaseService } from 'base';
 import { CreateJobDto } from '../../dtos/job/create-job.dto';
 import { Job } from '../../entities';
-import { Any, Equal, FindOptionsWhere, IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import {
+  Any,
+  Equal,
+  FindOptionsWhere,
+  IsNull,
+  LessThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { CategoryService } from 'apps/settings';
-import { HTTP_STATUS } from 'utils';
+import { HTTP_STATUS, TableName } from 'utils';
 import { AddressService } from 'apps/address';
 import { QueryJobInput, UpdateJobDto } from 'apps/jobs/dtos';
 
@@ -14,32 +22,37 @@ export const groupRelation = {
   address: true,
   category: true,
   employer: true,
-}
+};
 
 @Injectable()
 export class JobsService extends BaseService<Job> {
   constructor(
     @InjectRepository(Job)
     private jobRepository: Repository<Job>,
-    @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
-    @Inject(forwardRef(() => AddressService)) private addressService: AddressService,
+    @Inject(forwardRef(() => CategoryService))
+    private categoryService: CategoryService,
+    @Inject(forwardRef(() => AddressService))
+    private addressService: AddressService,
   ) {
     super(jobRepository);
   }
   async create(createJobDto: CreateJobDto, user: UserToken) {
     console.log(user);
-    
-    const category = await this.categoryService.findOne({id: createJobDto.categoryId})
+
+    const category = await this.categoryService.findOne({
+      id: createJobDto.categoryId,
+    });
 
     if (!category) {
-      return { status: HTTP_STATUS.Not_Found };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    const address = await this.addressService.findOne({ id: createJobDto.addressId})
-
+    const address = await this.addressService.findOne({
+      id: createJobDto.addressId,
+    });
 
     if (!address) {
-      return { status: HTTP_STATUS.Not_Found };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const createJob = this.jobRepository.create({
@@ -56,7 +69,6 @@ export class JobsService extends BaseService<Job> {
     await this.jobRepository.save(createJob);
 
     return {
-      status: HTTP_STATUS.Created,
       job: createJob,
     };
   }
@@ -92,17 +104,14 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!job) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
     return {
-      status: HTTP_STATUS.OK,
       job,
     };
   }
 
-  async update(id: string, updateJobDto: UpdateJobDto) {
+  async update(id: string, updateJobDto: UpdateJobDto, user: UserToken) {
     const job = await this.jobRepository.findOne({
       where: {
         id: Equal(id),
@@ -110,24 +119,28 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!job) {
-      return {
-        status: HTTP_STATUS.Not_Found,
-      };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    const category = await this.categoryService.findOne({id: updateJobDto.categoryId})
+    if (job.employer.id !== user.profile.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+    }
+
+    const category = await this.categoryService.findOne({
+      id: updateJobDto.categoryId,
+    });
 
     if (!category) {
-      return { status: HTTP_STATUS.Not_Found };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    const address = await this.addressService.findOne({ id: updateJobDto.addressId})
-
+    const address = await this.addressService.findOne({
+      id: updateJobDto.addressId,
+    });
 
     if (!address) {
-      return { status: HTTP_STATUS.Not_Found };
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
-
 
     await this.jobRepository.save({
       ...updateJobDto,
@@ -137,19 +150,23 @@ export class JobsService extends BaseService<Job> {
     });
 
     return {
-      status: HTTP_STATUS.OK,
       job: { ...job, ...updateJobDto },
     };
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: UserToken) {
     const job = await this.findOne({ id }, groupRelation);
-    
-    if (!job) {
-      return { status: HTTP_STATUS.Not_Found };
-    }
-    await this.jobRepository.softRemove(job)
 
-    return { status: HTTP_STATUS.OK }
+    if (!job) {
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+    }
+
+    if (job.employer.id !== user.profile.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+    }
+
+    await this.jobRepository.softRemove(job);
+
+    return { job: await this.jobRepository.softRemove(job) };
   }
 }

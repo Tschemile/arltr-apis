@@ -8,10 +8,12 @@ import { ApiProperty } from "@nestjs/swagger";
 
 @Entity()
 export class Job extends Base {
-  @ManyToOne(() => Profile)
+  @ManyToOne(() => Profile, { cascade: true })
+  @ApiProperty({ type: () => Profile })
   employer: Profile
 
-  @ManyToOne(() => Address)
+  @ManyToOne(() => Address, { cascade: true })
+  @ApiProperty({ type: () => Address })
   address: Address
 
   @Column()
@@ -26,7 +28,8 @@ export class Job extends Base {
   @ApiProperty({ type: String })
   description: string
 
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category, { cascade: true })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column({ enum: JOB_TYPE, default: JOB_TYPE.FULL_TIME })
