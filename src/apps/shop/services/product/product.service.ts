@@ -22,7 +22,7 @@ export class ProductService extends BaseService<Product> {
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
     @Inject(forwardRef(() => AddressService)) private addressService: AddressService,
   ) {
-    super(productRepo)
+    super(productRepo, productRelations)
   }
 
   async checkValidUpsert({ categoryId, addressId }: {
@@ -73,16 +73,13 @@ export class ProductService extends BaseService<Product> {
       where.id = In(ids)
     }
 
-    const { data: products, total } = await this.find({
-      where,
-      relations: productRelations,
-    })
+    const { data: products, total } = await this.find({ where })
 
     return { products, total }
   }
 
   async findById(id: string) {
-    const product = await this.findOne({ id }, productRelations)
+    const product = await this.findOne({ id })
     return { product }
   }
 
@@ -93,7 +90,7 @@ export class ProductService extends BaseService<Product> {
   ) {
     const { name, category: categoryId, address: addressId } = input
 
-    const product = await this.findOne({ id }, productRelations)
+    const product = await this.findOne({ id })
     if (!product) {
       BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {
@@ -129,7 +126,7 @@ export class ProductService extends BaseService<Product> {
     user: UserToken,
     id: string,
   ) {
-    const product = await this.findOne({ id }, productRelations)
+    const product = await this.findOne({ id })
     if (!product) {
       BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {

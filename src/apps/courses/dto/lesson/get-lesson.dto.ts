@@ -5,11 +5,11 @@ import { IsArray } from "class-validator";
 
 export class GetLessonsOutput {
     @IsArray()
-    @ApiProperty({ type: [ Lesson ] })
+    @ApiProperty({ type: () => [Lesson] })
     lessons: Lesson[]
 }
 
 export class GetLessonOutput {
-    @ApiProperty({ type: Lesson })
+    @ApiProperty({ type: () => Lesson })
     lesson?: Lesson
-  }
+}

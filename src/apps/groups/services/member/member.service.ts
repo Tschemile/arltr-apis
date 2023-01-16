@@ -22,7 +22,7 @@ export class MemberService extends BaseService<Member> {
     @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
     @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
   ) {
-    super(memberRepo)
+    super(memberRepo, memberRelation)
   }
 
   // Only for owner
@@ -122,10 +122,7 @@ export class MemberService extends BaseService<Member> {
 
     where.status = Not(MEMBER_STATUS.INVITING)
 
-    const { data: members, total } = await this.find({
-      where,
-      relations: memberRelation,
-    })
+    const { data: members, total } = await this.find({ where })
 
     return { members, total }
   }
@@ -136,7 +133,7 @@ export class MemberService extends BaseService<Member> {
     input: UpdateMemberInput,
   ) {
     // Find member
-    const member = await this.findOne({ id }, memberRelation)
+    const member = await this.findOne({ id })
     if (!member) {
       BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }
@@ -174,7 +171,7 @@ export class MemberService extends BaseService<Member> {
     id: string,
   ) {
     // Find member
-    const member = await this.findOne({ id }, memberRelation)
+    const member = await this.findOne({ id })
     if (!member) {
       BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
     }

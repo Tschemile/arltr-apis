@@ -16,7 +16,7 @@ import {
 } from 'typeorm';
 import { TableName } from 'utils';
 
-const relations = {
+export const resumeRelations = {
   candidate: true,
 };
 
@@ -28,7 +28,7 @@ export class ResumeService extends BaseService<Resume> {
     @Inject(forwardRef(() => ProfileService))
     private profileService: ProfileService,
   ) {
-    super(resumeRepository);
+    super(resumeRepository, resumeRelations);
   }
 
   async create(createRusemeDto: CreateResumeDto) {
@@ -74,22 +74,20 @@ export class ResumeService extends BaseService<Resume> {
   }
 
   async findAll(query: QueryResumeInput) {
-    const { search = '', limit: take = 10 } = query || {};
+    const { search = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Resume> = {
       name: search ? Like(`%${search}`) : Not(IsNull()),
     };
 
-    const result = await this.resumeRepository.findAndCount({
-      relations,
+    const { data: resumes, total } = await this.find({
       where,
-      take,
-    });
+      limit,
+    })
 
-    const itemCount = result[1];
     return {
-      resumes: result[0],
-      total: itemCount,
+      resumes,
+      total,
     };
   }
 
@@ -105,7 +103,7 @@ export class ResumeService extends BaseService<Resume> {
   }
 
   async remove(id: string, user: UserToken) {
-    const resume = await this.findOne({ id }, relations);
+    const resume = await this.findOne({ id });
 
     if (!resume) {
       BaseError(TableName.JOB, HttpStatus.NOT_FOUND);

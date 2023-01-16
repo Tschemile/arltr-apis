@@ -15,7 +15,7 @@ export class ItemService extends BaseService<Item> {
   constructor(
     @InjectRepository(Item) private itemRepo: Repository<Item>,
   ) { 
-    super(itemRepo)
+    super(itemRepo, itemRelations)
   }
 
   async insertMany(items: CreateItemInput[]) {
@@ -32,10 +32,7 @@ export class ItemService extends BaseService<Item> {
       }
     }
 
-    const { data: items, total } = await this.find({
-      where,
-      relations: itemRelations,
-    })
+    const { data: items, total } = await this.find({ where })
 
     return {
       items,

@@ -19,7 +19,7 @@ export class ReviewService extends BaseService<Review> {
     @InjectRepository(Review) private reviewRepo: Repository<Review>,
     private productService: ProductService,
   ) { 
-    super(reviewRepo)
+    super(reviewRepo, reviewRelations)
   }
 
   async create(user: UserToken, input: CreateReviewInput) {
@@ -57,10 +57,7 @@ export class ReviewService extends BaseService<Review> {
       }
     }
 
-    const { data: reviews, total } = await this.find({
-      where,
-      relations: reviewRelations,
-    })
+    const { data: reviews, total } = await this.find({ where })
 
     return { reviews, total }
   }
