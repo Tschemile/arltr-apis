@@ -8,8 +8,6 @@ import { File } from "apps/uploads/entities";
 import { BaseError, BaseService } from "base";
 import { Any, FindOptionsWhere, Not, Repository } from "typeorm";
 
-const MODULE_NAME = 'File'
-
 export const fileRelation = {
   owner: true,
 }
@@ -21,7 +19,7 @@ export class FileService extends BaseService<File> {
     @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
   ) {
-    super(fileRepo)
+    super(fileRepo, fileRelation)
   }
 
   async create(
@@ -68,7 +66,7 @@ export class FileService extends BaseService<File> {
       const friends = await this.relationService.findOne([
         { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND }, 
         { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
-      ], relateRelations)
+      ])
       if (friends) {
         where.scope = Not(FILE_SCOPE.PRIVATE)
       } else {

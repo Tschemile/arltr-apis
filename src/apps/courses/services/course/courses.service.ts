@@ -1,17 +1,15 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
-import { UpdateCourseDto } from 'apps/courses/dto';
-import { QueryCourseInput } from 'apps/courses/dto/course/query-course.dto';
+import { UpdateCourseDto, CreateCourseDto, QueryCourseInput } from 'apps/courses/dto';
+import { Course } from 'apps/courses/entities';
 import { ProfileService } from 'apps/profiles';
 import { CategoryService } from 'apps/settings';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
 import { TableName } from 'utils';
-import { CreateCourseDto } from '../../dto/course/create-course.dto';
-import { Course } from '../../entities';
 
-const relations = {
+const courseRelations = {
   author: true,
   category: true,
 };
@@ -26,7 +24,7 @@ export class CourseService extends BaseService<Course> {
     @Inject(forwardRef(() => CategoryService))
     private categoryService: CategoryService,
   ) {
-    super(courseRepository);
+    super(courseRepository, courseRelations);
   }
 
   async create(createCourseDto: CreateCourseDto, user: UserToken) {
@@ -64,23 +62,21 @@ export class CourseService extends BaseService<Course> {
   }
 
   async findAll(query: QueryCourseInput) {
-    const { search = '', limit: take = 10 } = query || {};
+    const { search = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Course> = {
       author: query.authors ? Any([query.authors]) : Not(IsNull()),
       category: query.categorys ? Any([query.categorys]) : Not(IsNull()),
     };
 
-    const result = await this.courseRepository.findAndCount({
+    const { data: courses, total } = await this.find({
       where,
-      relations,
-      take,
+      limit,
     });
 
-    const itemCount = result[1];
     return {
-      courses: result[0],
-      total: itemCount,
+      courses,
+      total,
     };
   }
 
@@ -118,7 +114,7 @@ export class CourseService extends BaseService<Course> {
   }
 
   async remove(id: string, user: UserToken) {
-    const course = await this.findOne({ id }, relations);
+    const course = await this.findOne({ id });
 
     if (course.author.id !== user.profile.id) {
       BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
@@ -127,8 +123,6 @@ export class CourseService extends BaseService<Course> {
     if (!course) {
       BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
-
-    await this.courseRepository.softRemove(course);
 
     return {
       course: await this.courseRepository.softRemove(course),

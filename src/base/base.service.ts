@@ -4,24 +4,22 @@ import { Base } from "./base.entity";
 export class BaseService<Entity extends Base> {
   constructor(
     public repository: Repository<Entity>,
+    public relation: FindOptionsRelations<Entity>,
   ) { }
 
   async findOne(
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
-    relations?: FindOptionsRelations<Entity>,
   ): Promise<Entity | null> {
-    const data = await this.repository.findOne({ relations, where })
+    const data = await this.repository.findOne({ relations: this.relation , where })
     return data
   }
 
   async find({
     where,
-    relations,
     order,
     limit,
   }: {
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
-    relations?: FindOptionsRelations<Entity>,
     order?: FindOptionsOrder<Entity>,
     limit?: number,
   }): Promise<{
@@ -30,7 +28,7 @@ export class BaseService<Entity extends Base> {
   }> {
     const results = await this.repository.findAndCount({
       where,
-      relations,
+      relations: this.relation,
       take: limit,
       order,
     })

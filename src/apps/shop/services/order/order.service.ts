@@ -26,7 +26,7 @@ export class OrderService extends BaseService<Order> {
     private productService: ProductService,
     private itemService: ItemService,
   ) { 
-    super(orderRepo)
+    super(orderRepo, orderRelations)
   }
 
   async checkValidInsert(input: CreateOrderInput) {
@@ -118,10 +118,7 @@ export class OrderService extends BaseService<Order> {
       }
     }
 
-    const { data: orders, total } = await this.find({
-      where,
-      relations: orderRelations,
-    })
+    const { data: orders, total } = await this.find({ where })
 
     return {
       orders,
@@ -130,7 +127,7 @@ export class OrderService extends BaseService<Order> {
   }
 
   async findById(user: UserToken, id: string) {
-    const order = await this.findOne({ id }, orderRelations)
+    const order = await this.findOne({ id })
     if (!order) {
       BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
     } else if (
@@ -148,7 +145,7 @@ export class OrderService extends BaseService<Order> {
     id: string,
     input: UpdateOrderInput
   ) {
-    const order = await this.findOne({ id }, orderRelations)
+    const order = await this.findOne({ id })
     if (!order) {
       BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
     } else if (order.shop.id !== user.profile.id) {
@@ -173,7 +170,7 @@ export class OrderService extends BaseService<Order> {
     id: string,
   ) {
 
-    const order = await this.findOne({ id }, orderRelations)
+    const order = await this.findOne({ id })
     if (!order) {
       BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
     } else if (order.shop.id !== user.profile.id) {

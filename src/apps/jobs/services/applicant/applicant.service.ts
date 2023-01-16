@@ -8,11 +8,11 @@ import { UpdateApplicantDto } from 'apps/jobs/dtos/applicant/update-applicant.dt
 import { Applicant } from 'apps/jobs/entities';
 import { BaseError, BaseService } from 'base';
 import { Any, Equal, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { HTTP_STATUS, TableName } from 'utils';
+import { TableName } from 'utils';
 import { JobsService } from '../job';
 import { ResumeService } from '../resume';
 
-const relations = {
+const applicantRelation = {
   resume: true,
   job: true,
 };
@@ -26,7 +26,7 @@ export class ApplicantService extends BaseService<Applicant> {
     @Inject(forwardRef(() => ResumeService))
     private resumeService: ResumeService,
   ) {
-    super(applicantRepository);
+    super(applicantRepository, applicantRelation);
   }
 
   async create(createApplicantDto: CreateApplicantDto) {
@@ -68,7 +68,7 @@ export class ApplicantService extends BaseService<Applicant> {
   }
 
   async findAll(user: UserToken, query: QueryApplicantInput, role: ROLE) {
-    const { search = '', limit: take = 10 } = query || {};
+    const { search = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Applicant> = {
       resume: query.resumes ? Any([query.resumes]) : Not(IsNull()),
@@ -95,17 +95,15 @@ export class ApplicantService extends BaseService<Applicant> {
       }
     }
 
-    const result = await this.applicantRepository.findAndCount({
-      relations,
+    const { data: applicants, total} = await this.find({
       where,
-      take,
-    });
+      limit,
+    })
 
-    const itemCount = result[1];
     return {
-      applicants: result[0],
-      total: itemCount,
-    };
+      applicants,
+      total,
+    }
   }
 
   async findById(id: string) {
@@ -117,7 +115,7 @@ export class ApplicantService extends BaseService<Applicant> {
 
     return {
       applicant,
-    };
+    }
   }
 
   async update(id: string, updateApplicantDto: UpdateApplicantDto) {

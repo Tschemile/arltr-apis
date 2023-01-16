@@ -5,11 +5,11 @@ import { IsArray } from "class-validator";
 
 export class GetCertificatesOutput {
     @IsArray()
-    @ApiProperty({ type: [ Certificate ] })
+    @ApiProperty({ type: () => [Certificate] })
     certificates: Certificate[]
 }
 
 export class GetCertificateOutput {
-    @ApiProperty({ type: Certificate })
+    @ApiProperty({ type: () => Certificate })
     certificate?: Certificate
-  }
+}

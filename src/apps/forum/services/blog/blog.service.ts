@@ -20,7 +20,7 @@ export class BlogService extends BaseService<Blog> {
     @InjectRepository(Blog) private blogRepo: Repository<Blog>,
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
   ) { 
-    super(blogRepo)
+    super(blogRepo, blogRelation)
   }
 
   async create(user: UserToken, input: CreateBlogInput) {
@@ -78,7 +78,6 @@ export class BlogService extends BaseService<Blog> {
 
     const { data: blogs, total } = await this.find({
       where,
-      relations: blogRelation,
       limit,
     })
 
@@ -90,7 +89,7 @@ export class BlogService extends BaseService<Blog> {
     id: string,
     input: UpdateBlogInput
   ) {
-    const blog = await this.findOne({ id }, blogRelation)
+    const blog = await this.findOne({ id })
     if (!blog) {
       BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
@@ -121,7 +120,7 @@ export class BlogService extends BaseService<Blog> {
   }
 
   async remove(user: UserToken, id: string) {
-    const blog = await this.findOne({ id }, blogRelation)
+    const blog = await this.findOne({ id })
     if (!blog) {
       BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {

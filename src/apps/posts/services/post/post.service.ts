@@ -1,12 +1,12 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { GroupService, memberRelation, MemberService } from "apps/groups";
+import { GroupService, MemberService } from "apps/groups";
 import { MEMBER_STATUS } from "apps/groups/constants";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
-import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
+import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
 import { TableName } from "utils";
@@ -30,7 +30,7 @@ export class PostService extends BaseService<Post> {
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
     @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
-    super(postRepo)
+    super(postRepo, postRelation)
   }
 
   async validGroup(user: UserToken, groupId: string) {
@@ -42,7 +42,7 @@ export class PostService extends BaseService<Post> {
     const member = await this.memberService.findOne({
       user: { id: user.profile.id },
       group: { id: group.id }
-    }, memberRelation)
+    })
 
     if (!member || member.status !== MEMBER_STATUS.ACTIVE) {
       BaseError(TableName.POST, HttpStatus.FORBIDDEN)
@@ -97,7 +97,6 @@ export class PostService extends BaseService<Post> {
 
     const { data: posts, total } = await this.find({
       where,
-      relations: postRelation,
       limit,
     })
 
@@ -108,7 +107,7 @@ export class PostService extends BaseService<Post> {
     const relation = await this.relationService.findOne([
       { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND },
       { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
-    ], relateRelations)
+    ])
 
     const where: FindOptionsWhere<Post> = {
       group: { id: null },
@@ -126,7 +125,6 @@ export class PostService extends BaseService<Post> {
 
     const { data: posts, total } = await this.find({
       where,
-      relations: postRelation,
       limit,
     })
 
@@ -137,7 +135,7 @@ export class PostService extends BaseService<Post> {
   }
 
   async findById(user: UserToken, id: string) {
-    const post = await this.findOne({ id }, postRelation)
+    const post = await this.findOne({ id })
     switch (post.mode) {
       case POST_MODE.PRIVATE: {
         if (post.author.id !== user.profile.id) {
@@ -168,7 +166,7 @@ export class PostService extends BaseService<Post> {
     id: string,
     input: UpdatePostInput,
   ) {
-    const post = await this.findOne({ id }, postRelation)
+    const post = await this.findOne({ id })
     if (!post) {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
@@ -188,7 +186,7 @@ export class PostService extends BaseService<Post> {
   }
 
   async remove(user: UserToken, id: string) {
-    const post = await this.findOne({ id }, postRelation)
+    const post = await this.findOne({ id })
     if (!post) {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }

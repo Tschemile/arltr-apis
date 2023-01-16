@@ -11,7 +11,7 @@ import { User } from "apps/users";
 import { BaseError, BaseService } from "base";
 import { Between, FindOptionsWhere, Like, Not, Repository } from "typeorm";
 import { TableName } from "utils";
-import { relateRelations, RelationService } from "../relation";
+import { RelationService } from "../relation";
 
 export const profileRelations = {
   user: true,
@@ -27,7 +27,7 @@ export class ProfileService extends BaseService<Profile> {
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
   ) {
-    super(profileRepo)
+    super(profileRepo, profileRelations)
   }
 
   async create(input: CreateProfileInput, user: User) {
@@ -37,7 +37,7 @@ export class ProfileService extends BaseService<Profile> {
         user: {
           id: user.id,
         },
-      }, profileRelations)
+      })
 
       if (existedProfile) {
         BaseError(TableName.PROFILE, HttpStatus.CONFLICT)
@@ -59,7 +59,7 @@ export class ProfileService extends BaseService<Profile> {
       status = '',
       minAge = 0,
       maxAge = 0,
-      limit: take = 10
+      limit = 10
     } = query || {}
 
     const where: FindOptionsWhere<Profile> = {
@@ -90,10 +90,10 @@ export class ProfileService extends BaseService<Profile> {
 
     where.id = Not(user.profile.id)
 
-    const [profiles, total] = await Promise.all([
-      this.profileRepo.find({ where, take }),
-      this.profileRepo.count({ where })
-    ])
+    const { data: profiles, total } = await this.find({
+      where,
+      limit,
+    })
 
     return { profiles, total }
   }
@@ -106,7 +106,7 @@ export class ProfileService extends BaseService<Profile> {
     const blocked = await this.relationService.findOne([
       { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 
       { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.BLOCKED },
-    ], relateRelations)
+    ])
 
     const { relations, total: totalRelations } = await this.relationService.getRelations(user)
     const { posts, total: totalPosts } = await this.postService.findByUser(user, profile, 5)
@@ -153,7 +153,7 @@ export class ProfileService extends BaseService<Profile> {
   }
 
   async remove(user: UserToken) {
-    const profile = await this.findOne({ id: user.profile.id }, profileRelations)
+    const profile = await this.findOne({ id: user.profile.id })
     if (!profile) {
       BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }

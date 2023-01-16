@@ -1,9 +1,10 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { UserToken } from 'apps/auth';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AddressService } from 'apps/address';
+import { UserToken } from 'apps/auth';
+import { QueryJobInput, UpdateJobDto } from 'apps/jobs/dtos';
+import { CategoryService } from 'apps/settings';
 import { BaseError, BaseService } from 'base';
-import { CreateJobDto } from '../../dtos/job/create-job.dto';
-import { Job } from '../../entities';
 import {
   Any,
   Equal,
@@ -11,14 +12,13 @@ import {
   IsNull,
   LessThanOrEqual,
   Not,
-  Repository,
+  Repository
 } from 'typeorm';
-import { CategoryService } from 'apps/settings';
-import { HTTP_STATUS, TableName } from 'utils';
-import { AddressService } from 'apps/address';
-import { QueryJobInput, UpdateJobDto } from 'apps/jobs/dtos';
+import { TableName } from 'utils';
+import { CreateJobDto } from '../../dtos/job/create-job.dto';
+import { Job } from '../../entities';
 
-export const groupRelation = {
+export const jobRelation = {
   address: true,
   category: true,
   employer: true,
@@ -34,7 +34,7 @@ export class JobsService extends BaseService<Job> {
     @Inject(forwardRef(() => AddressService))
     private addressService: AddressService,
   ) {
-    super(jobRepository);
+    super(jobRepository, jobRelation);
   }
   async create(createJobDto: CreateJobDto, user: UserToken) {
     console.log(user);
@@ -74,7 +74,7 @@ export class JobsService extends BaseService<Job> {
   }
 
   async findAll(query: QueryJobInput) {
-    const { search = '', type = '', limit: take = 10 } = query || {};
+    const { search = '', type = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Job> = {
       id: query.jobIds ? Any([query.jobIds]) : Not(IsNull()),
@@ -83,16 +83,14 @@ export class JobsService extends BaseService<Job> {
       expiredAt: LessThanOrEqual(new Date()),
     };
 
-    const result = await this.jobRepository.findAndCount({
-      relations: groupRelation,
+    const { data: jobs, total } = await this.find({
       where,
-      take,
+      limit,
     });
 
-    const itemCount = result[1];
     return {
-      jobs: result[0],
-      total: itemCount,
+      jobs,
+      total,
     };
   }
 
@@ -155,7 +153,7 @@ export class JobsService extends BaseService<Job> {
   }
 
   async remove(id: string, user: UserToken) {
-    const job = await this.findOne({ id }, groupRelation);
+    const job = await this.findOne({ id });
 
     if (!job) {
       BaseError(TableName.JOB, HttpStatus.NOT_FOUND);

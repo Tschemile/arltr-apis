@@ -22,7 +22,7 @@ export class ReactService extends BaseService<React> {
     @Inject(forwardRef(() => PostService)) private postService: PostService,
     @Inject(forwardRef(() => CommentService)) private commentService: CommentService,
   ) {
-    super(reactRepo)
+    super(reactRepo, reactRelation)
   }
 
   async validInput(input: UpsertReactInput) {
@@ -119,10 +119,7 @@ export class ReactService extends BaseService<React> {
       where.post = { id: In(postIds) }
     }
 
-    const { data: reacts, total } = await this.find({
-      where,
-      relations: reactRelation,
-    })
+    const { data: reacts, total } = await this.find({ where })
 
     return { reacts, total }
   }

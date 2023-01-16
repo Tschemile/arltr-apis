@@ -10,7 +10,7 @@ import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
 import { TableName } from 'utils';
 import { CourseService } from '../course';
 
-const relations = {
+const certificateRelation = {
   course: true,
   user: true,
 };
@@ -22,7 +22,7 @@ export class CertificateService extends BaseService<Certificate> {
     @Inject(forwardRef(() => CourseService))
     private courseService: CourseService,
   ) {
-    super(certificateRepository);
+    super(certificateRepository, certificateRelation);
   }
 
   async create(createCertificateDto: CreateCertificateDto, user: UserToken) {
@@ -56,22 +56,20 @@ export class CertificateService extends BaseService<Certificate> {
   }
 
   async findAll(query: QueryCertificateInput) {
-    const { search = '', limit: take = 10 } = query || {};
+    const { search = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Certificate> = {
       course: query.courses ? Any([query.courses]) : Not(IsNull()),
     };
 
-    const result = await this.certificateRepository.findAndCount({
-      relations,
+    const { data: certificates, total} = await this.find({
       where,
-      take,
+      limit,
     });
 
-    const itemCount = result[1];
     return {
-      certificates: result[0],
-      total: itemCount,
+      certificates,
+      total,
     };
   }
 
@@ -123,7 +121,7 @@ export class CertificateService extends BaseService<Certificate> {
   }
 
   async remove(id: string, user: UserToken) {
-    const certificate = await this.findOne({ id }, relations);
+    const certificate = await this.findOne({ id });
 
     if (!certificate) {
       BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
@@ -132,8 +130,6 @@ export class CertificateService extends BaseService<Certificate> {
     if (user.profile.id !== certificate.user.id) {
       BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
     }
-
-    await this.certificateRepository.softRemove(certificate);
 
     return {
       certificate: await this.certificateRepository.softRemove(certificate),

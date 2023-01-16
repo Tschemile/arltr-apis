@@ -22,7 +22,7 @@ export class VoteService extends BaseService<Vote> {
     private blogService: BlogService,
     private replyService: ReplyService,
   ) {
-    super(voteRepo)
+    super(voteRepo, voteRelations)
   }
 
   async validInput(input: UpsertVoteInput) {
@@ -67,7 +67,7 @@ export class VoteService extends BaseService<Vote> {
     const voted = await this.findOne({
       ...where,
       user: { id: user.profile.id },
-    }, voteRelations)
+    })
 
     if (voted) {
       if (voted.vote) {

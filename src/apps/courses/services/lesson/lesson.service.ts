@@ -9,7 +9,7 @@ import { Any, FindOptionsWhere, IsNull, Like, Not, Repository } from 'typeorm';
 import { TableName } from 'utils';
 import { CourseService } from '../course';
 
-const relations = {
+const lessonRelations = {
   course: true,
 };
 
@@ -21,7 +21,7 @@ export class LessonService extends BaseService<Lesson> {
     @Inject(forwardRef(() => CourseService))
     private courseService: CourseService,
   ) {
-    super(lessonRepository);
+    super(lessonRepository, lessonRelations);
   }
 
   async create(createLessonDto: CreateLessonDto) {
@@ -45,23 +45,21 @@ export class LessonService extends BaseService<Lesson> {
   }
 
   async findAll(query: QueryLessonInput) {
-    const { search = '', limit: take = 10 } = query || {};
+    const { search = '', limit = 10 } = query || {};
 
     const where: FindOptionsWhere<Lesson> = {
       course: query.courses ? Any([query.courses]) : Not(IsNull),
       name: search ? Like(`%${search}%`) : Not(IsNull()),
     };
 
-    const result = await this.lessonRepository.findAndCount({
-      relations,
+    const { data: lessons, total } = await this.find({
       where,
-      take,
+      limit,
     });
 
-    const itemCount = result[1];
     return {
-      lessons: result[0],
-      total: itemCount,
+      lessons,
+      total,
     };
   }
 
@@ -104,13 +102,11 @@ export class LessonService extends BaseService<Lesson> {
   }
 
   async remove(id: string) {
-    const lesson = await this.findOne({ id }, relations);
+    const lesson = await this.findOne({ id });
 
     if (!lesson) {
       BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
     }
-
-    await this.lessonRepository.softRemove(lesson);
 
     return {
       lesson: await this.lessonRepository.softRemove(lesson),

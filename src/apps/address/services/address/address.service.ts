@@ -16,7 +16,7 @@ export class AddressService extends BaseService<Address> {
   constructor(
     @InjectRepository(Address) private addressRepo: Repository<Address>,
   ) {
-    super(addressRepo)
+    super(addressRepo, addressRelations)
   }
 
   async create(user: UserToken, input: CreateAddressInput) {
@@ -39,7 +39,6 @@ export class AddressService extends BaseService<Address> {
 
     const { data: addresses, total } = await this.find({
       where,
-      relations: addressRelations,
       limit,
     })
 
@@ -47,7 +46,7 @@ export class AddressService extends BaseService<Address> {
   }
 
   async findById(user: UserToken, id: string) {
-    const address = await this.findOne({ id }, addressRelations)
+    const address = await this.findOne({ id })
 
     if (address.user.id !== user.profile.id) {
       BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
@@ -61,7 +60,7 @@ export class AddressService extends BaseService<Address> {
     id: string,
     input: UpdateAddressInput,
   ) {
-    const address = await this.findOne({ id }, addressRelations)
+    const address = await this.findOne({ id })
     if (!address) {
       BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
@@ -81,7 +80,7 @@ export class AddressService extends BaseService<Address> {
     user: UserToken,
     id: string,
   ) {
-    const address = await this.findOne({ id }, addressRelations)
+    const address = await this.findOne({ id })
     if (!address) {
       BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
