@@ -3,13 +3,12 @@ import { JobsService } from '../../services/job/jobs.service';
 import { CreateJobDto } from '../../dtos/job/create-job.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'apps/auth';
-import { HTTP_STATUS } from 'utils';
 import { GetJobOutput, GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Job';
 
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.JOB)
+@Controller(TableName.JOB.toLowerCase())
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 

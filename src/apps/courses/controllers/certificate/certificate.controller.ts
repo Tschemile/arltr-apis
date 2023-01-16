@@ -24,11 +24,11 @@ import {
 } from 'apps/courses/dto/certificate/get-certificate.dto';
 import { UpdateCertificateDto } from 'apps/courses/dto/certificate/update-certificate.dto';
 import { CertificateService } from 'apps/courses/services/certificate/certificate.service';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Certificate';
 
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.CERTIFICATE)
+@Controller(TableName.CERTIFICATE.toLowerCase())
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 

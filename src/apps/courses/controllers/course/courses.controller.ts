@@ -24,11 +24,11 @@ import {
   GetCourseOutput,
   GetCoursesOutput,
 } from 'apps/courses/dto/course/get-course.dto';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Courses';
 
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.COURSE)
+@Controller(TableName.COURSE.toLowerCase())
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 

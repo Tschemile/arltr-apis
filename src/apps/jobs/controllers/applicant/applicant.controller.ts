@@ -25,12 +25,11 @@ import {
 } from 'apps/jobs/dtos/applicant/get-applicant.dto';
 import { UpdateApplicantDto } from 'apps/jobs/dtos/applicant/update-applicant.dto';
 import { ApplicantService } from 'apps/jobs/services/applicant/applicant.service';
-import { HTTP_STATUS } from 'utils';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Applicant';
 
-@ApiTags(MODULE_NAME.toLowerCase())
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.APPLICANT)
+@Controller(TableName.APPLICANT.toLowerCase())
 export class ApplicantController {
   constructor(private readonly applicantService: ApplicantService) {}
 
