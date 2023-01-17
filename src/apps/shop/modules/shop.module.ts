@@ -24,6 +24,12 @@ import { ItemService, OrderService, ProductService, ReviewService } from '../ser
     OrderService,
     ItemService,
     ReviewService,
+  ],
+  exports: [
+    ProductService,
+    OrderService,
+    ItemService,
+    ReviewService,
   ]
 })
 export class ShopModule {}

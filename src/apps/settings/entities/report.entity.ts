@@ -1,47 +1,58 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Course } from "apps/courses";
-import { Blog, Reply } from "apps/forum";
-import { Group } from "apps/groups";
-import { Job } from "apps/jobs";
-import { Comment, Post } from "apps/posts";
-import { Profile } from "apps/profiles";
-import { Product } from "apps/shop";
-import { Base } from "base";
-import { Entity, ManyToOne } from "typeorm";
-import { Category } from "./category.entity";
+import { ApiProperty } from '@nestjs/swagger';
+import { Course } from 'apps/courses';
+import { Blog, Reply } from 'apps/forum';
+import { Group } from 'apps/groups';
+import { Job } from 'apps/jobs';
+import { Comment, Post } from 'apps/posts';
+import { Profile } from 'apps/profiles';
+import { Product } from 'apps/shop';
+import { Base } from 'base';
+import { Entity, ManyToOne } from 'typeorm';
+import { Category } from './category.entity';
 
 @Entity()
 export class Report extends Base {
   @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
-  reporter: Profile
+  @ApiProperty({ type: () => Profile })
+  reporter: Profile;
 
   @ManyToOne(() => Category, { onDelete: 'CASCADE' })
-  category: Category
+  @ApiProperty({ type: () => Category })
+  category: Category;
 
   @ManyToOne(() => Profile, { onDelete: 'CASCADE', nullable: true })
-  user: Profile
+  @ApiProperty({ type: () => Profile })
+  user: Profile;
 
   @ManyToOne(() => Post, { onDelete: 'CASCADE', nullable: true })
-  post: Post
+  @ApiProperty({ type: () => Post })
+  post: Post;
 
   @ManyToOne(() => Comment, { onDelete: 'CASCADE', nullable: true })
-  comment: Comment
+  @ApiProperty({ type: () => Comment })
+  comment: Comment;
 
   @ManyToOne(() => Blog, { onDelete: 'CASCADE', nullable: true })
-  blog: Blog
+  @ApiProperty({ type: () => Blog })
+  blog: Blog;
 
   @ManyToOne(() => Reply, { onDelete: 'CASCADE', nullable: true })
-  reply: Reply
+  @ApiProperty({ type: () => Reply })
+  reply: Reply;
 
   @ManyToOne(() => Product, { onDelete: 'CASCADE', nullable: true })
-  product: Product
+  @ApiProperty({ type: () => Product })
+  product: Product;
 
   @ManyToOne(() => Group, { onDelete: 'CASCADE', nullable: true })
-  group: Group
+  @ApiProperty({ type: () => Group })
+  group: Group;
 
   @ManyToOne(() => Job, { onDelete: 'CASCADE', nullable: true })
-  job: Job
+  @ApiProperty({ type: () => Job })
+  job: Job;
 
   @ManyToOne(() => Course, { onDelete: 'CASCADE', nullable: true })
-  course: Course
+  @ApiProperty({ type: () => Course })
+  course: Course;
 }

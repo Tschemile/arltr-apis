@@ -81,13 +81,10 @@ export class ApplicantController {
     @Param('id') id: string,
     @Body() updateApplicantDto: UpdateApplicantDto,
   ) {
-    const { applicant } = await this.applicantService.update(
+    return  await this.applicantService.update(
       id,
       updateApplicantDto,
     );
-    return {
-      applicant,
-    };
   }
 
   @Delete(':id')
