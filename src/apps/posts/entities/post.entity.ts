@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Event } from "apps/address";
 import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
@@ -17,7 +18,7 @@ export class Post extends Base {
 
   @ManyToOne(() => Event, { nullable: true })
   @ApiProperty({ type: () => Event, nullable: true })
-  event: Event
+  event: Event 
 
   @Column({ enum: POST_TYPE, default: POST_TYPE.POST })
   @ApiProperty({ type: String, enum: POST_TYPE })
