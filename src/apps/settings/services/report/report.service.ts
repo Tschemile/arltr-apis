@@ -139,7 +139,7 @@ export class ReportService extends BaseService<Report> {
       report.job.id === jobId &&
       report.course.id === courseId
     ) {
-        BaseError(TableName.REPORT, HttpStatus.FORBIDDEN);
+        BaseError(TableName.REPORT, HttpStatus.CONFLICT);
     }
 
     const createReport = this.reportRepository.create({

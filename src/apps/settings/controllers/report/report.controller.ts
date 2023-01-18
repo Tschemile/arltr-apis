@@ -27,7 +27,6 @@ export class ReportController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Roles(USER_ROLE.ADMIN)
   @ApiOkResponse({
     type: CreateReportDto,
     description: 'Successfully Create Report',

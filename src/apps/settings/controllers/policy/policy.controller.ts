@@ -43,7 +43,6 @@ export class PolicyController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   @ApiQuery({ name: 'type', required: false, enum: POLICY_TYPE })
   async findAll(
