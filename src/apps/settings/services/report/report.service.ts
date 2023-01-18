@@ -20,7 +20,7 @@ const relations = {
   reporter: true,
   category: true,
   user: true,
-  commnet: true,
+  comment: true,
   blog: true,
   reply: true,
   product: true,

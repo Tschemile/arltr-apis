@@ -28,14 +28,15 @@ export class FileService extends BaseService<File> {
     type?: UPLOAD_TYPE,
     baseUrl?: string
   )  {
+    let url = `https://${baseUrl}/api/file/${fileInput.filename}`
     const createdFile = this.fileRepo.create({
       ...fileInput,
+      path: url,
       owner: user.profile,
     })
 
     await this.fileRepo.save(createdFile)
 
-    let url = `https://${baseUrl}/api/file/${fileInput.filename}`
     if (type) {
       const profile = await this.profileService.findOne({ id: user.profile.id })
       if (!profile) {

@@ -30,6 +30,7 @@ export class CommentService extends BaseService<Comment> {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
+    post.totalComments += 1
     const createdComment = this.commentRepo.create({
       ...input,
       user: user.profile,
