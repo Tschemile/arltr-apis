@@ -37,8 +37,6 @@ export class JobsService extends BaseService<Job> {
     super(jobRepository, jobRelation);
   }
   async create(createJobDto: CreateJobDto, user: UserToken) {
-    console.log(user);
-
     const category = await this.categoryService.findOne({
       id: createJobDto.categoryId,
     });
@@ -162,8 +160,6 @@ export class JobsService extends BaseService<Job> {
     if (job.employer.id !== user.profile.id) {
       BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
     }
-
-    await this.jobRepository.softRemove(job);
 
     return { job: await this.jobRepository.softRemove(job) };
   }
