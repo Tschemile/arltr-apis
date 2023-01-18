@@ -15,6 +15,10 @@ export class Post extends Base {
   @ApiProperty({ type: () => Group, nullable: true })
   group: Group
 
+  @ManyToOne(() => Event, { nullable: true })
+  @ApiProperty({ type: () => Event, nullable: true })
+  event: Event
+
   @Column({ enum: POST_TYPE, default: POST_TYPE.POST })
   @ApiProperty({ type: String, enum: POST_TYPE })
   type: string
