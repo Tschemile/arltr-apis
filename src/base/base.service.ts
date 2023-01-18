@@ -10,7 +10,7 @@ export class BaseService<Entity extends Base> {
   async findOne(
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
   ): Promise<Entity | null> {
-    const data = await this.repository.findOne({ relations: this.relation , where })
+    const data = await this.repository.findOne({ relations: this.relation, where })
     return data
   }
 
@@ -45,7 +45,7 @@ export class BaseService<Entity extends Base> {
     value: number,
     type: 'INCREMENT' | 'DECREMENT'
   ) {
-    switch(type) {
+    switch (type) {
       case 'INCREMENT': {
         await this.repository.increment(where, propertyPath, value)
         break
@@ -55,5 +55,21 @@ export class BaseService<Entity extends Base> {
         break
       }
     }
+  }
+
+  async groupBy(
+    where: FindOptionsWhere<Entity>,
+    key: string,
+  ) {
+    const { data } = await this.find({ where })
+    const group = data.reduce((obj, x) => {
+      if (!obj[x[key]]) {
+        obj[x[key]] = []
+      }
+      obj[x[key]].push(x)
+      return obj
+    }, {})
+
+    return group
   }
 }

@@ -14,15 +14,7 @@ export class AuthService {
     const payload: UserToken = {
       id: user.id,
       username: user.username,
-      profile: {
-        id: profile.id,
-        name: profile.name,
-        gender: profile.gender,
-        domain: profile.domain,
-        role: profile.role,
-        birth: profile.birth,
-        status: profile.status,
-      },
+      profile,
     }
 
     return this.jwtService.sign(payload, {

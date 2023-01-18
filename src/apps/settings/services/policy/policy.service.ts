@@ -36,13 +36,13 @@ export class PolicyService extends BaseService<Policy> {
       type: type ? Equal(type) : Not(IsNull()),
     };
 
-    const { data: policys, total } = await this.find({
+    const { data: policies, total } = await this.find({
       where,
       limit,
     });
 
     return {
-      policys,
+      policies,
       total,
     };
   }
