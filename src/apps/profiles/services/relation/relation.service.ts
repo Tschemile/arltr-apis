@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { FRIEND_STATUS, RELATION_TYPE } from "apps/profiles/constants";
 import { CreateRelationInput, QUERY_RELATION_TYPE } from "apps/profiles/dtos/relation";
-import { Relation } from "apps/profiles/entities";
+import { Profile, Relation } from "apps/profiles/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
 import { TableName } from "utils";
@@ -181,5 +181,13 @@ export class RelationService extends BaseService<Relation> {
     return { 
       relation: await this.relationRepo.softRemove(relation)
     }
+  }
+
+  async isFriend(user: UserToken, profile: Profile) {
+    const relation = await this.findOne([
+      { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND },
+      { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+    ])
+    return relation ? true : false
   }
 }

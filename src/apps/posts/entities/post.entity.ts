@@ -4,9 +4,14 @@ import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, ManyToOne } from "typeorm";
+import { TableName } from "utils";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
 
-@Entity()
+@Entity(TableName.POST.toLowerCase(), {
+  orderBy: {
+    createdAt: 'DESC',
+  },
+})
 export class Post extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })

@@ -6,7 +6,7 @@ export enum POST_MODE {
 
 export enum POST_STATUS {
   ACTIVE = 'ACTIVE',
-  DELETED = 'DELETED',
+  ARCHIVED = 'ARCHIVED',
   BANNED = 'BANNED'
 }
 

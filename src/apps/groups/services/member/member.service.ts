@@ -191,4 +191,13 @@ export class MemberService extends BaseService<Member> {
       member: await this.memberRepo.softRemove(member)
     }
   }
+
+  async isMember(user: UserToken, groupId: string) {
+    const member = await this.findOne({
+      group: { id: groupId },
+      user: { id: user.profile.id }
+    })
+
+    return member ? true : false
+  }
 }

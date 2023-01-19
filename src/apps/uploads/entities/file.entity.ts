@@ -29,4 +29,8 @@ export class File extends Base {
   @Column({ enum: FILE_SCOPE, default: FILE_SCOPE.PUBLIC })
   @ApiProperty({ type: String })
   scope: string
+
+  @Column()
+  @ApiProperty({ type: String })
+  url: string
 }

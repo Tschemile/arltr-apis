@@ -1,12 +1,14 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { Profile, ProfileService, relateRelations, RelationService, RELATION_TYPE } from "apps/profiles";
+import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
 import { BaseError, BaseService } from "base";
+import * as fs from 'fs';
 import { Any, FindOptionsWhere, Not, Repository } from "typeorm";
+import { TableName } from "utils";
 
 export const fileRelation = {
   owner: true,
@@ -31,7 +33,7 @@ export class FileService extends BaseService<File> {
     let url = `https://${baseUrl}/api/file/${fileInput.filename}`
     const createdFile = this.fileRepo.create({
       ...fileInput,
-      path: url,
+      url,
       owner: user.profile,
     })
 
@@ -55,7 +57,7 @@ export class FileService extends BaseService<File> {
     return url
   }
 
-  async findAll(user: UserToken, profile: Profile, take?: number) {
+  async findAll(user: UserToken, profile: Profile, limit?: number) {
     const where: FindOptionsWhere<File> = {
       owner: {
         domain: profile.domain,
@@ -75,11 +77,30 @@ export class FileService extends BaseService<File> {
       }
     }
 
-    const [files, total] = await Promise.all([
-      this.fileRepo.find({ where, relations: fileRelation, take: take || 10 }),
-      this.fileRepo.count({ where })
-    ])
+    const { data: files, total }= await this.find({ where, limit })
 
     return { files, total }
+  }
+
+  async remove(user: UserToken, id: string) {
+    const file = await this.findOne({ id })
+    if (!file) {
+      BaseError(TableName.FILE, HttpStatus.NOT_FOUND)
+    } else if (user.profile.id !== file.owner.id) {
+      BaseError(TableName.FILE, HttpStatus.FORBIDDEN)
+    }
+
+    await this.removeFile(file.path)
+
+    return {
+      file: await this.fileRepo.softRemove(file)
+    }
+  }
+
+  async removeFile(path: string) {
+    return fs.unlink(path, (err) => {
+      if (err) throw err
+      console.log('Delete file success')
+    })
   }
 }
