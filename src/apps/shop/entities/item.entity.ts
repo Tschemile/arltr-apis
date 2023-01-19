@@ -1,11 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { Order } from "./order.entity";
 import { Product } from "./product.entity";
 
 @Entity()
 export class Item extends Base {
+  @Index()
   @ManyToOne(() => Order)
   @ApiProperty({ type: () => Order })
   order: Order

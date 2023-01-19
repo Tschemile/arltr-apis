@@ -3,7 +3,7 @@ import { Event } from "apps/address";
 import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { TableName } from "utils";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
 
@@ -13,6 +13,7 @@ import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
   },
 })
 export class Post extends Base {
+  @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   author: Profile

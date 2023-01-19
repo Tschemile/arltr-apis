@@ -1,7 +1,7 @@
 import { Address } from "apps/address";
 import { Base } from "base";
 import { Profile } from "apps/profiles";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { ApiProperty } from "@nestjs/swagger";
 
 @Entity()
@@ -14,6 +14,7 @@ export class Order extends Base {
   @ApiProperty({ type: () => Profile })
   user: Profile
 
+  @Index()
   @Column()
   @ApiProperty({ type: String })
   ticketId: string

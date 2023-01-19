@@ -1,6 +1,6 @@
 import { Base } from "base";
 import { Profile } from "apps/profiles";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { Product } from "./product.entity";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -10,6 +10,7 @@ export class Review extends Base {
   @ApiProperty({ type: () => Profile })
   user: Profile
 
+  @Index()
   @ManyToOne(() => Product)
   @ApiProperty({ type: () => Product })
   product: Product

@@ -1,8 +1,14 @@
 import { POST_TYPE } from "apps/posts/constants";
 import { BaseQueryInput } from "base";
-import { IsBoolean, IsEnum, IsString, IsUUID } from "class-validator";
+import { IsEnum, IsString, IsUUID } from "class-validator";
 
-export type QUERY_TYPE = 'COMMUNITY' | 'GROUP' | 'USER'
+export enum POST_QUERY_TYPE {
+  COMMUNITY,
+  GROUP,
+  USER,
+}
+
+export type PostQT = keyof typeof POST_QUERY_TYPE
 
 export class QueryPostInput extends BaseQueryInput {
   @IsUUID()
@@ -15,7 +21,7 @@ export class QueryPostInput extends BaseQueryInput {
   search?: string
 
   @IsString()
-  queryType: QUERY_TYPE
+  queryType: PostQT
 
   @IsEnum(POST_TYPE)
   type: string

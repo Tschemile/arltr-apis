@@ -1,6 +1,6 @@
 import { Base } from "base";
 import { Profile } from "apps/profiles";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { REACT_TYPE } from "../constants";
 import { Post } from "./post.entity";
 import { Comment } from "./comment.entity";
@@ -16,6 +16,7 @@ export class React extends Base {
   @ApiProperty({ type: () => Comment })
   comment: Comment
 
+  @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   user: Profile

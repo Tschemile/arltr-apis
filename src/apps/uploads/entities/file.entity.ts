@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { FILE_SCOPE } from "../constants";
 
 @Entity()
@@ -10,7 +10,8 @@ export class File extends Base {
   @ApiProperty({ type: () => Profile })
   owner: Profile
   
-  @Column()
+  @Index()
+  @Column({ unique: true })
   @ApiProperty({ type: String })
   filename: string
 
@@ -30,7 +31,7 @@ export class File extends Base {
   @ApiProperty({ type: String })
   scope: string
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ type: String })
   url: string
 }

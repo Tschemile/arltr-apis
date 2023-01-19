@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { CreatePostInput, GetPostOutput, GetPostsOutput, UpdatePostInput } from "apps/posts/dtos";
+import { POST_TYPE } from "apps/posts/constants";
+import { CreatePostInput, GetPostOutput, GetPostsOutput, POST_QUERY_TYPE, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
 import { TableName } from "utils";
 
@@ -28,19 +29,21 @@ export class PostController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiQuery({ name: 'type', required: false })
+  @ApiQuery({ name: 'queryType', enum: POST_QUERY_TYPE })
+  @ApiQuery({ name: 'type', required: false, enum: POST_TYPE })
   @ApiQuery({ name: 'limit', required: false })
   @ApiOkResponse({
     type: GetPostsOutput
   })
   async get(
     @Request() req,
+    @Query('queryType') queryType,
     @Query('type') type,
     @Query('limit') limit,
   ): Promise<GetPostsOutput> {
     return await this.postService.findAll(
       req.user,
-      { type, limit }
+      { queryType, type, limit }
     )
   }
 
