@@ -1,11 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { FILE_SCOPE } from "../constants";
 
 @Entity()
 export class Album extends Base {
+  @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   user: Profile

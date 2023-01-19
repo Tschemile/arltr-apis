@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, Index } from "typeorm";
 
 @Entity()
 export class User extends Base {
@@ -12,6 +12,7 @@ export class User extends Base {
   @ApiProperty({ type: String })
   lastName: string
 
+  @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
   username: string

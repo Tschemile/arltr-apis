@@ -7,7 +7,7 @@ import { Comment, Post } from 'apps/posts';
 import { Profile } from 'apps/profiles';
 import { Product } from 'apps/shop';
 import { Base } from 'base';
-import { Entity, ManyToOne } from 'typeorm';
+import { Entity, Index, ManyToOne } from 'typeorm';
 import { Category } from './category.entity';
 
 @Entity()
@@ -16,6 +16,7 @@ export class Report extends Base {
   @ApiProperty({ type: () => Profile })
   reporter: Profile;
 
+  @Index()
   @ManyToOne(() => Category, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Category })
   category: Category;

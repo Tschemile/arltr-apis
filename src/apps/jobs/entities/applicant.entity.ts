@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { APPLICANT_STATUS } from "../constants";
 import { Job } from "./job.entity";
 import { Resume } from "./resume.entity";
@@ -11,6 +11,7 @@ export class Applicant extends Base {
   @ApiProperty({ type: () => Resume })
   resume: Resume
 
+  @Index()
   @ManyToOne(() => Job, { cascade: true })
   @ApiProperty({ type: () => Job })
   job: Job

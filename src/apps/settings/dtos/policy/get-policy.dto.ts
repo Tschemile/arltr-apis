@@ -5,5 +5,5 @@ import { IsArray } from "class-validator";
 export class GetPolicysOutput {
     @IsArray()
     @ApiProperty({ type: () => [Policy] })
-    policys: Policy[]
+    policies: Policy[]
 }

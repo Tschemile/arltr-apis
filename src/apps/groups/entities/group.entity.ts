@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, Index } from "typeorm";
 import { GROUP_MODE } from "../constants";
 
 @Entity()
@@ -13,6 +13,7 @@ export class Group extends Base {
   @ApiProperty({ type: String })
   name: string
 
+  @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
   slug: string

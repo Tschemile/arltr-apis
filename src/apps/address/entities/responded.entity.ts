@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { RESPONDED_TYPE } from "../constants";
 import { Event } from "./event.entity";
 
@@ -11,6 +11,7 @@ export class Responded extends Base {
   @ApiProperty({ type: () => Profile })
   user: Profile
 
+  @Index()
   @ManyToOne(() => Event, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Event })
   event: Event
