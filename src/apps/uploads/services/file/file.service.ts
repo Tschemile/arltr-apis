@@ -31,18 +31,17 @@ export class FileService extends BaseService<File> {
     baseUrl?: string
   )  {
     let url = `https://${baseUrl}/api/file/${fileInput.filename}`
-    const createdFile = this.fileRepo.create({
+    
+    await this.insertOne({
       ...fileInput,
       url,
       owner: user.profile,
     })
 
-    await this.fileRepo.save(createdFile)
-
     if (type) {
       const profile = await this.profileService.findOne({ id: user.profile.id })
       if (!profile) {
-        BaseError(`Profile`, HttpStatus.NOT_FOUND)
+        BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
       }
       let avatar = profile.avatar
       let cover = profile.cover

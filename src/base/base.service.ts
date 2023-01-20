@@ -1,4 +1,4 @@
-import { FindOptionsOrder, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
+import { DeepPartial, FindOptionsOrder, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
 import { Base } from "./base.entity";
 
 export class BaseService<Entity extends Base> {
@@ -6,6 +6,25 @@ export class BaseService<Entity extends Base> {
     public repository: Repository<Entity>,
     public relation: FindOptionsRelations<Entity>,
   ) { }
+
+  async insertOne(data: DeepPartial<Entity>): Promise<Entity> {
+    const createdEntity = this.repository.create(data)
+
+    await this.repository.save(createdEntity)
+
+    return createdEntity
+  }
+
+  async insertMultiple(data: DeepPartial<Entity>[]): Promise<Entity[]> {
+    const multiEntity: Entity[] = []
+    for(const entity of data) {
+      multiEntity.push(this.repository.create(entity))
+    }
+
+    await this.repository.save(multiEntity)
+
+    return multiEntity
+  }
 
   async findOne(
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
@@ -18,18 +37,30 @@ export class BaseService<Entity extends Base> {
     where,
     order,
     limit,
+    page,
   }: {
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
     order?: FindOptionsOrder<Entity>,
     limit?: number,
+    page?: number,
   }): Promise<{
     data: Entity[],
     total: number,
   }> {
+    let take = 1, skip = 0
+    if (limit) {
+      take = limit
+    }
+
+    if (page) {
+      skip = (page - 1) * take
+    }
+
     const results = await this.repository.findAndCount({
       where,
       relations: this.relation,
-      take: limit,
+      take,
+      skip,
       order,
     })
 
@@ -69,6 +100,16 @@ export class BaseService<Entity extends Base> {
       obj[x[key]].push(x)
       return obj
     }, {})
+
+    return group
+  }
+
+  async groupCountNumber(name: string, key: string): Promise<Entity[]> {
+    const group = await this.repository.createQueryBuilder(`${name}`)
+      .select(`${name}.${key}, COUNT(*) as counter`)
+      .groupBy(`${name}.${key}`)
+      .orderBy('counter')
+      .getMany()
 
     return group
   }
