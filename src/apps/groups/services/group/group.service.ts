@@ -15,7 +15,7 @@ export class GroupService extends BaseService<Group> {
     @InjectRepository(Group) private groupRepo: Repository<Group>,
     @Inject(forwardRef(() => MemberService)) private memberService: MemberService,
   ) {
-    super(groupRepo)
+    super(groupRepo, {})
   }
 
   async create(user: UserToken, input: CreateGroupInput) {

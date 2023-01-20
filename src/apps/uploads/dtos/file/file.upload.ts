@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { UPLOAD_TYPE } from "../constants";
+import { UPLOAD_TYPE } from "../../constants";
 
 export class FileUploadInput {
   @ApiProperty({ type: String, format: 'binary' })

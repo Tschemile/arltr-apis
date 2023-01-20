@@ -3,15 +3,14 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { diskStorage } from "multer";
+import { TableName } from "utils";
 import { UPLOAD_TYPE } from "../../constants";
 import { FileInput, FileUploadInput } from "../../dtos";
 import { FileService } from "../../services";
 import { editFileName, imageFileFilter } from "../../utils";
 
-const MODULE_NAME = 'File'
-
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.FILE)
+@Controller(TableName.FILE.toLowerCase())
 export class FileController {
   constructor(
     private readonly fileService: FileService

@@ -5,13 +5,19 @@ import { Profile } from "apps/profiles";
 import { Column, Entity, ManyToOne } from "typeorm";
 import { JOB_CAREER, JOB_GENDER, JOB_QUALIFICATION, JOB_TYPE, SALARY_TYPE } from "../constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Job extends Base {
-  @ManyToOne(() => Profile)
+@Entity(DBName.JOB, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Job extends Base {
+  @ManyToOne(() => Profile, { cascade: true })
+  @ApiProperty({ type: () => Profile })
   employer: Profile
 
-  @ManyToOne(() => Address)
+  @ManyToOne(() => Address, { cascade: true })
+  @ApiProperty({ type: () => Address })
   address: Address
 
   @Column()
@@ -26,7 +32,8 @@ export class Job extends Base {
   @ApiProperty({ type: String })
   description: string
 
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category, { cascade: true })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column({ enum: JOB_TYPE, default: JOB_TYPE.FULL_TIME })

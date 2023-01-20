@@ -8,7 +8,7 @@ import { CategoryService } from "apps/settings";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
 import { TableName } from "utils";
-import { relateRelations, RelationService } from "../relation";
+import { RelationService } from "../relation";
 
 export const pageRelations = {
   category: true
@@ -21,7 +21,7 @@ export class PageService extends BaseService<Profile> {
     @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService,
     private relationService: RelationService,
   ) {
-    super(pageRepo)
+    super(pageRepo, pageRelations)
   }
 
   async create(user: UserToken, input: CreatePageInput) {
@@ -77,7 +77,6 @@ export class PageService extends BaseService<Profile> {
 
     const { data: pages, total } = await this.find({
       where,
-      relations: pageRelations,
       limit,
     })
 
@@ -88,13 +87,13 @@ export class PageService extends BaseService<Profile> {
   }
 
   async findById(id: string) {
-    const page = await this.findOne({ id }, pageRelations)
+    const page = await this.findOne({ id })
 
     return { page }
   }
 
   async validAuthorization(user: UserToken, id: string) {
-    const page = await this.findOne({ id }, pageRelations)
+    const page = await this.findOne({ id })
     if (!page) {
       BaseError(TableName.PAGE, HttpStatus.NOT_FOUND)
     }
@@ -103,7 +102,7 @@ export class PageService extends BaseService<Profile> {
       type: RELATION_TYPE.OWNER,
       requester: { id: user.profile.id },
       user: { id: page.id }
-    }, relateRelations)
+    })
     if (!relation) {
       BaseError(TableName.PAGE, HttpStatus.FORBIDDEN)
     }

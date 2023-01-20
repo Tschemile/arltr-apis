@@ -1,14 +1,20 @@
 import { Category } from "apps/settings";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Course extends Base {
+@Entity(DBName.COURSE, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Course extends Base {
+  @Index()
   @ManyToOne(() => Profile, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Profile })
   author: Profile
 
   @Column()
@@ -18,6 +24,7 @@ export class Course extends Base {
   @ManyToOne(() => Category, {
     cascade: true,
   })
+  @ApiProperty({ type: () => Category })
   category: Category
 
   @Column()

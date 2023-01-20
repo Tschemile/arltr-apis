@@ -1,5 +1,4 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { BaseOutputResponse } from "base";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class GetUserTokenOutput  {
   @ApiProperty()

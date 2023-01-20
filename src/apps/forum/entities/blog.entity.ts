@@ -1,12 +1,16 @@
 import { Base } from "base";
 import { Category } from "apps/settings";
 import { Profile } from "apps/profiles";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { BLOG_STATUS } from "../constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Blog extends Base {
+@Entity(DBName.BLOG, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Blog extends Base {
   @Column()
   @ApiProperty({ type: String })
   title: string
@@ -31,6 +35,7 @@ export class Blog extends Base {
   @ApiProperty({ type: String, enum: BLOG_STATUS })
   status: string
 
+  @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
   slug: string

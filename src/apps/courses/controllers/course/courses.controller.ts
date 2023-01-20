@@ -1,16 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'apps/auth';
 import { CourseService } from '../../services/course/courses.service';
 import { CreateCourseDto } from '../../dto/course/create-course.dto';
-import { HTTP_STATUS } from 'utils';
 import { UpdateCourseDto } from 'apps/courses/dto';
-import { GetCourseOutput, GetCoursesOutput } from 'apps/courses/dto/course/get-course.dto';
+import {
+  GetCourseOutput,
+  GetCoursesOutput,
+} from 'apps/courses/dto/course/get-course.dto';
+import { TableName } from 'utils';
 
-const MODULE_NAME = 'Courses';
 
-@ApiTags(MODULE_NAME)
-@Controller(MODULE_NAME.toLowerCase())
+@ApiTags(TableName.COURSE)
+@Controller(TableName.COURSE.toLowerCase())
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
@@ -33,6 +51,7 @@ export class CourseController {
   @ApiQuery({ name: 'authors', required: false, type: [String] })
   @ApiQuery({ name: 'categorys', required: false, type: [String] })
   @ApiOkResponse({
+    type: GetCoursesOutput,
     description: 'Get Courses list',
   })
   async findAll(
@@ -40,27 +59,30 @@ export class CourseController {
     @Query('limit') limit,
     @Query('authors') authors,
     @Query('categorys') categorys,
-
   ): Promise<GetCoursesOutput> {
-    const { courses, total } = await this.courseService.findAll({ search, limit, authors, categorys });
-    return {
-      status: HTTP_STATUS.OK,
-      courses,
-      total,
-    };
+    return await this.courseService.findAll({
+      search,
+      limit,
+      authors,
+      categorys,
+    });
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findById(@Param('id') id: string): Promise<GetCourseOutput> {
-     return await this.courseService.findById(id);
+    return await this.courseService.findById(id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async update(@Param('id') id: string, @Request() req, @Body() updateCourseDto: UpdateCourseDto) {
+  async update(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() updateCourseDto: UpdateCourseDto,
+  ) {
     return this.courseService.update(id, updateCourseDto, req.user);
   }
 

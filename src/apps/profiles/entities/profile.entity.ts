@@ -2,11 +2,15 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Category } from "apps/settings";
 import { User } from "apps/users";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { USER_ROLE, USER_STATUS } from "../constants";
 
-@Entity()
-export class Profile extends Base {
+@Entity(DBName.PROFILE, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Profile extends Base {
   @ManyToOne(() => User)
   user: User
 
@@ -14,6 +18,7 @@ export class Profile extends Base {
   @ApiProperty({ type: String })
   name: string
 
+  @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
   domain: string

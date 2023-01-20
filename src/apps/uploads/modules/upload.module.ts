@@ -2,9 +2,10 @@ import { forwardRef, Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ProfileModule } from "apps/profiles";
+import { AlbumController } from "../controllers";
 import { FileController } from "../controllers/file";
 import { Album, File } from "../entities";
-import { FileService } from "../services";
+import { AlbumService, FileService } from "../services";
 
 @Module({
   imports: [
@@ -12,10 +13,10 @@ import { FileService } from "../services";
     MulterModule.register({
       dest: './public',
     }),
-    forwardRef(() => ProfileModule)
+    forwardRef(() => ProfileModule),
   ],
-  controllers: [FileController],
-  providers: [FileService],
-  exports: [FileService]
+  controllers: [FileController, AlbumController],
+  providers: [FileService, AlbumService],
+  exports: [FileService, AlbumService]
 })
 export class UploadModule { }

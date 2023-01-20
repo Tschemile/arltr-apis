@@ -4,15 +4,14 @@ import { CreateCategoryInput, UpdateCategoryInput } from "apps/settings/dtos";
 import { Category } from "apps/settings/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-
-const MODULE_NAME = 'Category'
+import { TableName } from "utils";
 
 @Injectable()
 export class CategoryService extends BaseService<Category> {
   constructor(
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
   ) {
-    super(categoryRepo)
+    super(categoryRepo, {})
   }
 
   async create(input: CreateCategoryInput) {
@@ -38,7 +37,7 @@ export class CategoryService extends BaseService<Category> {
   async update(id: string, input: UpdateCategoryInput) {
     const category = await this.findOne({ id })
     if (!category) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     await this.categoryRepo.save({
@@ -53,7 +52,7 @@ export class CategoryService extends BaseService<Category> {
   async remove(id: string) {
     const category = await this.findOne({ id })
     if (!category) {
-      BaseError(MODULE_NAME, HttpStatus.NOT_FOUND)
+      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     await this.categoryRepo.softRemove(category)
