@@ -8,10 +8,14 @@ import { Profile } from 'apps/profiles';
 import { Product } from 'apps/shop';
 import { Base } from 'base';
 import { Entity, Index, ManyToOne } from 'typeorm';
+import { DBName } from 'utils';
 import { Category } from './category.entity';
 
-@Entity()
-export class Report extends Base {
+@Entity(DBName.REPORT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Report extends Base {
   @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Profile })
   reporter: Profile;

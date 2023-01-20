@@ -1,9 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity, Index } from "typeorm";
+import { DBName } from "utils";
 
-@Entity()
-export class User extends Base {
+@Entity(DBName.USER, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class User extends Base {
   @Column()
   @ApiProperty({ type: String })
   firstName: string

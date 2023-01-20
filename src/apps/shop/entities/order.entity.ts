@@ -3,9 +3,13 @@ import { Base } from "base";
 import { Profile } from "apps/profiles";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Order extends Base {
+@Entity(DBName.ORDER, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Order extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   shop: Profile

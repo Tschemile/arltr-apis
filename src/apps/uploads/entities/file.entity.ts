@@ -2,10 +2,14 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { FILE_SCOPE } from "../constants";
 
-@Entity()
-export class File extends Base {
+@Entity(DBName.FILE, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class File extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   owner: Profile

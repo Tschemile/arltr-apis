@@ -1,4 +1,4 @@
 import { OmitType } from "@nestjs/swagger";
-import { BaseOutputResponse } from "base";
+import { CreateResumeDto } from "./create-resume.dto";
 
-export class UpdateResumeDto extends OmitType(BaseOutputResponse, ['total'] as const) {}
+export class UpdateResumeDto extends OmitType(CreateResumeDto, ['candidate'] as const) {}

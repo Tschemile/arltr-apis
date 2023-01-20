@@ -2,10 +2,14 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { Chat } from "./chat.entity";
 
-@Entity()
-export class Message extends Base {
+@Entity(DBName.MESSAGE, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Message extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   sender: Profile

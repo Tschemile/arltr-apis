@@ -5,9 +5,13 @@ import { Profile } from "apps/profiles";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { PRODUCT_STATUS } from "../constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Product extends Base {
+@Entity(DBName.PRODUCT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Product extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   shop: Profile
