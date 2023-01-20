@@ -6,7 +6,7 @@ export class BaseQueryInput {
   @IsNumber()
   @Type(() => Number)
   @Min(0)
-  offset?: number
+  page?: number
 
   @IsOptional()
   @IsNumber()
