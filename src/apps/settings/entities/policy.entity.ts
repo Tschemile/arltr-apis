@@ -1,10 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity } from "typeorm";
+import { DBName } from "utils";
 import { POLICY_TYPE } from "../constants";
 
-@Entity()
-export class Policy extends Base {
+@Entity(DBName.POLICY, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Policy extends Base {
   @Column()
   @ApiProperty({ type: String })
   title: string

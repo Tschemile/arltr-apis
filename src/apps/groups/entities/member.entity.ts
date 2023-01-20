@@ -4,9 +4,13 @@ import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { MEMBER_ROLE, MEMBER_STATUS } from "../constants";
 import { Group } from "./group.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Member extends Base {
+@Entity(DBName.MEMBER, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Member extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   user: Profile

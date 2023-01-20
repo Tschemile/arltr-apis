@@ -1,10 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { Course } from "./course.entity";
 
-@Entity()
-export class Lesson extends Base {
+@Entity(DBName.LESSON, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Lesson extends Base {
   @Index()
   @ManyToOne(() => Course, {
     cascade: true,

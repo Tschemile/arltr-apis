@@ -3,9 +3,13 @@ import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Course extends Base {
+@Entity(DBName.COURSE, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Course extends Base {
   @Index()
   @ManyToOne(() => Profile, {
     cascade: true,

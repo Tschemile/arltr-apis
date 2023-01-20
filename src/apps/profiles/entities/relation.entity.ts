@@ -1,11 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { FRIEND_STATUS, RELATION_TYPE } from "../constants";
 import { Profile } from "./profile.entity";
 
-@Entity()
-export class Relation extends Base {
+@Entity(DBName.RELATION, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Relation extends Base {
   @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })

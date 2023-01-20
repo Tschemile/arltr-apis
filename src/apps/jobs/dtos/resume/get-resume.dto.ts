@@ -1,6 +1,5 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { Job, Resume } from "apps/jobs/entities";
-import { BaseOutputResponse } from "base";
+import { ApiProperty } from "@nestjs/swagger";
+import { Resume } from "apps/jobs/entities";
 import { IsArray } from "class-validator";
 
 

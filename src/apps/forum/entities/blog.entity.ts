@@ -4,9 +4,13 @@ import { Profile } from "apps/profiles";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { BLOG_STATUS } from "../constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Blog extends Base {
+@Entity(DBName.BLOG, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Blog extends Base {
   @Column()
   @ApiProperty({ type: String })
   title: string

@@ -1,12 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { APPLICANT_STATUS } from "../constants";
 import { Job } from "./job.entity";
 import { Resume } from "./resume.entity";
 
-@Entity()
-export class Applicant extends Base {
+@Entity(DBName.APPLICANT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Applicant extends Base {
   @ManyToOne(() => Resume, { cascade: true })
   @ApiProperty({ type: () => Resume })
   resume: Resume

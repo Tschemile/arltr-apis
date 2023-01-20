@@ -1,10 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Base } from "base";
 import { Column, Entity } from "typeorm";
+import { DBName } from "utils";
 import { CATEGORY_MODULE, CATEGORY_STATUS } from "../constants";
 
-@Entity()
-export class Category extends Base {
+@Entity(DBName.CATEGORY, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Category extends Base {
   @Column()
   @ApiProperty({ type: String })
   name: string

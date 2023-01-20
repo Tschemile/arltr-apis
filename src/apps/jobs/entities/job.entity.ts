@@ -5,9 +5,13 @@ import { Profile } from "apps/profiles";
 import { Column, Entity, ManyToOne } from "typeorm";
 import { JOB_CAREER, JOB_GENDER, JOB_QUALIFICATION, JOB_TYPE, SALARY_TYPE } from "../constants";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class Job extends Base {
+@Entity(DBName.JOB, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Job extends Base {
   @ManyToOne(() => Profile, { cascade: true })
   @ApiProperty({ type: () => Profile })
   employer: Profile

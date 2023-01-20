@@ -2,10 +2,14 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { Post } from "./post.entity";
 
-@Entity()
-export class Comment extends Base {
+@Entity(DBName.COMMENT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Comment extends Base {
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   user: Profile
