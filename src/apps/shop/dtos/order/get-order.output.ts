@@ -1,6 +1,5 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Item, Order } from "apps/shop/entities";
-import { BaseOutputResponse } from "base";
 
 export class OrderOutput extends Order {
   orderItems?: Item[]

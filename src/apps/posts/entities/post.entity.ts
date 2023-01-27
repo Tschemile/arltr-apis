@@ -1,12 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Event } from "apps/address";
 import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName, TableName } from "utils";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
 
-@Entity()
+@Entity(DBName.POST, {
+  orderBy: {
+    createdAt: 'DESC',
+  },
+})
 export class Post extends Base {
+  @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   author: Profile
@@ -14,6 +21,10 @@ export class Post extends Base {
   @ManyToOne(() => Group, { nullable: true })
   @ApiProperty({ type: () => Group, nullable: true })
   group: Group
+
+  @ManyToOne(() => Event, { nullable: true })
+  @ApiProperty({ type: () => Event, nullable: true })
+  event: Event 
 
   @Column({ enum: POST_TYPE, default: POST_TYPE.POST })
   @ApiProperty({ type: String, enum: POST_TYPE })

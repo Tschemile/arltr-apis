@@ -19,7 +19,7 @@ export class CommentService extends BaseService<Comment> {
     @InjectRepository(Comment) private commentRepo: Repository<Comment>,
     @Inject(forwardRef(() => PostService)) private postService: PostService,
   ) {
-    super(commentRepo)
+    super(commentRepo, commentRelation)
   }
 
   async create(user: UserToken, input: CreateCommentInput) {
@@ -30,6 +30,7 @@ export class CommentService extends BaseService<Comment> {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
     }
 
+    post.totalComments += 1
     const createdComment = this.commentRepo.create({
       ...input,
       user: user.profile,
@@ -49,7 +50,6 @@ export class CommentService extends BaseService<Comment> {
 
     const { data: comments, total } = await this.find({
       where,
-      relations: commentRelation,
       limit,
     })
 
@@ -61,7 +61,7 @@ export class CommentService extends BaseService<Comment> {
     id: string,
     input: UpdateCommentInput,
   ) {
-    const comment = await this.findOne({ id }, commentRelation)
+    const comment = await this.findOne({ id })
     if (!comment) {
       BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }
@@ -81,7 +81,7 @@ export class CommentService extends BaseService<Comment> {
   }
 
   async remove(user: UserToken, id: string) {
-    const comment = await this.findOne({ id }, commentRelation)
+    const comment = await this.findOne({ id })
     if (!comment) {
       BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
     }

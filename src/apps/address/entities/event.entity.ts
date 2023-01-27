@@ -2,12 +2,17 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 import { EVENT_MODE, EVENT_TYPE } from "../constants";
 import { Address } from "./address.entity";
 
-@Entity()
-export class Event extends Base {
+@Entity(DBName.EVENT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class Event extends Base {
+  @Index()
   @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Profile })
   user: Profile

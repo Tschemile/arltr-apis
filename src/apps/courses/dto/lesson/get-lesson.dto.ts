@@ -1,16 +1,15 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { Course, Lesson } from "apps/courses/entities";
-import { BaseOutputResponse } from "base";
+import { ApiProperty } from "@nestjs/swagger";
+import { Lesson } from "apps/courses/entities";
 import { IsArray } from "class-validator";
 
 
-export class GetLessonsOutput extends BaseOutputResponse {
+export class GetLessonsOutput {
     @IsArray()
-    @ApiProperty({ type: [ Lesson ] })
+    @ApiProperty({ type: () => [Lesson] })
     lessons: Lesson[]
 }
 
-export class GetLessonOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
-    @ApiProperty({ type: Lesson })
+export class GetLessonOutput {
+    @ApiProperty({ type: () => Lesson })
     lesson?: Lesson
-  }
+}

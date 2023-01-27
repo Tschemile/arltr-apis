@@ -1,13 +1,17 @@
 import { Base } from "base";
 import { Profile } from "apps/profiles";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { REACT_TYPE } from "../constants";
 import { Post } from "./post.entity";
 import { Comment } from "./comment.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { DBName } from "utils";
 
-@Entity()
-export class React extends Base {
+@Entity(DBName.REACT, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})export class React extends Base {
   @ManyToOne(() => Post, { nullable: true })
   @ApiProperty({ type: () => Post })
   post: Post
@@ -16,6 +20,7 @@ export class React extends Base {
   @ApiProperty({ type: () => Comment })
   comment: Comment
 
+  @Index()
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   user: Profile

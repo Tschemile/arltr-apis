@@ -1,1 +1,2 @@
-export * from './file.upload'
+export * from './album'
+export * from './file'

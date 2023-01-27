@@ -1,133 +1,120 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { CreateResumeDto } from "apps/jobs/dtos/resume/create-resume.dto";
-import { QueryResumeInput } from "apps/jobs/dtos/resume/query-resume.dto";
-import { UpdateResumeDto } from "apps/jobs/dtos/resume/update-resume.dto";
-import { Resume } from "apps/jobs/entities";
-import { ProfileService } from "apps/profiles";
-import { BaseService } from "base";
-import { Equal, FindOptionsWhere, IsNull, Like, Not, Repository } from "typeorm";
-import { HTTP_STATUS } from "utils";
+import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserToken } from 'apps/auth';
+import { CreateResumeDto } from 'apps/jobs/dtos/resume/create-resume.dto';
+import { QueryResumeInput } from 'apps/jobs/dtos/resume/query-resume.dto';
+import { UpdateResumeDto } from 'apps/jobs/dtos/resume/update-resume.dto';
+import { Resume } from 'apps/jobs/entities';
+import { ProfileService } from 'apps/profiles';
+import { BaseError, BaseService } from 'base';
+import {
+  FindOptionsWhere,
+  IsNull,
+  Like,
+  Not,
+  Repository,
+} from 'typeorm';
+import { TableName } from 'utils';
 
-const relations = {
-    candidate: true,
-}
+export const resumeRelations = {
+  candidate: true,
+};
 
 @Injectable()
 export class ResumeService extends BaseService<Resume> {
+  constructor(
+    @InjectRepository(Resume)
+    private resumeRepository: Repository<Resume>,
+    @Inject(forwardRef(() => ProfileService))
+    private profileService: ProfileService,
+  ) {
+    super(resumeRepository, resumeRelations);
+  }
 
-    constructor(
-        @InjectRepository(Resume) 
-        private resumeRepository: Repository<Resume>,
-        @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
-    ) {
-        super(resumeRepository);
+  async create(createRusemeDto: CreateResumeDto) {
+    const profile = await this.profileService.findOne({
+      id: createRusemeDto.candidate,
+    });
+
+    if (!profile) {
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    async create(createRusemeDto: CreateResumeDto) {
-        const profile = await this.profileService.findOne({ id: createRusemeDto.candidate});
+    const createResume = this.resumeRepository.create({
+      ...createRusemeDto,
+      candidate: profile,
+    });
 
-        if(!profile) {
-            return {
-                status: HTTP_STATUS.Not_Found
-            };
-        }
+    await this.resumeRepository.save(createResume);
 
-        const createResume = this.resumeRepository.create({
-            ...createRusemeDto,
-            candidate: profile,
-        });
+    return {
+      resume: createResume,
+    };
+  }
 
-        await this.resumeRepository.save(createResume);
+  async update(id: string, updateResumeDto: UpdateResumeDto, user: UserToken) {
+    const resume = await this.findOne({ id });
 
-        return {
-            status: HTTP_STATUS.Created,
-            resume: createResume, 
-        }
+    if (!resume) {
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    async update (id: string, updateResumeDto: UpdateResumeDto) {
-        
-        const resume = await this.resumeRepository.findOne({
-            where: {
-                id: Equal(id),
-            }
-        });
-
-        if(!resume) {
-            return {
-                status: HTTP_STATUS.Not_Found
-            };
-        }
-
-        await this.resumeRepository.save({
-            ...updateResumeDto,
-            id: resume.id,
-        });
-
-        return {
-            status: HTTP_STATUS.OK,
-            resume: {...resume, ...updateResumeDto},
-        }
+    if (user.profile.id !== resume.candidate.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
-    async findAll(query: QueryResumeInput) {
-        const {
-            search = '', limit: take = 10
-        } = query || {};
+    await this.resumeRepository.save({
+      ...updateResumeDto,
+      id: resume.id,
+    });
 
-        const where: FindOptionsWhere<Resume> = {
-            name: search ? Like(`%${search}`) : Not(IsNull()),
-        }
+    return {
+      resume: { ...resume, ...updateResumeDto },
+    };
+  }
 
-        const result = await this.resumeRepository.findAndCount({
-            relations,
-            where,
-            take,
-        })
+  async findAll(query: QueryResumeInput) {
+    const { search = '', limit = 10 } = query || {};
 
-        const itemCount = result[1];
-        return {
-            resumes: result[0],
-            total: itemCount,
-        };
+    const where: FindOptionsWhere<Resume> = {
+      name: search ? Like(`%${search}`) : Not(IsNull()),
+    };
+
+    const { data: resumes, total } = await this.find({
+      where,
+      limit,
+    })
+
+    return {
+      resumes,
+      total,
+    };
+  }
+
+  async findById(id: string) {
+    const resume = await this.findOne({ id });
+
+    if (!resume) {
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+    }
+    return {
+      resume,
+    };
+  }
+
+  async remove(id: string, user: UserToken) {
+    const resume = await this.findOne({ id });
+
+    if (!resume) {
+      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
     }
 
-    async findById(id: string) {
-        const resume = await this.resumeRepository.findOne({
-            where: {
-                id: Equal(id),
-            }
-        });
-
-        if(!resume) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-
-        return {
-            status: HTTP_STATUS.OK,
-            resume,
-        }
+    if (user.profile.id !== resume.candidate.id) {
+      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
-    async remove(id: string) {
-        const resume = await this.resumeRepository.findOne({
-            relations,
-            where: {
-                id: Equal(id),
-            }
-        });
-
-        if(!resume) {
-            return {
-                status: HTTP_STATUS.Not_Found,
-            }
-        }
-         await this.resumeRepository.softRemove(resume)
-       return {
-        status: HTTP_STATUS.OK
-       }
-    }
+    return {
+      resume: await this.resumeRepository.softRemove(resume),
+    };
+  }
 }

@@ -16,7 +16,7 @@ export class UserService extends BaseService<User> {
     @Inject(forwardRef(() => AuthService)) private authService: AuthService,
     @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
-    super(userRepo)
+    super(userRepo, {})
   }
 
   async register(input: RegisterInput, isAdmin?: boolean) {

@@ -19,7 +19,7 @@ export class ReplyService extends BaseService<Reply> {
     @InjectRepository(Reply) private replyRepo: Repository<Reply>,
     private blogService: BlogService,
   ) { 
-    super(replyRepo)
+    super(replyRepo, replyRelation)
   }
 
   async create(user: UserToken, input: CreateReplyInput) {
@@ -47,7 +47,6 @@ export class ReplyService extends BaseService<Reply> {
 
     const { data: replies, total } = await this.find({
       where,
-      relations: replyRelation,
     })
 
     return { replies, total }
@@ -58,7 +57,7 @@ export class ReplyService extends BaseService<Reply> {
     id: string,
     input: UpdateReplyInput
   ) {
-    const reply = await this.findOne({ id }, replyRelation)
+    const reply = await this.findOne({ id })
     if (!reply) {
       BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
@@ -76,7 +75,7 @@ export class ReplyService extends BaseService<Reply> {
   }
 
   async remove(user: UserToken, id: string) {
-    const reply = await this.findOne({ id }, replyRelation)
+    const reply = await this.findOne({ id })
     if (!reply) {
       BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {

@@ -6,10 +6,16 @@ import { Comment, React } from "apps/posts";
 import { Profile, Relation } from "apps/profiles";
 import { Order, Review } from "apps/shop";
 import { Base } from "base";
-import { Column, Entity, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { DBName } from "utils";
 
-@Entity()
+@Entity(DBName.ACTIVITY, {
+  orderBy: {
+    createdAt: 'DESC',
+  }
+})
 export class Activity extends Base {
+  @Index()
   @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
   user: Profile
 

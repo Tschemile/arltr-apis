@@ -1,16 +1,15 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { Job, Resume } from "apps/jobs/entities";
-import { BaseOutputResponse } from "base";
+import { ApiProperty } from "@nestjs/swagger";
+import { Resume } from "apps/jobs/entities";
 import { IsArray } from "class-validator";
 
 
-export class GetResumesOutput extends BaseOutputResponse {
+export class GetResumesOutput {
     @IsArray()
     @ApiProperty({ type: () => [Resume] })
     resumes: Resume[]
 }
 
-export class GetResumeOutput extends OmitType(BaseOutputResponse, ['total' as const]) {
+export class GetResumeOutput  {
     @ApiProperty({ type: () => Resume })
     resume?: Resume
 }
