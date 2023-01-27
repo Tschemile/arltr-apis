@@ -42,13 +42,13 @@ export class EventService extends BaseService<Event> {
     });
 
     if (!address) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND);
     }
 
     const group = await this.groupService.findOne({ id: createEventDto.group });
 
     if (!group) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND);
     }
 
 
@@ -69,8 +69,8 @@ export class EventService extends BaseService<Event> {
   async findAll(query: QueryEventInput) {
     const { search = '', limit = 10 } = query || {};
     const where: FindOptionsWhere<Event> = {
-      address: query.addressIds ? Any([query.addressIds]) : Not(IsNull()),
-      group: query.groupIds ? Any([query.groupIds]) : Not(IsNull()),
+      address: query.addresses ? Any([query.addresses]) : Not(IsNull()),
+      group: query.groups ? Any([query.groups]) : Not(IsNull()),
     };
 
     const { data: events, total } = await this.find({

@@ -27,18 +27,18 @@ export class EventController {
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'addressIds', required: false, type: [String] })
-  @ApiQuery({ name: 'groupIds', required: false, type: [String] })
+  @ApiQuery({ name: 'addresses', required: false, type: [String] })
+  @ApiQuery({ name: 'groups', required: false, type: [String] })
   @ApiOkResponse({
     description: 'Get events list',
   })
   async findAll(
     @Query('search') search,
     @Query('limit') limit,
-    @Query('addressIds') addressIds,
-    @Query('groupIds') groupIds,
+    @Query('addresses') addresses,
+    @Query('groups') groups,
   ): Promise<GetEventsOutput> {
-    return await this.eventService.findAll({ search, limit, addressIds, groupIds });
+    return await this.eventService.findAll({ search, limit, addresses, groups });
   }
 
   @Get(':id')

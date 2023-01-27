@@ -5,11 +5,11 @@ import { IsOptional, IsString } from "class-validator";
 export class QueryEventInput extends BaseQueryInput {
   @IsOptional()
   @ApiProperty({ type: [String], required: false })
-  groupIds?: string[];
+  groups?: string[];
 
   @IsOptional()
   @ApiProperty({ type: [String], required: false })
-  addressIds?: string[];
+  addresses?: string[];
 
   @IsString()
   search?: string
