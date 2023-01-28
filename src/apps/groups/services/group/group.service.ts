@@ -1,9 +1,10 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
-import { GROUP_MODE, MEMBER_ROLE, QUERY_TYPE } from 'apps/groups/constants';
+import { GROUP_MODE, MEMBER_ROLE, QUERY_GROUP_TYPE, QUERY_MEMBER_TYPE } from 'apps/groups/constants';
 import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups/dtos';
 import { Group } from 'apps/groups/entities';
+import { ProfileService } from 'apps/profiles';
 import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
 import { generateSlug, TableName } from 'utils';
@@ -14,6 +15,7 @@ export class GroupService extends BaseService<Group> {
   constructor(
     @InjectRepository(Group) private groupRepo: Repository<Group>,
     @Inject(forwardRef(() => MemberService)) private memberService: MemberService,
+    @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
   ) {
     super(groupRepo, {})
   }
@@ -26,52 +28,54 @@ export class GroupService extends BaseService<Group> {
     })
     await this.groupRepo.save(createdGroup)
 
-    const owner = await this.memberService.createOwner(user, createdGroup)
+    const { member } = await this.memberService.create(user, {
+      user: user.profile.id,
+      group: createdGroup.id,
+      role: MEMBER_ROLE.ADMIN,
+    })
 
     return {
       group: {
         ...createdGroup,
-        member: owner,
+        members: [member],
       },
     }
   }
 
   async findAll(user: UserToken, query: QueryGroupInput) {
     const where: FindOptionsWhere<Group> = {}
-    const limit = query.limit || 10
+    const { mode, type, limit, search } = query
 
-    switch (query.type) {
-      case QUERY_TYPE.COMMUNICATE: {
+    if (search) {
+      where.name = Like(`%${search}%`)
+    }
+
+    switch (type) {
+      case QUERY_GROUP_TYPE.COMMUNICATE: {
         where.mode = Not(GROUP_MODE.HIDDEN)
         break
       }
-      case QUERY_TYPE.COMMUNICATE: {
-        const { members: memberOfUser } = await this.memberService.findAll(user)
+      case QUERY_GROUP_TYPE.USER: {
+        const { user: userId } = query
+        const profile = await this.profileService.findOne({ id: userId })
+        if (!profile) {
+          BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+        }
+
+        const { members: memberOfUser } = await this.memberService.findAll(user, {
+          type: QUERY_MEMBER_TYPE.USER,
+          user: profile.id,
+        })
         const groupIds = memberOfUser.map((x) => x.group.id)
         where.id = In(groupIds)
+
+        if (mode) {
+          where.mode = mode
+        }
       }
     }
 
-    if (query.search) {
-      where.name = Like(`%${query.search}%`)
-    }
-
     const { data: groups, total } = await this.find({
-      where,
-      limit,
-    })
-
-    return { groups, total }
-  }
-
-  async findByUser(user: UserToken, limit: number) {
-    const where: FindOptionsWhere<Group> = {}
-
-    const { members } = await this.memberService.findAll(user)
-    const groupIds = members.map((x) => x.group.id)
-    where.id = In(groupIds)
-
-    const { data: groups, total} = await this.find({
       where,
       limit,
     })

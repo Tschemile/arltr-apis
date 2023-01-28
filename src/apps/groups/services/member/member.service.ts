@@ -1,12 +1,12 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { MEMBER_ROLE, MEMBER_STATUS } from "apps/groups/constants";
-import { InviteMemberInput, UpdateMemberInput } from "apps/groups/dtos";
-import { Group, Member } from "apps/groups/entities";
+import { MEMBER_ROLE, MEMBER_STATUS, QUERY_MEMBER_TYPE } from "apps/groups/constants";
+import { CreateMemberInput, QueryMemberInput, UpdateMemberInput } from "apps/groups/dtos";
+import { Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, Not, Repository } from "typeorm";
+import { FindOptionsWhere, In, Not, Repository } from "typeorm";
 import { TableName } from "utils";
 import { GroupService } from "../group";
 
@@ -25,60 +25,13 @@ export class MemberService extends BaseService<Member> {
     super(memberRepo, memberRelation)
   }
 
-  // Only for owner
-  async createOwner(user: UserToken, group: Group) {
-    const existedOwner = await this.findOne({
-      user: { id: user.profile.id },
-      group: { id: group.id }
-    })
-
-    if (existedOwner) {
-      if (
-        existedOwner.role === MEMBER_ROLE.ADMIN
-        && existedOwner.status === MEMBER_STATUS.ACTIVE
-      ) {
-        return existedOwner
-      } else {
-        await this.memberRepo.save({
-          role: MEMBER_ROLE.ADMIN,
-          status: MEMBER_STATUS.ACTIVE,
-          id: existedOwner.id,
-        })
-        return {
-          ...existedOwner,
-          role: MEMBER_ROLE.ADMIN,
-          status: MEMBER_STATUS.ACTIVE,
-        }
-      }
-    }
-
-    const createdOwner = this.memberRepo.create({
-      user: user.profile,
-      group,
-      role: MEMBER_ROLE.ADMIN,
-      status: MEMBER_STATUS.ACTIVE,
-    })
-    await this.memberRepo.save(createdOwner)
-
-    return createdOwner
-  }
-
-  async invite(user: UserToken, input: InviteMemberInput) {
-    const { user: userId, group: groupId, role } = input
+  async create(user: UserToken, input: CreateMemberInput) {
+    const { role, group: groupId, user: userId } = input
 
     // Check exist group
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
       BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
-    }
-
-    // Check current user is member of group
-    const isMember = await this.findOne({
-      user: { id: user.profile.id },
-      group: { id: group.id }
-    })
-    if (!isMember) {
-      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     // Check exist profile
@@ -93,34 +46,78 @@ export class MemberService extends BaseService<Member> {
       group: { id: group.id }
     })
     if (existedMember) {
-      return {
-        member: existedMember,
-      }
+      BaseError(TableName.MEMBER, HttpStatus.CONFLICT)
     }
 
-    const createdMember = this.memberRepo.create({
-      user: profile,
-      group,
-      role,
-      status: MEMBER_STATUS.INVITING,
-    })
-    await this.memberRepo.save(createdMember)
+    if (role === MEMBER_ROLE.ADMIN) {
+      const existedOwner = await this.findOne({
+        user: { id: userId },
+        group: { id: groupId },
+        role,
+        status: MEMBER_STATUS.ACTIVE,
+      })
 
-    return {
-      member: createdMember,
+      if (existedOwner) {
+        const createdOwner = await this.insertOne({
+          user: profile,
+          group,
+          role,
+          status: MEMBER_STATUS.ACTIVE,
+        })
+
+        return { member: createdOwner }
+      }
+    } else {
+      if (user.profile.id === profile.id) {
+        const requestedMember = await this.insertOne({
+          user: profile,
+          group,
+          role,
+          status: MEMBER_STATUS.REQUESTING,
+        })
+
+        return { member: requestedMember }
+      } else {
+        // Check current user is member of group
+        const isMember = await this.findOne({
+          user: { id: user.profile.id },
+          group: { id: group.id }
+        })
+        if (!isMember) {
+          BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+        }
+
+        const invitedMember = await this.insertOne({
+          user: profile,
+          group,
+          role,
+          status: MEMBER_STATUS.INVITING,
+        })
+
+        return { member: invitedMember }
+      }
     }
   }
 
-  async findAll(user: UserToken, group?: string) {
+  async findAll(user: UserToken, query: QueryMemberInput) {
+    const { type, group: groupId, user: userId } = query
     const where: FindOptionsWhere<Member> = {}
 
-    if (group) {
-      where.group = { id: group }
-    } else {
-      where.user = { id: user.profile.id }
-    }
+    where.status = In([
+      MEMBER_STATUS.ACTIVE,
+      MEMBER_STATUS.BANNED,
+    ])
 
-    where.status = Not(MEMBER_STATUS.INVITING)
+    switch(type) {
+      case QUERY_MEMBER_TYPE.GROUP: {
+        where.group = { id: groupId }
+        break
+      }
+      case QUERY_MEMBER_TYPE.USER: {
+        where.user = { id: userId }
+        break
+      }
+    }
 
     const { data: members, total } = await this.find({ where })
 

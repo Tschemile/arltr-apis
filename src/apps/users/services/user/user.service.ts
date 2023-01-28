@@ -28,6 +28,7 @@ export class UserService extends BaseService<User> {
       password: enteredPassword,
       birth,
       gender,
+      role,
     } = input
     const existedUser = await this.findOne([
       { username }, { email }
@@ -47,7 +48,7 @@ export class UserService extends BaseService<User> {
       domain: username,
       birth,
       gender,
-      role: isAdmin ? USER_ROLE.ADMIN : USER_ROLE.USER,
+      role: role || USER_ROLE.USER,
     }, createdUser)
 
     const token = this.authService.generateToken(createdUser, profile)
@@ -67,9 +68,8 @@ export class UserService extends BaseService<User> {
     if (!user) {
       BaseError(TableName.USER, HttpStatus.NOT_FOUND)
     }
-    console.log(user)
     if (!await (bcrypt.compare(password, user.password))) {
-      BaseError(TableName.USER, HttpStatus.BAD_REQUEST)
+      BaseError(TableName.USER, HttpStatus.BAD_REQUEST, 'Email or password is incorrect')
     }
     const profile = await this.profileService.findOne({
       user: {
