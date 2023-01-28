@@ -4,7 +4,7 @@ export enum GROUP_MODE {
   PUBLIC = 'PUBLIC',
 }
 
-export enum QUERY_TYPE {
+export enum QUERY_GROUP_TYPE {
   COMMUNICATE = 'COMMUNICATE',
-  SELF = 'SELF'
+  USER = 'USER'
 }

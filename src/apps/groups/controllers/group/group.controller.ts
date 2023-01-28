@@ -30,8 +30,9 @@ export class GroupController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiQuery({ name: 'mode' })
+  @ApiQuery({ name: 'type' })
   @ApiQuery({ name: 'search', required: false })
-  @ApiQuery({ name: 'type', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiOkResponse({
     type: GetGroupsOutput
@@ -40,11 +41,12 @@ export class GroupController {
     @Request() req,
     @Query('search') search,
     @Query('type') type,
+    @Query('mode') mode,
     @Query('limit') limit,
   ): Promise<GetGroupsOutput> {
     return await this.groupService.findAll(
       req.user,
-      { search, type, limit }
+      { search, type, mode, limit }
     )
   }
 

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { GetMemberOutput, GetMembersOutput, InviteMemberInput, UpdateMemberInput } from "apps/groups/dtos";
+import { CreateMemberInput, GetMemberOutput, GetMembersOutput, UpdateMemberInput } from "apps/groups/dtos";
 import { MemberService } from "apps/groups/services";
 import { TableName } from "utils";
 
@@ -19,9 +19,9 @@ export class MemberController {
   @ApiCreatedResponse({ type: GetMemberOutput })
   async post(
     @Request() req,
-    @Body() input: InviteMemberInput,
+    @Body() input: CreateMemberInput,
   ): Promise<GetMemberOutput> {
-    return await this.memberService.invite(
+    return await this.memberService.create(
       req.user,
       input,
     )

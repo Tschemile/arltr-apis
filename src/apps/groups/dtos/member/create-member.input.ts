@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { MEMBER_ROLE } from "apps/groups/constants";
 import { IsEnum, IsUUID } from "class-validator";
 
-export class InviteMemberInput {
+export class CreateMemberInput {
   @IsUUID()
   @ApiProperty({ type: String })
   user: string

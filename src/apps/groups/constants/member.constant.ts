@@ -5,7 +5,13 @@ export enum MEMBER_ROLE {
 }
 
 export enum MEMBER_STATUS {
+  REQUESTING = 'REQUESTING',
   INVITING = 'INVITING',
   ACTIVE = 'ACTIVE',
   BANNED = 'BANNED'
+}
+
+export enum QUERY_MEMBER_TYPE {
+  GROUP = 'GROUP',
+  USER = 'USER'
 }
