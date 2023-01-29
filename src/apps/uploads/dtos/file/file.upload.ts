@@ -9,9 +9,15 @@ export class FileUploadInput {
   type: string
 }
 
+export class FileUploadMultiInput {
+  @ApiProperty({ type: [String], format: 'binary' })
+  files: any
+}
+
 export class FileInput {
   filename: string
   path: string
   mimetype: string
   size: number
+  url: string
 }
