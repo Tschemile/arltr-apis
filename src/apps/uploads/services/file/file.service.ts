@@ -5,9 +5,10 @@ import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/pr
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
+import { generateUrlHttp } from "apps/uploads/utils";
 import { BaseError, BaseService } from "base";
 import * as fs from 'fs';
-import { Any, FindOptionsWhere, Not, Repository } from "typeorm";
+import { Any, DeepPartial, FindOptionsWhere, Not, Repository } from "typeorm";
 import { TableName } from "utils";
 
 export const fileRelation = {
@@ -28,13 +29,9 @@ export class FileService extends BaseService<File> {
     user: UserToken, 
     fileInput: FileInput, 
     type?: UPLOAD_TYPE,
-    baseUrl?: string
   )  {
-    let url = `https://${baseUrl}/api/file/${fileInput.filename}`
-    
-    await this.insertOne({
+    const createdFile = await this.insertOne({
       ...fileInput,
-      url,
       owner: user.profile,
     })
 
@@ -46,14 +43,14 @@ export class FileService extends BaseService<File> {
       let avatar = profile.avatar
       let cover = profile.cover
       if (type === UPLOAD_TYPE.AVATAR) {
-        avatar = url
+        avatar = createdFile.url
       } else if (type === UPLOAD_TYPE.COVER) {
-        cover = url
+        cover = createdFile.url
       }
       await this.profileService.update(user, {  avatar, cover })
     }
 
-    return url
+    return createdFile
   }
 
   async findAll(user: UserToken, profile: Profile, limit?: number) {
@@ -94,6 +91,20 @@ export class FileService extends BaseService<File> {
     return {
       file: await this.fileRepo.softRemove(file)
     }
+  }
+
+  async createMultiple(user: UserToken, fileInputs: FileInput[]) {
+    const files: DeepPartial<File>[] = []
+
+    for (const file of fileInputs) {
+      files.push({
+        ...file,
+        owner: user.profile,
+      })
+    }
+
+    const createdFiles = await this.insertMultiple(files)
+    return createdFiles
   }
 
   async removeFile(path: string) {

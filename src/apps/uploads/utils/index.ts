@@ -1,4 +1,5 @@
 import { extname } from "path"
+import { FileInput } from "../dtos"
 
 export const editFileName = (req, file, callback) => {
   const name = file.originalname.split('.')[0]
@@ -14,3 +15,16 @@ export const imageFileFilter = (req, file, callback) => {
   callback(null, true)
 }
 
+export const generateUrlHttp = (baseUrl: string, path: string) => {
+  return `https://${baseUrl}/api/file/${path}`
+}
+
+export function formatInfoFile(file: Express.Multer.File, host: string): FileInput {
+  return {
+    filename: file.filename,
+    path: file.path,
+    mimetype: file.mimetype,
+    size: file.size,
+    url: generateUrlHttp(host, file.filename)
+  }
+}

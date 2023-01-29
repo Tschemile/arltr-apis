@@ -19,7 +19,7 @@ export class UserService extends BaseService<User> {
     super(userRepo, {})
   }
 
-  async register(input: RegisterInput, isAdmin?: boolean) {
+  async register(input: RegisterInput) {
     const {
       firstName,
       lastName,
