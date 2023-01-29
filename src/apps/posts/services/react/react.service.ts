@@ -5,7 +5,7 @@ import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
 import { React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { TableName } from "utils";
+import { DBName, TableName } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
 
@@ -57,9 +57,9 @@ export class ReactService extends BaseService<React> {
   }
 
   async upsert(user: UserToken, input: UpsertReactInput) {
-    const { 
-      id, 
-      isPost, 
+    const {
+      id,
+      isPost,
       type,
       where,
     } = await this.validInput(input)
@@ -67,7 +67,7 @@ export class ReactService extends BaseService<React> {
     const reacted = await this.findOne({
       ...where,
       user: { id: user.profile.id },
-    }) 
+    })
 
     if (reacted) {
       // Un reacted
@@ -82,24 +82,24 @@ export class ReactService extends BaseService<React> {
         }
       } else {
         // Change react
-        return{
+        return {
           react: await this.reactRepo.save({
             type,
             id: reacted.id,
           })
-        } 
+        }
       }
     } else {
       const createdReact = this.reactRepo.create({
         type,
         user: user.profile,
-        post: isPost  ? { id: id } : null,
+        post: isPost ? { id: id } : null,
         comment: isPost ? null : { id: id }
       })
       if (isPost) {
         await this.postService.changeProperty({ id }, 'totalReacts', 1, 'INCREMENT')
       } else {
-        await this.commentService.changeProperty({ id }, 'totalReacts',1, 'INCREMENT')
+        await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'INCREMENT')
       }
       return {
         react: await this.reactRepo.save(createdReact)
@@ -108,19 +108,51 @@ export class ReactService extends BaseService<React> {
   }
 
   async findAll(query: QueryReactInput) {
-    const { postIds, user: userId } = query
+    const { 
+      type, 
+      post: postId, 
+      comment: commentId, 
+      limit 
+    } = query
     const where: FindOptionsWhere<React> = {}
 
-    if (userId) {
-      where.user = { id: userId }
+    if (type) {
+      where.type = type
     }
 
-    if (postIds && postIds.length > 0) {
-      where.post = { id: In(postIds) }
+    if (postId) {
+      where.post = { id: postId }  
     }
 
-    const { data: reacts, total } = await this.find({ where })
+    if (commentId) {
+      where.comment = { id: commentId }
+    }
 
-    return { reacts, total }
+    const { data: reacts, total: totalReacts } = await this.find({ where, limit })
+    const users = reacts.map((x) => {
+      return {
+        ...x.user,
+        type: x.type,
+      }
+    })
+
+    const total = await this.group(where, 'type')
+    total.push({
+      type: 'ALL',
+      total: totalReacts
+    })
+
+    return { users, total }
+  }
+
+  async postLiked(user: UserToken, postIds: string[]) {
+    const where: FindOptionsWhere<React> = {
+      user: { id: user.profile.id },
+      post: { id: In(postIds) }
+    }
+
+    const { data: reacts } = await this.find({ where })
+
+    return reacts
   }
 }

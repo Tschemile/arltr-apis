@@ -10,7 +10,8 @@ import { USER_ROLE, USER_STATUS } from "../constants";
   orderBy: {
     createdAt: 'DESC',
   }
-})export class Profile extends Base {
+})
+export class Profile extends Base {
   @ManyToOne(() => User)
   user: User
 

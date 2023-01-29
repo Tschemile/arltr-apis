@@ -31,6 +31,8 @@ export class PostController {
   @ApiBearerAuth()
   @ApiQuery({ name: 'queryType', enum: POST_QUERY_TYPE })
   @ApiQuery({ name: 'type', required: false, enum: POST_TYPE })
+  @ApiQuery({ name: 'user', required: false })
+  @ApiQuery({ name: 'group', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiOkResponse({
     type: GetPostsOutput
@@ -39,11 +41,13 @@ export class PostController {
     @Request() req,
     @Query('queryType') queryType,
     @Query('type') type,
+    @Query('user') user,
+    @Query('group') group,
     @Query('limit') limit,
   ): Promise<GetPostsOutput> {
     return await this.postService.findAll(
       req.user,
-      { queryType, type, limit }
+      { queryType, type, user, group, limit }
     )
   }
 

@@ -76,7 +76,7 @@ export class PostService extends BaseService<Post> {
       type,
       queryType,
       search,
-      user: userDomain,
+      user: userId,
       group: groupId,
       limit,
     } = query
@@ -133,7 +133,7 @@ export class PostService extends BaseService<Post> {
         break
       }
       case 'USER': {
-        const profile = await this.profileService.findOne({ domain: userDomain })
+        const profile = await this.profileService.findOne({ id: userId })
         if (!profile) {
           BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
         }
@@ -147,43 +147,16 @@ export class PostService extends BaseService<Post> {
       }
     }
 
-    const { data: posts, total } = await this.find({
+    const { data, total } = await this.find({
       where,
       limit,
     })
+
+    const postIds = data.map((x) => x.id)
+    const reacts = await this.reactService.postLiked(user, postIds)
+    const posts = formatData({ posts: data, reacts })
 
     return { posts, total }
-  }
- 
-  async findByUser(user: UserToken, profile: Profile, limit: number) {
-    const relation = await this.relationService.findOne([
-      { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND },
-      { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
-    ])
-
-    const where: FindOptionsWhere<Post> = {
-      group: { id: null },
-      author: {
-        id: profile.id,
-      }
-    }
-    if (user.profile.id !== profile.id) {
-      if (relation) {
-        where.mode = Not(POST_MODE.PRIVATE)
-      } else {
-        where.mode = POST_MODE.PUBLIC
-      }
-    }
-
-    const { data: posts, total } = await this.find({
-      where,
-      limit,
-    })
-
-    const postIds = posts.map((x) => x.id)
-    const { reacts } = await this.reactService.findAll({ postIds, user: user.profile.id })
-
-    return { posts: formatData({ posts, reacts }), total }
   }
 
   async findById(user: UserToken, id: string) {
