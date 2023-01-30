@@ -1,16 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Group } from "apps/groups";
-import { Post } from "apps/posts";
 import { Profile } from "apps/profiles/entities";
 import { File } from "apps/uploads";
 
 export class ProfileFully extends Profile {
-  @ApiProperty({ type: () => [Post] })
-  posts: Post[]
-
-  @ApiProperty({ type: Number })
-  totalPosts: number
-
   @ApiProperty({ type: () => [Profile] })
   friends: Profile[];
 

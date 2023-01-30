@@ -2,6 +2,7 @@ import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
 import { GroupService } from "apps/groups";
+import { QUERY_GROUP_TYPE } from "apps/groups/constants";
 import { PostService } from "apps/posts";
 import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
@@ -109,8 +110,11 @@ export class ProfileService extends BaseService<Profile> {
     ])
 
     const { relations, total: totalRelations } = await this.relationService.getRelations(user)
-    const { posts, total: totalPosts } = await this.postService.findByUser(user, profile, 5)
-    const { groups, total: totalGroups } = await this.groupService.findByUser(user, 6)
+    const { groups, total: totalGroups } = await this.groupService.findAll(user, {
+      user: profile.id,
+      type: QUERY_GROUP_TYPE.USER,
+      limit: 6,
+    })
     const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
 
     if (blocked) {
@@ -124,8 +128,6 @@ export class ProfileService extends BaseService<Profile> {
       ...profile,
       ...relations,
       ...totalRelations,
-      posts,
-      totalPosts,
       groups,
       totalGroups,
       albums,

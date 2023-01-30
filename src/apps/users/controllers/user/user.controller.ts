@@ -27,13 +27,6 @@ export class UserController {
     return await this.userService.register(registerInput)
   }
 
-  @Post('admin')
-  @ApiConflictResponse({ description: `${TableName.USER} already existed` })
-  @ApiCreatedResponse({ type: GetUserTokenOutput })
-  async createAdmin(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
-    return await this.userService.register(registerInput, true)
-  }
-
   @Delete()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

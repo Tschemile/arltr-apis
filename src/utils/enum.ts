@@ -33,6 +33,7 @@ export enum TableName {
   RESPONDED = 'Responded',
   RESUME = 'Resume',
   REVIEW = 'Review',
+  UPLOAD = 'Upload',
   USER = 'User',
   VOTE = 'Vote',
 }
