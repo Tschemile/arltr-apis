@@ -12,3 +12,5 @@ export enum UPLOAD_TYPE {
 export const IMAGE_LIMIT = Math.pow(1024, 2)
 
 export const MAX_FILE_UPLOAD = 9
+
+export const FOLDER_UPLOAD = './public'

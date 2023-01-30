@@ -1,9 +1,17 @@
-import { IsUUID } from "class-validator";
+import { REACT_TYPE } from "apps/posts/constants";
+import { BaseQueryInput } from "base";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
 
-export class QueryReactInput {
-  @IsUUID(4, { each: true })
-  postIds: string[]
+export class QueryReactInput extends BaseQueryInput {
+  @IsUUID()
+  @IsOptional()
+  post?: string
 
   @IsUUID()
-  user: string
+  @IsOptional()
+  comment?: string
+
+  @IsEnum(REACT_TYPE)
+  @IsOptional()
+  type?: string
 }

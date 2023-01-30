@@ -38,7 +38,7 @@ export class RelationService extends BaseService<Relation> {
     })
     if (existedRelation) {
       if (type !== RELATION_TYPE.OWNER) {
-        await this.relationRepo.remove(existedRelation)
+        await this.relationRepo.softRemove(existedRelation)
       }
       return
     }

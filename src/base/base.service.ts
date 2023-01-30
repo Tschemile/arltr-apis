@@ -1,5 +1,6 @@
 import { DeepPartial, FindOptionsOrder, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
 import { Base } from "./base.entity";
+import { BaseGroupType } from "./base.dto";
 
 export class BaseService<Entity extends Base> {
   constructor(
@@ -17,7 +18,7 @@ export class BaseService<Entity extends Base> {
 
   async insertMultiple(data: DeepPartial<Entity>[]): Promise<Entity[]> {
     const multiEntity: Entity[] = []
-    for(const entity of data) {
+    for (const entity of data) {
       multiEntity.push(this.repository.create(entity))
     }
 
@@ -47,7 +48,7 @@ export class BaseService<Entity extends Base> {
     data: Entity[],
     total: number,
   }> {
-    let take = 1, skip = 0
+    let take = 1000, skip = 0
     if (limit) {
       take = limit
     }
@@ -88,12 +89,9 @@ export class BaseService<Entity extends Base> {
     }
   }
 
-  async groupBy(
-    where: FindOptionsWhere<Entity>,
-    key: string,
-  ) {
+  async group(where: FindOptionsWhere<Entity>, key: string): Promise<BaseGroupType[]> {
     const { data } = await this.find({ where })
-    const group = data.reduce((obj, x) => {
+    const groupRaw = data.reduce((obj, x) => {
       if (!obj[x[key]]) {
         obj[x[key]] = []
       }
@@ -101,16 +99,17 @@ export class BaseService<Entity extends Base> {
       return obj
     }, {})
 
-    return group
-  }
+    const groups: BaseGroupType[] = []
+    for (const key in groupRaw) {
+      if (Object.prototype.hasOwnProperty.call(groupRaw, key)) {
+        const element = groupRaw[key];
+        groups.push({
+          type: key,
+          total: element.length,
+        })
+      }
+    }
 
-  async groupCountNumber(name: string, key: string): Promise<Entity[]> {
-    const group = await this.repository.createQueryBuilder(`${name}`)
-      .select(`${name}.${key}, COUNT(*) as counter`)
-      .groupBy(`${name}.${key}`)
-      .orderBy('counter')
-      .getMany()
-
-    return group
+    return groups
   }
 }
