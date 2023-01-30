@@ -3,9 +3,6 @@ import { RESPONDED_TYPE } from "apps/address/constants";
 import { IsEnum, IsNotEmpty, IsUUID } from "class-validator";
 
 export class CreateRespondedDto {
-    @ApiProperty()
-    @IsUUID()
-    user: string
 
     @ApiProperty()
     @IsUUID()
