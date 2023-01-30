@@ -5,7 +5,6 @@ import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/pr
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
-import { generateUrlHttp } from "apps/uploads/utils";
 import { BaseError, BaseService } from "base";
 import * as fs from 'fs';
 import { Any, DeepPartial, FindOptionsWhere, Not, Repository } from "typeorm";
