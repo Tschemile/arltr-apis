@@ -115,7 +115,7 @@ export class ProfileService extends BaseService<Profile> {
       type: QUERY_GROUP_TYPE.USER,
       limit: 6,
     })
-    const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, profile)
+    const { files: albums, total: totalAlbums } = await this.fileService.findAll(user, {  user: profile.id })
 
     if (blocked) {
       BaseError(TableName.PROFILE, HttpStatus.FORBIDDEN)

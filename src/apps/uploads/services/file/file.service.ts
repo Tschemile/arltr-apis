@@ -3,10 +3,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { FILE_SCOPE, UPLOAD_TYPE } from "apps/uploads/constants";
-import { FileInput } from "apps/uploads/dtos";
+import { QueryFileInput } from "apps/uploads/dtos";
 import { File } from "apps/uploads/entities";
+import { deleteFromCloudinary } from "apps/uploads/utils";
 import { BaseError, BaseService } from "base";
-import * as fs from 'fs';
 import { Any, DeepPartial, FindOptionsWhere, Not, Repository } from "typeorm";
 import { TableName } from "utils";
 
@@ -26,12 +26,16 @@ export class FileService extends BaseService<File> {
 
   async create(
     user: UserToken, 
-    fileInput: FileInput, 
+    file: Express.Multer.File, 
     type?: UPLOAD_TYPE,
   )  {
     const createdFile = await this.insertOne({
-      ...fileInput,
       owner: user.profile,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      size: file.size,
+      path: file.path,
+      url: file.path,
     })
 
     if (type) {
@@ -52,18 +56,19 @@ export class FileService extends BaseService<File> {
     return createdFile
   }
 
-  async findAll(user: UserToken, profile: Profile, limit?: number) {
+  async findAll(user: UserToken, query: QueryFileInput) {
+    const { user: userId, limit } = query
     const where: FindOptionsWhere<File> = {
       owner: {
-        domain: profile.domain,
+        id: userId
       }
     }
-    if (profile.id === user.profile.id) {
+    if (userId === user.profile.id) {
       where.scope = Any(Object.values(FILE_SCOPE))
     } else {
       const friends = await this.relationService.findOne([
-        { requester: { id: user.profile.id }, user: { id: profile.id }, type: RELATION_TYPE.FRIEND }, 
-        { requester: { id: profile.id }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
+        { requester: { id: user.profile.id }, user: { id: userId }, type: RELATION_TYPE.FRIEND }, 
+        { requester: { id: userId }, user: { id: user.profile.id }, type: RELATION_TYPE.FRIEND },
       ])
       if (friends) {
         where.scope = Not(FILE_SCOPE.PRIVATE)
@@ -85,31 +90,28 @@ export class FileService extends BaseService<File> {
       BaseError(TableName.FILE, HttpStatus.FORBIDDEN)
     }
 
-    await this.removeFile(file.path)
+    await deleteFromCloudinary(file.filename)
 
     return {
       file: await this.fileRepo.softRemove(file)
     }
   }
 
-  async createMultiple(user: UserToken, fileInputs: FileInput[]) {
+  async createMultiple(user: UserToken, fileInputs: Express.Multer.File[]) {
     const files: DeepPartial<File>[] = []
 
     for (const file of fileInputs) {
       files.push({
-        ...file,
         owner: user.profile,
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: file.path,
+        url: file.path,
       })
     }
 
     const createdFiles = await this.insertMultiple(files)
     return createdFiles
-  }
-
-  async removeFile(path: string) {
-    return fs.unlink(path, (err) => {
-      if (err) throw err
-      console.log('Delete file success')
-    })
   }
 }
