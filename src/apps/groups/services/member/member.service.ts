@@ -50,23 +50,14 @@ export class MemberService extends BaseService<Member> {
     }
 
     if (role === MEMBER_ROLE.ADMIN) {
-      const existedOwner = await this.findOne({
-        user: { id: userId },
-        group: { id: groupId },
+      const createdOwner = await this.insertOne({
+        user: profile,
+        group,
         role,
         status: MEMBER_STATUS.ACTIVE,
       })
 
-      if (existedOwner) {
-        const createdOwner = await this.insertOne({
-          user: profile,
-          group,
-          role,
-          status: MEMBER_STATUS.ACTIVE,
-        })
-
-        return { member: createdOwner }
-      }
+      return { member: createdOwner }
     } else {
       if (user.profile.id === profile.id) {
         const requestedMember = await this.insertOne({
@@ -108,7 +99,7 @@ export class MemberService extends BaseService<Member> {
       MEMBER_STATUS.BANNED,
     ])
 
-    switch(type) {
+    switch (type) {
       case QUERY_MEMBER_TYPE.GROUP: {
         where.group = { id: groupId }
         break
