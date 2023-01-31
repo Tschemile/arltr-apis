@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
+import { GROUP_MODE, QUERY_GROUP_TYPE } from "apps/groups/constants";
 import { CreateGroupInput, GetGroupOutput, GetGroupsOutput, UpdateGroupInput } from "apps/groups/dtos";
 import { GroupService } from "apps/groups/services";
 import { TableName } from "utils";
@@ -30,8 +31,9 @@ export class GroupController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiQuery({ name: 'mode' })
-  @ApiQuery({ name: 'type' })
+  @ApiQuery({ name: 'mode', enum: GROUP_MODE })
+  @ApiQuery({ name: 'type', enum: QUERY_GROUP_TYPE })
+  @ApiQuery({ name: 'user', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiOkResponse({
@@ -42,11 +44,12 @@ export class GroupController {
     @Query('search') search,
     @Query('type') type,
     @Query('mode') mode,
+    @Query('user') user,
     @Query('limit') limit,
   ): Promise<GetGroupsOutput> {
     return await this.groupService.findAll(
       req.user,
-      { search, type, mode, limit }
+      { search, type, mode, user, limit }
     )
   }
 

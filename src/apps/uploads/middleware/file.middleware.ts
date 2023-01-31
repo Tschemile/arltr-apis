@@ -2,7 +2,7 @@ import { Injectable, mixin, NestInterceptor, Type } from "@nestjs/common"
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { MulterOptions } from "@nestjs/platform-express/multer/interfaces/multer-options.interface"
 import { diskStorage } from "multer"
-import { MAX_FILE_UPLOAD } from "../constants"
+import { FOLDER_UPLOAD, MAX_FILE_UPLOAD } from "../constants"
 import { editFileName } from "../utils"
 
 interface UploadFileInterceptor {
@@ -17,7 +17,7 @@ export function SingleFileInterceptor(options: UploadFileInterceptor): Type<Nest
   class Interceptor implements NestInterceptor {
     fileInterceptor: NestInterceptor
     constructor() {
-      const destination = `./public/${options.path}`
+      const destination = `${FOLDER_UPLOAD}/${options.path}`
 
       const multerOptions: MulterOptions = {
         storage: diskStorage({
@@ -44,7 +44,7 @@ export function MultipleFileInterceptor(options: UploadFileInterceptor): Type<Ne
   class Interceptor implements NestInterceptor {
     fileInterceptor: NestInterceptor
     constructor() {
-      const destination = `./public/${options.path}`
+      const destination = `${FOLDER_UPLOAD}/${options.path}`
 
       const multerOptions: MulterOptions = {
         storage: diskStorage({
