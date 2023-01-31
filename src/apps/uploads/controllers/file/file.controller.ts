@@ -16,6 +16,6 @@ export class FileController {
     @Param('path') path,
     @Response() res,
   ) {
-    return res.sendFile(path, { root: './public' })
+    return res.sendFile(path, { root: './public/images' })
   }
 }
