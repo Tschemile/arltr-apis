@@ -26,7 +26,7 @@ export class CreatePostInput {
 
   @IsEnum(POST_MODE)
   @IsOptional()
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ type: String, enum: POST_MODE, nullable: true })
   mode?: string
 
   @IsEnum(POST_STATUS)
