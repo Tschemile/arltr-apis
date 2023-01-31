@@ -1,6 +1,5 @@
-import { Controller, Get, Param, Request, Response, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiParam, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
+import { Controller, Get, Param, Response } from "@nestjs/common";
+import { ApiParam, ApiTags } from "@nestjs/swagger";
 import { FileService } from "apps/uploads/services";
 import { TableName } from "utils";
 
@@ -12,11 +11,8 @@ export class FileController {
   ) { }
 
   @Get(':path')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiParam({ name: 'path' })
   getFile(
-    @Request() req,
     @Param('path') path,
     @Response() res,
   ) {
