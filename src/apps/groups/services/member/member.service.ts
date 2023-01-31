@@ -119,6 +119,8 @@ export class MemberService extends BaseService<Member> {
       }
     }
 
+    where.status = Not(MEMBER_STATUS.INVITING)
+
     const { data: members, total } = await this.find({ where })
 
     return { members, total }

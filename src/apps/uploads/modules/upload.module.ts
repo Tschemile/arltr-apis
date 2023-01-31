@@ -2,7 +2,8 @@ import { forwardRef, Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ProfileModule } from "apps/profiles";
-import { AlbumController, FileController, UploadController } from "../controllers";
+import { AlbumController } from "../controllers";
+import { FileController } from "../controllers/file";
 import { Album, File } from "../entities";
 import { AlbumService, FileService } from "../services";
 
@@ -14,7 +15,7 @@ import { AlbumService, FileService } from "../services";
     }),
     forwardRef(() => ProfileModule),
   ],
-  controllers: [FileController, AlbumController, UploadController],
+  controllers: [FileController, AlbumController],
   providers: [FileService, AlbumService],
   exports: [FileService, AlbumService]
 })

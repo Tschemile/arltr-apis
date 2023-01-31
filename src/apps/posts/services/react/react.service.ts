@@ -124,17 +124,7 @@ export class ReactService extends BaseService<React> {
       where.post = { id: postId }  
     }
 
-    if (commentId) {
-      where.comment = { id: commentId }
-    }
-
-    const { data: reacts, total: totalReacts } = await this.find({ where, limit })
-    const users = reacts.map((x) => {
-      return {
-        ...x.user,
-        type: x.type,
-      }
-    })
+    const { data: reacts, total } = await this.find({ where })
 
     const total = await this.group(where, 'type')
     total.push({

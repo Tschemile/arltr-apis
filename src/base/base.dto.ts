@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsOptional, Min } from "class-validator";
 
@@ -14,12 +13,4 @@ export class BaseQueryInput {
   @Type(() => Number)
   @Min(1)
   limit?: number
-}
-
-export class BaseGroupType {
-  @ApiProperty({ type: String })
-  type: string
-
-  @ApiProperty({ type: Number })
-  total: number
 }
