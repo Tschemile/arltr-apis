@@ -1,7 +1,8 @@
-import { Body, Controller, Put, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { UpsertReactInput } from "apps/posts/dtos";
+import { REACT_TYPE } from "apps/posts/constants";
+import { GetReactsOutput, UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
 import { TableName } from "utils";
 
@@ -22,5 +23,29 @@ export class ReactController {
     @Body() input: UpsertReactInput
   ) {
     return await this.reactService.upsert(req.user, input)
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'type', enum: REACT_TYPE })
+  @ApiQuery({ name: 'post', required: false })
+  @ApiQuery({ name: 'comment', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiOkResponse({
+    type: GetReactsOutput
+  })
+  async gets(
+    @Query('type') type?: string,
+    @Query('post') post?: string,
+    @Query('comment') comment?: string,
+    @Query('limit') limit?: number,
+  ) {
+    return await this.reactService.findAll({
+      type,
+      post,
+      comment,
+      limit,
+    })
   }
 }
