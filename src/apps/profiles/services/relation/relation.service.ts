@@ -173,7 +173,7 @@ export class RelationService extends BaseService<Relation> {
 
     if (
       relation.user.id !== user.profile.id
-      || relation.requester.id !== user.profile.id
+      && relation.requester.id !== user.profile.id
     ) {
       BaseError(TableName.RELATION, HttpStatus.FORBIDDEN)
     }
