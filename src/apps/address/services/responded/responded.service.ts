@@ -53,13 +53,13 @@ export class RespondedService extends BaseService<Responded> {
       user: query.users ? Any([query.users]) : Not(IsNull()),
     };
 
-    const { data: listResponse, total } = await this.find({
+    const { data: responders, total } = await this.find({
       where,
       limit,
     });
 
     return {
-      listResponse,
+      responders,
       total,
     };
   }
@@ -95,7 +95,7 @@ export class RespondedService extends BaseService<Responded> {
     });
 
     return {
-      responded: { ...responded, updateRespondedDto },
+      responded: { ...responded, ...updateRespondedDto },
     };
   }
 

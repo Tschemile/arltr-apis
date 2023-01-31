@@ -6,7 +6,7 @@ import { IsArray } from "class-validator";
 export class GetListRespondersOutput{
     @IsArray()
     @ApiProperty({ type: () => [Responded] })
-    listResponse: Responded[]
+    responders: Responded[]
 }
 
 export class GetRespondedOutput  {
