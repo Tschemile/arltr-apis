@@ -1,13 +1,24 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { RELATION_TYPE } from "apps/profiles/constants";
-import { IsEnum, IsUUID } from "class-validator";
+import { RELATION_ACTION, RELATION_TYPE } from "apps/profiles/constants";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
 
-export class CreateRelationInput {
+export class UpsertRelationInput {
   @IsUUID()
-  @ApiProperty({ type: String })
-  user: string
+  @IsOptional()
+  @ApiProperty({ type: String, nullable: true })
+  relation?: string
+
+  @IsUUID()
+  @IsOptional()
+  @ApiProperty({ type: String, nullable: true })
+  user?: string
 
   @IsEnum(RELATION_TYPE)
   @ApiProperty({ type: String, enum: RELATION_TYPE })
-  type: string
+  type?: string
+
+  @IsEnum(RELATION_ACTION)
+  @ApiProperty({ type: String, enum: RELATION_ACTION })
+  action: string
+
 }
