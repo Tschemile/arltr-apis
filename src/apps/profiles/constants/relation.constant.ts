@@ -8,7 +8,8 @@ export enum RELATION_TYPE {
 
 export enum FRIEND_STATUS {
   REQUESTING = 'REQUESTING',
-  ACCEPTED = 'ACCEPTED'
+  ACCEPTED = 'ACCEPTED',
+  REJECT = 'REJECT'
 }
 
 export enum RELATION_ACTION {

@@ -1,7 +1,7 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { GENDER, RELATION_ACTION, RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
+import { FRIEND_STATUS, GENDER, RELATION_ACTION, RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
 import { CreatePageInput, QueryPageInput, UpdatePageInput } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
 import { CategoryService } from "apps/settings";
@@ -44,7 +44,7 @@ export class PageService extends BaseService<Profile> {
     await this.relationService.upsert(user, {
       user: createdPage.id,
       type: RELATION_TYPE.OWNER,
-      action: RELATION_ACTION.CREATE
+      status: FRIEND_STATUS.REQUESTING,
     })
 
     return {
