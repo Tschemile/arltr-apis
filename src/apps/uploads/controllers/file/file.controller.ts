@@ -37,6 +37,4 @@ export class FileController {
   ) {
     return await this.fileService.remove(req.user, id)
   }
-
-
 }
