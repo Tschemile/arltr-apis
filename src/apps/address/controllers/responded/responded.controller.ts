@@ -1,31 +1,23 @@
 import {
   Body,
-  Controller,
-  Post,
-  UseGuards,
-  Request,
-  Get,
-  Query,
-  Param,
-  Patch,
-  Delete,
+  Controller, Delete, Get, Param,
+  Patch, Post, Query, Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
 import { RESPONDED_TYPE } from 'apps/address/constants';
 import {
   CreateRespondedDto,
   GetListRespondersOutput,
   GetRespondedOutput,
-  UpdateRespondedDto,
+  UpdateRespondedDto
 } from 'apps/address/dtos';
 import { RespondedService } from 'apps/address/services/responded/responded.service';
-import { JwtAuthGuard } from 'apps/auth';
 import { TableName } from 'utils';
 
 @ApiTags(TableName.RESPONDED)
@@ -33,7 +25,6 @@ import { TableName } from 'utils';
 export class RespondedController {
   constructor(private readonly respondedService: RespondedService) {}
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: GetRespondedOutput })
   async create(@Body() createRespondedDto: CreateRespondedDto, @Request() req) {
@@ -41,7 +32,6 @@ export class RespondedController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -68,14 +58,12 @@ export class RespondedController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string): Promise<GetRespondedOutput> {
     return await this.respondedService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -86,7 +74,6 @@ export class RespondedController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Request() req) {
     return await this.respondedService.remove(id, req.user);

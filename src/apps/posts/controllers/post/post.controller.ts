@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, GetPostOutput, GetPostsOutput, POST_QUERY_TYPE, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
@@ -14,7 +13,6 @@ export class PostController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: 'Group not found' })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
@@ -27,7 +25,6 @@ export class PostController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'queryType', enum: POST_QUERY_TYPE })
   @ApiQuery({ name: 'type', required: false, enum: POST_TYPE })
@@ -52,7 +49,6 @@ export class PostController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
@@ -67,7 +63,6 @@ export class PostController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.POST} not found` })

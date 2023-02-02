@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { CreateAddressInput, GetAddressesOutput, GetAddressOutput, UpdateAddressInput } from "apps/address/dtos";
 import { AddressService } from "apps/address/services";
-import { JwtAuthGuard } from "apps/auth";
 import { TableName } from "utils";
 
 @ApiTags(TableName.ADDRESS)
@@ -13,7 +12,6 @@ export class AddressController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: GetAddressOutput })
   async post(
@@ -24,7 +22,6 @@ export class AddressController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetAddressesOutput })
   async gets(
@@ -34,7 +31,6 @@ export class AddressController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiOkResponse({ type: GetAddressOutput })
@@ -46,7 +42,6 @@ export class AddressController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })
@@ -65,7 +60,6 @@ export class AddressController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   AddressModule,
@@ -7,8 +8,10 @@ import {
   ForumModule,
   GroupModule,
   JobsModule,
+  JwtAuthGuard,
   PostModule,
   ProfileModule,
+  RolesGuard,
   SettingModule,
   ShopModule,
   UploadModule,
@@ -29,18 +32,28 @@ import { CoursesModule } from 'apps/courses/modules/courses.module';
         rejectUnauthorized: false
       }
     }),
-    AddressModule, 
-    AuthModule, 
-    ForumModule, 
+    AddressModule,
+    AuthModule,
+    ForumModule,
     GroupModule,
     JobsModule,
     PostModule,
     CoursesModule,
-    ProfileModule, 
-    SettingModule, 
-    ShopModule, 
+    ProfileModule,
+    SettingModule,
+    ShopModule,
     UploadModule,
     UserModule,
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    }
+  ]
 })
-export class AppModule {}
+export class AppModule { }

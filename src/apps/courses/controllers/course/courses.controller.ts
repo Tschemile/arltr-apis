@@ -1,30 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Request,
-  Query,
+  Body, Controller, Delete, Get, Param, Patch, Post, Query, Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
-import { CourseService } from '../../services/course/courses.service';
-import { CreateCourseDto } from '../../dto/course/create-course.dto';
 import { UpdateCourseDto } from 'apps/courses/dto';
 import {
   GetCourseOutput,
-  GetCoursesOutput,
+  GetCoursesOutput
 } from 'apps/courses/dto/course/get-course.dto';
 import { TableName } from 'utils';
+import { CreateCourseDto } from '../../dto/course/create-course.dto';
+import { CourseService } from '../../services/course/courses.service';
 
 
 @ApiTags(TableName.COURSE)
@@ -33,7 +23,6 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateCourseDto,
@@ -44,7 +33,6 @@ export class CourseController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -69,14 +57,12 @@ export class CourseController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findById(@Param('id') id: string): Promise<GetCourseOutput> {
     return await this.courseService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -87,7 +73,6 @@ export class CourseController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Request() req) {
     return await this.courseService.remove(id, req.user);

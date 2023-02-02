@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateReplyInput, GetRepliesOutput, GetReplyOutput, UpdateReplyInput } from "apps/forum/dtos";
 import { ReplyService } from "apps/forum/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class ReplyController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: 'Blog not found' })
   @ApiCreatedResponse({ type: GetReplyOutput })
@@ -25,7 +23,6 @@ export class ReplyController {
   }
 
   @Get(':blog')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'blog' })
   async getByBlog(
@@ -35,7 +32,6 @@ export class ReplyController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })
@@ -50,7 +46,6 @@ export class ReplyController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })

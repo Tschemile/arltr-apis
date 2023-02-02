@@ -1,10 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, HttpStatus, HttpCode, UseGuards, Query } from '@nestjs/common';
-import { JobsService } from '../../services/job/jobs.service';
-import { CreateJobDto } from '../../dtos/job/create-job.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
 import { GetJobOutput, GetJobsOutput, UpdateJobDto } from 'apps/jobs/dtos';
 import { TableName } from 'utils';
+import { CreateJobDto } from '../../dtos/job/create-job.dto';
+import { JobsService } from '../../services/job/jobs.service';
 
 
 @ApiTags(TableName.JOB)
@@ -13,7 +12,6 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateJobDto,
@@ -24,7 +22,6 @@ export class JobsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'type', required: false })
@@ -45,21 +42,18 @@ export class JobsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string): Promise<GetJobOutput> {
     return await this.jobsService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @Request() req) {
    return await this.jobsService.update(id, updateJobDto, req.user);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Request() req) {
     return await this.jobsService.remove(id, req.user);

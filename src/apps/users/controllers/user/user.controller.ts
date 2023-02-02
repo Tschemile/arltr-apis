@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Post, Request } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
+import { Public } from "apps/auth";
 import { GetUserTokenOutput, LoginInput, RegisterInput } from "apps/users/dtos";
 import { UserService } from "apps/users/services";
 import { TableName } from "utils";
@@ -12,6 +12,7 @@ export class UserController {
     private readonly userService: UserService,
   ) { }
 
+  @Public()
   @Post('login')
   @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
   @ApiBadRequestResponse({ description: 'Email or password incorrect' })
@@ -20,6 +21,7 @@ export class UserController {
     return await this.userService.login(loginUserInput)
   }
 
+  @Public()
   @Post()
   @ApiConflictResponse({ description: `${TableName.USER} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
@@ -28,7 +30,6 @@ export class UserController {
   }
 
   @Delete()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })

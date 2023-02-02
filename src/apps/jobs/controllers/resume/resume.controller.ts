@@ -7,20 +7,18 @@ import {
   Patch,
   Post,
   Query,
-  Request,
-  UseGuards,
+  Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
 import { CreateResumeDto } from 'apps/jobs/dtos/resume/create-resume.dto';
 import {
   GetResumeOutput,
-  GetResumesOutput,
+  GetResumesOutput
 } from 'apps/jobs/dtos/resume/get-resume.dto';
 import { UpdateResumeDto } from 'apps/jobs/dtos/resume/update-resume.dto';
 import { ResumeService } from 'apps/jobs/services/resume';
@@ -33,7 +31,6 @@ export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateResumeDto,
@@ -44,7 +41,6 @@ export class ResumeController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -59,14 +55,12 @@ export class ResumeController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string): Promise<GetResumeOutput> {
     return await this.resumeService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -77,7 +71,6 @@ export class ResumeController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Request() req) {
     return await this.resumeService.remove(id, req.user);

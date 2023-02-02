@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateOrderInput, UpdateOrderInput } from "apps/shop/dtos";
 import { GetOrderOutput } from "apps/shop/dtos/order/get-order.output";
 import { OrderService } from "apps/shop/services";
@@ -14,7 +13,6 @@ export class OrderController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiCreatedResponse({ type: GetOrderOutput })
@@ -26,7 +24,6 @@ export class OrderController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetOrderOutput })
   async getById(
@@ -37,7 +34,6 @@ export class OrderController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiOkResponse({ type: GetOrderOutput })
@@ -54,7 +50,6 @@ export class OrderController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })

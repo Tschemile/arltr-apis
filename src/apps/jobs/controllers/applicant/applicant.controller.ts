@@ -6,22 +6,19 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UseGuards,
-  Request,
+  Query, Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
 import { ROLE } from 'apps/jobs/constants';
 import { CreateApplicantDto } from 'apps/jobs/dtos/applicant';
 import {
   GetApplicantOutput,
-  GetApplicantsOutput,
+  GetApplicantsOutput
 } from 'apps/jobs/dtos/applicant/get-applicant.dto';
 import { UpdateApplicantDto } from 'apps/jobs/dtos/applicant/update-applicant.dto';
 import { ApplicantService } from 'apps/jobs/services/applicant/applicant.service';
@@ -34,7 +31,6 @@ export class ApplicantController {
   constructor(private readonly applicantService: ApplicantService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateApplicantDto,
@@ -45,7 +41,6 @@ export class ApplicantController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'jobs', required: false, type: [String] })
@@ -68,14 +63,12 @@ export class ApplicantController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string): Promise<GetApplicantOutput> {
     return await this.applicantService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -88,7 +81,6 @@ export class ApplicantController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string) {
     return await this.applicantService.remove(id);

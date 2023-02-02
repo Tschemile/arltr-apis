@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateProductInput, GetProductOutput, UpdateProductInput } from "apps/shop/dtos";
 import { ProductService } from "apps/shop/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class ProductController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: GetProductOutput })
   async post(
@@ -24,7 +22,6 @@ export class ProductController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetProductOutput })
   async getById(
@@ -34,7 +31,6 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ type: GetProductOutput })
@@ -51,7 +47,6 @@ export class ProductController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })

@@ -1,6 +1,5 @@
-import { Body, Controller, Put, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Put, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { VoteService } from "apps/forum/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class VoteController {
   ) { }
 
   @Put()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: 'Blog not found' })
   @ApiOkResponse()

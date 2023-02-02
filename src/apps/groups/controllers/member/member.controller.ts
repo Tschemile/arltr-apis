@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateMemberInput, GetMemberOutput, GetMembersOutput, UpdateMemberInput } from "apps/groups/dtos";
 import { MemberService } from "apps/groups/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class MemberController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiCreatedResponse({ type: GetMemberOutput })
@@ -28,7 +26,6 @@ export class MemberController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'group', required: false })
   @ApiOkResponse({
@@ -45,7 +42,6 @@ export class MemberController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.MEMBER} not found` })
@@ -64,7 +60,6 @@ export class MemberController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.MEMBER} not found` })
