@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
 import { FRIEND_STATUS } from "apps/profiles/constants";
-import { CreateRelationInput, QUERY_RELATION_TYPE } from "apps/profiles/dtos";
+import { QUERY_RELATION_TYPE, UpsertRelationInput } from "apps/profiles/dtos";
 import { RelationService } from "apps/profiles/services";
 import { TableName } from "utils";
 
@@ -13,20 +13,6 @@ export class RelationController {
     private readonly relationService: RelationService,
   ) { }
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.RELATION} not found` })
-  @ApiCreatedResponse()
-  async post(
-    @Request() req,
-    @Body() input: CreateRelationInput,
-  ) {
-    return await this.relationService.create(
-      req.user,
-      input,
-    )
-  }
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -54,35 +40,19 @@ export class RelationController {
     return await this.relationService.getRelations(req.user)
   }
 
-  @Patch(':id')
+  @Put()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.RELATION} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
-  @ApiOkResponse({ description: 'Update successfully' })
   async patch(
     @Request() req,
-    @Param('id') id: string
+    @Body() input: UpsertRelationInput,
   ) {
-    return await this.relationService.update(
+    return await this.relationService.upsert(
       req.user,
-      id,
+      input,
     )
   }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.RELATION} not found` })
-  @ApiForbiddenResponse({ description: `You don't have permission to do that` })
-  @ApiOkResponse({ description: 'Delete successfully' })
-  async delete(
-    @Request() req,
-    @Param('id') id: string
-  ) {
-    return await this.relationService.update(
-      req.user,
-      id,
-    )
-  }
 }
