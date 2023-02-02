@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { FRIEND_STATUS, RELATION_ACTION, RELATION_TYPE } from "apps/profiles/constants";
+import { FRIEND_STATUS, RELATION_TYPE } from "apps/profiles/constants";
 import { IsEnum, IsOptional, IsUUID } from "class-validator";
 
 export class UpsertRelationInput {

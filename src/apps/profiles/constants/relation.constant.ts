@@ -11,9 +11,3 @@ export enum FRIEND_STATUS {
   ACCEPTED = 'ACCEPTED',
   REJECT = 'REJECT'
 }
-
-export enum RELATION_ACTION {
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  CREATE = 'CREATE',
-}

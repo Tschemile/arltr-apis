@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "apps/auth";
-import { FRIEND_STATUS, RELATION_ACTION } from "apps/profiles/constants";
+import { FRIEND_STATUS } from "apps/profiles/constants";
 import { QUERY_RELATION_TYPE, UpsertRelationInput } from "apps/profiles/dtos";
 import { RelationService } from "apps/profiles/services";
 import { TableName } from "utils";

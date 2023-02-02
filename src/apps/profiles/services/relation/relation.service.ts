@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
 import {
   FRIEND_STATUS,
-  RELATION_ACTION,
   RELATION_TYPE,
 } from 'apps/profiles/constants';
 import {
@@ -219,7 +218,7 @@ export class RelationService extends BaseService<Relation> {
   }
 
   async validInput(input: UpsertRelationInput, user: UserToken) {
-    const { user: userId, type } = input;
+    const { user: userId, type, status } = input;
 
     const profile = await this.profileService.findOne({ id: userId });
     if (!profile) {
@@ -232,7 +231,7 @@ export class RelationService extends BaseService<Relation> {
       type,
     });
     
-    if(type === FRIEND_STATUS.REQUESTING && existedRelation) {
+    if(status === FRIEND_STATUS.REQUESTING && existedRelation) {
       BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
     }
 
@@ -273,7 +272,7 @@ export class RelationService extends BaseService<Relation> {
           type === RELATION_TYPE.FRIEND ? FRIEND_STATUS.REQUESTING : null,
         type,
       });
-
+ 
       await this.relationRepo.save(createRelation);
 
       return {
