@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateAlbumInput, GetAlbumOutput, GetAlbumsOutput, UpdateAlbumInput } from "apps/uploads/dtos";
 import { AlbumService } from "apps/uploads/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class AlbumController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: GetAlbumOutput })
   async post(
@@ -24,7 +22,6 @@ export class AlbumController {
   }
 
   @Get('')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'domain' })
   @ApiOkResponse({ type: GetAlbumsOutput })
@@ -36,7 +33,6 @@ export class AlbumController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.ALBUM} not found` })
@@ -51,7 +47,6 @@ export class AlbumController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.ALBUM} not found` })

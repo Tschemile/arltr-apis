@@ -6,16 +6,15 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UseGuards,
+  Query
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard, Roles } from 'apps/auth';
+import { Roles } from 'apps/auth';
 import { USER_ROLE } from 'apps/profiles';
 import { POLICY_TYPE } from 'apps/settings/constants';
 import { CreatePolicyDto } from 'apps/settings/dtos/policy/create-policy.dto';
@@ -29,7 +28,6 @@ import { TableName } from 'utils';
 export class PolicyController {
   constructor(private readonly policyService: PolicyService) {}
   @Post()
-  @UseGuards(JwtAuthGuard)
   @Roles(USER_ROLE.ADMIN)
   @ApiQuery({ name: 'type', required: false, enum: POLICY_TYPE })
   @ApiBearerAuth()
@@ -42,7 +40,6 @@ export class PolicyController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'type', required: false, enum: POLICY_TYPE })
   async findAll(
@@ -52,7 +49,6 @@ export class PolicyController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   async update(
@@ -63,7 +59,6 @@ export class PolicyController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   async delete(@Param('id') id: string) {

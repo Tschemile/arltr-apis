@@ -1,6 +1,5 @@
-import { Controller, Delete, Get, Param, Query, Request, UseGuards } from "@nestjs/common";
+import { Controller, Delete, Get, Param, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { GetFilesOutput } from "apps/uploads/dtos";
 import { FileService } from "apps/uploads/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class FileController {
   ) { }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'user' })
   @ApiQuery({ name: 'limit', required: false })
@@ -27,7 +25,6 @@ export class FileController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiOkResponse({ type: GetFilesOutput})

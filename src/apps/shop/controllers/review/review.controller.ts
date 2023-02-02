@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateReviewInput } from "apps/shop/dtos";
 import { GetReviewOutput, GetReviewsOutput } from "apps/shop/dtos/review/get-review.output";
 import { ReviewService } from "apps/shop/services";
@@ -14,7 +13,6 @@ export class ReviewController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: GetReviewOutput })
   async post(
@@ -25,7 +23,6 @@ export class ReviewController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: GetReviewsOutput })
   async getById(

@@ -1,6 +1,5 @@
-import { Body, Controller, Post, Request, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Post, Request, UploadedFile, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { IMAGE_LIMIT, UPLOAD_TYPE } from "apps/uploads/constants";
 import { FileUploadInput, FileUploadMultiInput } from "apps/uploads/dtos";
 import { UploadFileInterceptor } from "apps/uploads/middleware";
@@ -16,7 +15,6 @@ export class UploadController {
   ) { }
 
   @Post('image')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(UploadFileInterceptor({
     fieldName: 'file',
     path: 'images',
@@ -45,7 +43,6 @@ export class UploadController {
   }
 
   @Post('image/multiple')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(UploadFileInterceptor({
     fieldName: 'files',
     path: 'images',

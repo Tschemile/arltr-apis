@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Put, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { REACT_TYPE } from "apps/posts/constants";
 import { GetReactsOutput, UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
@@ -14,7 +13,6 @@ export class ReactController {
   ) { }
 
   @Put()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
   @ApiOkResponse()
@@ -26,7 +24,6 @@ export class ReactController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'type', enum: REACT_TYPE })
   @ApiQuery({ name: 'post', required: false })
