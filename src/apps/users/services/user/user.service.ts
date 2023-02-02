@@ -93,4 +93,13 @@ export class UserService extends BaseService<User> {
       user: await this.userRepo.softRemove(user)
     }
   }
+
+  async getUserWithProfile(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: { profiles: true },
+    })
+
+    return user
+  }
 }

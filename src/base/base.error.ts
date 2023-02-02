@@ -12,6 +12,9 @@ export function BaseError(
         messageError = `Your input of ${module} is invalid`;
         break
       }
+      case HttpStatus.UNAUTHORIZED: {
+        messageError = `Not authorized, token failed`
+      }
       case HttpStatus.FORBIDDEN: {
         messageError =  `You don't have permission to do with this ${module}`;
         break
