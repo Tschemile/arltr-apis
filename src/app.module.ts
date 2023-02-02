@@ -25,6 +25,9 @@ import { CoursesModule } from 'apps/courses/modules/courses.module';
       url: process.env.DB_URL,
       entities: [__dirname + '/../**/*.entity.js'],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false
+      }
     }),
     AddressModule, 
     AuthModule, 
