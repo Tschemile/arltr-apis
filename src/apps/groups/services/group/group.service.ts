@@ -1,7 +1,7 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
-import { GROUP_MODE, MEMBER_ROLE, QUERY_GROUP_TYPE, QUERY_MEMBER_TYPE } from 'apps/groups/constants';
+import { GROUP_MODE, MEMBER_ROLE, MEMBER_WITH_GROUP, QUERY_GROUP_TYPE, QUERY_MEMBER_TYPE } from 'apps/groups/constants';
 import { CreateGroupInput, QueryGroupInput, UpdateGroupInput } from 'apps/groups/dtos';
 import { Group } from 'apps/groups/entities';
 import { ProfileService } from 'apps/profiles';
@@ -65,6 +65,7 @@ export class GroupService extends BaseService<Group> {
         const { members: memberOfUser } = await this.memberService.findAll(user, {
           type: QUERY_MEMBER_TYPE.USER,
           user: profile.id,
+          status: MEMBER_WITH_GROUP.IN,
         })
         const groupIds = memberOfUser.map((x) => x.group.id)
         where.id = In(groupIds)

@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { MEMBER_STATUS, QUERY_MEMBER_TYPE } from "apps/groups/constants";
 import { CreateMemberInput, GetMemberOutput, GetMembersOutput, UpdateMemberInput } from "apps/groups/dtos";
 import { MemberService } from "apps/groups/services";
 import { TableName } from "utils";
@@ -27,17 +28,23 @@ export class MemberController {
 
   @Get()
   @ApiBearerAuth()
+  @ApiQuery({ name: 'type', enum: QUERY_MEMBER_TYPE })
+  @ApiQuery({ name: 'status', isArray: true, enum: MEMBER_STATUS })
   @ApiQuery({ name: 'group', required: false })
+  @ApiQuery({ name: 'user', required: false })
   @ApiOkResponse({
     type: GetMembersOutput
   })
   async get(
     @Request() req,
+    @Query('type') type,
+    @Query('status') status,
     @Query('group') group,
+    @Query('user') user,
   ): Promise<GetMembersOutput> {
     return await this.memberService.findAll(
       req.user,
-      group
+      { type, status, group, user }
     )
   }
 

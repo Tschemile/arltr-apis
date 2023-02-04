@@ -1,7 +1,7 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
-import { MEMBER_ROLE, MEMBER_STATUS, QUERY_MEMBER_TYPE } from "apps/groups/constants";
+import { MEMBER_ROLE, MEMBER_STATUS, MEMBER_WITH_GROUP, QUERY_MEMBER_TYPE } from "apps/groups/constants";
 import { CreateMemberInput, QueryMemberInput, UpdateMemberInput } from "apps/groups/dtos";
 import { Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
@@ -25,6 +25,14 @@ export class MemberService extends BaseService<Member> {
     super(memberRepo, memberRelation)
   }
 
+  /**
+   * @description Functions for requesting join group, invite someone to group
+   * or create owner for group..
+   * 
+   * @param user 
+   * @param input 
+   * @returns 
+   */
   async create(user: UserToken, input: CreateMemberInput) {
     const { role, group: groupId, user: userId } = input
 
@@ -91,13 +99,10 @@ export class MemberService extends BaseService<Member> {
   }
 
   async findAll(user: UserToken, query: QueryMemberInput) {
-    const { type, group: groupId, user: userId } = query
+    const { type, group: groupId, user: userId, status } = query
     const where: FindOptionsWhere<Member> = {}
 
-    where.status = In([
-      MEMBER_STATUS.ACTIVE,
-      MEMBER_STATUS.BANNED,
-    ])
+    where.status = In(status)
 
     switch (type) {
       case QUERY_MEMBER_TYPE.GROUP: {
@@ -115,6 +120,15 @@ export class MemberService extends BaseService<Member> {
     return { members, total }
   }
 
+  /**
+   * @description Functions for accepted requesting,
+   * update or promote one member in group.
+   * 
+   * @param user 
+   * @param id 
+   * @param input 
+   * @returns 
+   */
   async update(
     user: UserToken,
     id: string,
@@ -127,19 +141,22 @@ export class MemberService extends BaseService<Member> {
     }
 
     if (member.user.id === user.profile.id) {
-      if (
-        member.status === MEMBER_STATUS.INVITING
-        && input.status === MEMBER_STATUS.ACTIVE
-      ) {
+      if (member.status === MEMBER_STATUS.INVITING) {
         await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'INCREMENT')
       }
     } else {
       // Check member has role to update
-      const isMember = await this.findOne({
-        user: { id: user.profile.id },
-        group: { id: member.group.id }
-      })
+      const isMember = await this.isMember(user, member.group.id)
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
+        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
+      } else if(member.status === MEMBER_STATUS.REQUESTING) {
+        await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'INCREMENT')
+      }
+    }
+
+    if (input.role && member.role !== input.role) {
+      const isMember = await this.isMember(user, member.group.id)
+      if (isMember.role !== MEMBER_ROLE.ADMIN) {
         BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
@@ -154,6 +171,14 @@ export class MemberService extends BaseService<Member> {
     }
   }
 
+  /**
+   * @description Functions for reject, kick or leave
+   * 
+   * 
+   * @param user 
+   * @param id 
+   * @returns 
+   */
   async remove(
     user: UserToken,
     id: string,
@@ -174,7 +199,9 @@ export class MemberService extends BaseService<Member> {
       }
     }
 
-    await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'DECREMENT')
+    if (MEMBER_WITH_GROUP.IN.includes(member.status)) {
+      await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'DECREMENT')
+    }
     return {
       member: await this.memberRepo.softRemove(member)
     }
@@ -186,6 +213,6 @@ export class MemberService extends BaseService<Member> {
       user: { id: user.profile.id }
     })
 
-    return member ? true : false
+    return member
   }
 }
