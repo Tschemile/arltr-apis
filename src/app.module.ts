@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   AddressModule,
   AuthModule,
+  CoursesModule,
   ForumModule,
   GroupModule,
   JobsModule,
@@ -17,7 +18,6 @@ import {
   UploadModule,
   UserModule
 } from 'apps';
-import { CoursesModule } from 'apps/courses/modules/courses.module';
 
 
 @Module({

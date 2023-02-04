@@ -6,10 +6,10 @@ import { GROUP_MODE, MEMBER_STATUS } from "apps/groups/constants";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
-import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
+import { ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, In, Like, Not, Repository } from "typeorm";
-import { TableName } from "utils";
+import { FindOptionsWhere, In, LessThan, Like, Not, Repository } from "typeorm";
+import { TableName, timeIn } from "utils";
 import { CommentService } from "../comment";
 import { ReactService } from "../react";
 import { formatData } from "./formatData";
@@ -83,6 +83,11 @@ export class PostService extends BaseService<Post> {
 
     const commonWhere: FindOptionsWhere<Post> = {
       type: type || POST_TYPE.POST,
+    }
+
+    if (type && type === POST_TYPE.STORY) {
+      const time24Ago = timeIn({ duration: 24, unit: 'hour', action: 'sub' })
+      commonWhere.createdAt = LessThan(time24Ago)
     }
 
     if (search) {
