@@ -137,12 +137,15 @@ export class PostService extends BaseService<Post> {
         if (!profile) {
           BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
         }
-
-        const isFriend = await this.relationService.isFriend(user, profile)
-        where.push({
-          author: { id: profile.id },
-          mode: isFriend ? Not(POST_MODE.PRIVATE) : POST_MODE.PUBLIC
-        })
+        if (user.profile.id === profile.id) {
+          where.push({ author: { id: profile.id }})
+        } else {
+          const isFriend = await this.relationService.isFriend(user, profile)
+          where.push({
+            author: { id: profile.id },
+            mode: isFriend ? Not(POST_MODE.PRIVATE) : POST_MODE.PUBLIC
+          })
+        }
         break
       }
     }

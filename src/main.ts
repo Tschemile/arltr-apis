@@ -5,6 +5,7 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { swaggerConfig } from 'utils';
 import { AppModule } from './app.module';
+import * as compression from 'compression';
 
 config()
 const configService = new ConfigService()
@@ -18,6 +19,9 @@ async function bootstrap() {
 
   // Prefix
   app.setGlobalPrefix('/api')
+
+  // Compression
+  app.use(compression())
 
   // Swagger
   const document = SwaggerModule.createDocument(app, swaggerConfig)

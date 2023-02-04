@@ -5,7 +5,7 @@ import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
 import { React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { DBName, TableName } from "utils";
+import { TableName } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
 
@@ -78,7 +78,7 @@ export class ReactService extends BaseService<React> {
           await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
         }
         return {
-          react: await this.reactRepo.softRemove(reacted)
+          react: await this.reactRepo.remove(reacted)
         }
       } else {
         // Change react

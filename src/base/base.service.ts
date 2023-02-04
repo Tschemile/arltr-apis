@@ -5,7 +5,7 @@ import { BaseGroupType } from "./base.dto";
 export class BaseService<Entity extends Base> {
   constructor(
     public repository: Repository<Entity>,
-    public relation: FindOptionsRelations<Entity>,
+    public relations: FindOptionsRelations<Entity>,
   ) { }
 
   async insertOne(data: DeepPartial<Entity>): Promise<Entity> {
@@ -30,7 +30,7 @@ export class BaseService<Entity extends Base> {
   async findOne(
     where: FindOptionsWhere<Entity>[] | FindOptionsWhere<Entity>,
   ): Promise<Entity | null> {
-    const data = await this.repository.findOne({ relations: this.relation, where })
+    const data = await this.repository.findOne({ relations: this.relations, where })
     return data
   }
 
@@ -59,7 +59,7 @@ export class BaseService<Entity extends Base> {
 
     const results = await this.repository.findAndCount({
       where,
-      relations: this.relation,
+      relations: this.relations,
       take,
       skip,
       order,
@@ -76,7 +76,7 @@ export class BaseService<Entity extends Base> {
     propertyPath: string,
     value: number,
     type: 'INCREMENT' | 'DECREMENT'
-  ) {
+  ): Promise<void> {
     switch (type) {
       case 'INCREMENT': {
         await this.repository.increment(where, propertyPath, value)
