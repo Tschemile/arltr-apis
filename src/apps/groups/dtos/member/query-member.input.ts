@@ -13,7 +13,7 @@ export class QueryMemberInput extends BaseQueryInput {
   type: string
 
   @IsEnum(MEMBER_STATUS, { each: true })
-  status: MEMBER_STATUS[]
+  status: string[]
 
   @IsUUID()
   @IsNotEmpty()
