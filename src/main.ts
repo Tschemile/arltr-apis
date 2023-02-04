@@ -6,12 +6,16 @@ import { config } from 'dotenv';
 import { swaggerConfig } from 'utils';
 import { AppModule } from './app.module';
 import * as compression from 'compression';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 config()
 const configService = new ConfigService()
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+  );
   const PORT = configService.get('PORT') || 5000
   app.enableCors()
   // Validator 
