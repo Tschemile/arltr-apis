@@ -49,7 +49,7 @@ export class Activity extends Base {
   @ManyToOne(() => Relation, { onDelete: 'CASCADE', nullable: true })
   relation: Relation
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ type: String })
   notification: string
 }

@@ -69,6 +69,7 @@ export enum DBName {
   REPORT = 'report',
   RESPONDED = 'responded',
   RESUME = 'resume',
+  SEARCH = 'search',
   REVIEW = 'review',
   USER = 'user',
   VOTE = 'vote',
