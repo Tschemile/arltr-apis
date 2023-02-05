@@ -104,6 +104,10 @@ export class ProfileService extends BaseService<Profile> {
       where: { domain },
     })
 
+    if (!profile) {
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+    }
+
     const blocked = await this.relationService.findOne([
       { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 
       { requester: { domain }, user: { id: user.profile.id }, type: RELATION_TYPE.BLOCKED },
