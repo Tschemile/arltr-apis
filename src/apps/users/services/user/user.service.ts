@@ -56,7 +56,7 @@ export class UserService extends BaseService<User> {
   }
 
   async login(input: LoginInput) {
-    const { usernameOrEmail, password } = input
+    const { usernameOrEmail, password, isRemember } = input
     const user = await this.userRepo
       .createQueryBuilder('user')
       .addSelect('user.password')
@@ -79,7 +79,7 @@ export class UserService extends BaseService<User> {
     if (!profile) {
       BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
-    const token = this.authService.generateToken(user, profile)
+    const token = this.authService.generateToken(user, profile, isRemember)
     return { token }
   }
 
