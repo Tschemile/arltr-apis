@@ -91,9 +91,9 @@ export class ProfileService extends BaseService<Profile> {
 
     where.id = Not(user.profile.id)
 
-    const { data: profiles, total } = await this.find({
+    const [profiles, total] = await this.profileRepo.findAndCount({
       where,
-      limit,
+      take: limit,
     })
 
     return { profiles, total }
