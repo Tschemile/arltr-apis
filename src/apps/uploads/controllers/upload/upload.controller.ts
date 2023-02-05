@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Request, UploadedFile, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { IMAGE_LIMIT, UPLOAD_TYPE } from "apps/uploads/constants";
-import { FileUploadInput, FileUploadMultiInput } from "apps/uploads/dtos";
+import { FileMetaInput, FileUploadInput, FileUploadMultiInput } from "apps/uploads/dtos";
 import { UploadFileInterceptor } from "apps/uploads/middleware";
 import { FileService } from "apps/uploads/services";
 import { imageFileFilter } from "apps/uploads/utils";
@@ -33,12 +33,12 @@ export class UploadController {
   async uploadImage(
     @Request() req,
     @UploadedFile() file: Express.Multer.File,
-    @Body('type') type?: UPLOAD_TYPE,
+    @Body() input: FileMetaInput,
   ) {
     return await this.fileService.create(
       req.user,
       file,
-      type,
+      input,
     )
   }
 

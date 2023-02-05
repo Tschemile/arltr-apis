@@ -2,6 +2,7 @@ export enum FILE_SCOPE {
   PUBLIC = 'PUBLIC',
   FRIEND = 'FRIEND',
   PRIVATE = 'PRIVATE',
+  HIDDEN = 'HIDDEN',
 }
 
 export enum UPLOAD_TYPE {

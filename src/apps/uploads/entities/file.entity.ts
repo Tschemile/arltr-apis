@@ -4,6 +4,7 @@ import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { DBName } from "utils";
 import { FILE_SCOPE } from "../constants";
+import { Album } from "./album.entity";
 
 @Entity(DBName.FILE, {
   orderBy: {
@@ -13,6 +14,10 @@ import { FILE_SCOPE } from "../constants";
   @ManyToOne(() => Profile)
   @ApiProperty({ type: () => Profile })
   owner: Profile
+
+  @ManyToOne(() => Album, { nullable: true })
+  @ApiProperty({ type: () => Album })
+  album: Album
   
   @Index()
   @Column({ unique: true })

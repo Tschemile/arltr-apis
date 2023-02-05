@@ -23,13 +23,13 @@ export class AlbumController {
 
   @Get('')
   @ApiBearerAuth()
-  @ApiQuery({ name: 'domain' })
+  @ApiQuery({ name: 'user' })
   @ApiOkResponse({ type: GetAlbumsOutput })
   async get(
     @Request() req,
-    @Query('domain') domain: string,
+    @Query('user') user: string,
   ): Promise<GetAlbumsOutput> {
-    return await this.albumService.findAll(req.user, domain)
+    return await this.albumService.findAll(req.user, { user })
   }
 
   @Patch(':id')
