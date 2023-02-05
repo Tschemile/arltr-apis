@@ -20,7 +20,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: UserToken) {
     const user = await this.authService.verifyUser(payload)
-    if (!user) {
+    if (
+      !user &&
+      payload.exp < Math.floor(new Date().getTime() / 1000)
+    ) {
       BaseError(TableName.USER, HttpStatus.UNAUTHORIZED)
     }
 
