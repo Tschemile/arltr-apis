@@ -18,6 +18,10 @@ export class Post extends Base {
   @ApiProperty({ type: () => Profile })
   author: Profile
 
+  @ManyToOne(() => Post, { nullable: true })
+  @ApiProperty({ type: () => Post, nullable: true })
+  linked: Post
+
   @ManyToOne(() => Group, { nullable: true })
   @ApiProperty({ type: () => Group, nullable: true })
   group: Group
@@ -49,6 +53,10 @@ export class Post extends Base {
   @Column({ enum: POST_STATUS, default: POST_STATUS.ACTIVE })
   @ApiProperty({ type: String, enum: POST_STATUS })
   status: string
+
+  @Column({ default: 0 })
+  @ApiProperty({ type: Number })
+  totalShares: number
 
   @Column({ default: 0 })
   @ApiProperty({ type: Number })

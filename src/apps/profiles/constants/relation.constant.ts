@@ -1,9 +1,10 @@
-export enum RELATION_TYPE {
+export enum RELATION_TYPE {  
   FOLLOW = 'FOLLOW',
   FRIEND = 'FRIEND',
   BLOCKED = 'BLOCKED',
   OWNER = 'OWNER',
-  LIKED = 'LIKED'
+  LIKED = 'LIKED',
+  SNOOZE = 'SNOOZE'
 }
 
 export enum FRIEND_STATUS {
