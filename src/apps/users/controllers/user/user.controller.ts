@@ -25,7 +25,7 @@ export class UserController {
   @Post()
   @ApiConflictResponse({ description: `${TableName.USER} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
-  async create(@Body() registerInput: RegisterInput): Promise<GetUserTokenOutput> {
+  async create(@Body() registerInput: RegisterInput)  {
     return await this.userService.register(registerInput)
   }
 
