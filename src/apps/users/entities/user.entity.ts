@@ -8,7 +8,8 @@ import { DBName } from "utils";
   orderBy: {
     createdAt: 'DESC',
   }
-})export class User extends Base {
+})
+export class User extends Base {
   @OneToMany(() => Profile, profile => profile.user, {
     cascade: true,
   })
@@ -26,7 +27,7 @@ import { DBName } from "utils";
   @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
-  username: string
+  userName: string
 
   @Column({ unique: true })
   @ApiProperty({ type: String })

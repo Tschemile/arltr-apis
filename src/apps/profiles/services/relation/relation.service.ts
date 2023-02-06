@@ -253,6 +253,7 @@ export class RelationService extends BaseService<Relation> {
       }
       if(input.status === FRIEND_STATUS.ACCEPTED) {
         await this.relationRepo.save({
+          ...existedRelation,
           status: FRIEND_STATUS.ACCEPTED,
           id: existedRelation.id,
         });

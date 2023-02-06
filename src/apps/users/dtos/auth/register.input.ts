@@ -33,7 +33,7 @@ export class RegisterInput {
   @MaxLength(20)
   @IsAlphanumeric()
   @ApiProperty({ type: String })
-  username: string
+  userName: string
 
   @IsEmail()
   @IsNotEmpty()

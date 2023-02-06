@@ -1,6 +1,6 @@
 
 import { ConfigService } from '@nestjs/config'
-import { Address, Album, Applicant, Blog, Category, Certificate, Chat, Comment, Course, Event, File, Group, Item, Job, Lesson, Member, Message, Order, Participant, Policy, Post, Product, Profile, React, Relation, Reply, Report, Responded, Resume, Review, User, Vote } from 'apps'
+import { Address, Album, Applicant, Blog, Category, Certificate, Chat, Comment, Course, Event, File, Group, Item, Job, Lesson, Member, Message, Order, Participant, Policy, Post, Product, Profile, React, Verify, Relation, Reply, Report, Responded, Resume, Review, User, Vote } from 'apps'
 import { config } from 'dotenv'
 import { UpdateFile1675581548131 } from 'migrations/1675581548131-UpdateFile'
 import { DataSource } from 'typeorm'
@@ -26,7 +26,7 @@ export default new DataSource({
     File, Album, 
     Course, Certificate, Lesson,
     Job, Applicant, Resume,
-    Chat, Message, Participant,
+    Chat, Message, Participant, Verify
   ],
   migrations: [__dirname + "./migrations/*{.ts,.js}", UpdateFile1675581548131],
   migrationsTableName: 'migrations',
