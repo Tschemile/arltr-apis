@@ -42,7 +42,7 @@ export class VerifyService extends BaseService<Verify> {
       newVerify = await this.insertOne({
         code,
         information: email,
-        expiredAt: new Date(),
+        expiredAt: timeIn({duration: 1, unit: 'minute', action: 'add'}),
       });
     }
 
