@@ -15,7 +15,7 @@ export class AuthService {
   generateToken(user: User, profile: Profile, isRemember?: boolean) {
     const payload: UserToken = {
       id: user.id,
-      username: user.userName,
+      username: user.username,
       profile,
     }
 
@@ -44,7 +44,7 @@ export class AuthService {
 
     const format: UserToken = {
       id: user.id,
-      username: user.userName,
+      username: user.username,
       profile,
     }
 

@@ -15,7 +15,6 @@ export class RelationController {
 
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'type', enum: QUERY_RELATION_TYPE })
   @ApiQuery({ name: 'status', enum: FRIEND_STATUS, required: false })
@@ -32,7 +31,6 @@ export class RelationController {
   }
 
   @Get('count')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async count(
     @Request() req,
@@ -41,7 +39,6 @@ export class RelationController {
   }
 
   @Put()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.RELATION} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })

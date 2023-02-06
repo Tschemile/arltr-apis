@@ -30,14 +30,14 @@ export class UserService extends BaseService<User> {
     const {
       firstName,
       lastName,
-      userName,
+      username,
       email,
       password: enteredPassword,
       birth,
       gender,
       role,
     } = input
-    const existedUser = await this.findOne([{ userName }, { email }]);
+    const existedUser = await this.findOne([{ username }, { email }]);
     if (existedUser) {
       BaseError(TableName.USER, HttpStatus.CONFLICT);
     }
@@ -51,13 +51,13 @@ export class UserService extends BaseService<User> {
 
      await this.profileService.create({
       name: `${firstName} ${lastName}`,
-      domain: userName,
+      domain: username,
       birth,
       gender,
       role: role || USER_ROLE.USER,
     }, createdUser);
 
-    this.verifyService.sendEmail(email, userName)
+    this.verifyService.sendEmail(email, username)
    
     return { message: `please verify the code with email ${email}` };
   }

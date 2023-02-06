@@ -27,7 +27,7 @@ export class User extends Base {
   @Index()
   @Column({ unique: true })
   @ApiProperty({ type: String })
-  userName: string
+  username: string
 
   @Column({ unique: true })
   @ApiProperty({ type: String })

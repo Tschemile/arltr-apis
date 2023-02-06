@@ -25,7 +25,8 @@ export class VerifyService extends BaseService<Verify> {
     super(verifyRepo, {});
   }
 
-  async sendEmail(email: string, userName: string) {
+  async sendEmail(email: string, username?: string) {
+    
     const verify = await this.findOne({
       information: email,
     });
@@ -49,11 +50,11 @@ export class VerifyService extends BaseService<Verify> {
       .sendMail({
         to: email,
         from: 'pmchauuu@gmail.com',
-        subject: `OPT for loggin in to your account: ${userName}`,
+        subject: `OPT for loggin in to your account: ${username}`,
         template: 'verify',
         context: {
           code,
-          userName,
+          username,
         },
       })
       .then(() => {
@@ -66,13 +67,7 @@ export class VerifyService extends BaseService<Verify> {
         }, 60000);
       });
 
-    const userInfo = await this.userService.findOne({ email });
-    const profile = await this.profileService.findOne({
-      user: { id: userInfo.id },
-    });
-    const token = this.authService.generateToken(userInfo, profile);
-
-    return { token };
+      return { message: `please verify the code with email ${email}` }
   }
 
   async verify(input: VerifyInputDto) {
