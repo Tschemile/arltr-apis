@@ -1,7 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { SwaggerModule } from '@nestjs/swagger';
 import * as compression from 'compression';
 import { config } from 'dotenv';
@@ -12,9 +11,8 @@ config()
 const configService = new ConfigService()
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app = await NestFactory.create(
     AppModule,
-    new FastifyAdapter(),
   );
   const PORT = configService.get('PORT') || 5000
   app.enableCors()
@@ -31,7 +29,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, document)
 
-  await app.listen(PORT, '0.0.0.0');
+  await app.listen(PORT);
   console.log(`Application running on ${await (app.getUrl())}`);
 }
 bootstrap();
