@@ -47,6 +47,22 @@ import {
         },
       }
     }),
+    MailerModule.forRoot({
+      transport: {
+        host:'smtp.sendgrid.net',
+        auth: {
+          user: 'apikey',
+          pass: process.env.YOUR_API_KEY
+        },
+      },
+      template: {
+        dir: __dirname + '/mails/verify',
+        adapter: new EjsAdapter(),
+        options: {
+          strict: false,
+        },
+      }
+    }),
     AddressModule,
     AuthModule,
     ForumModule,

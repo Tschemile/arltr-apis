@@ -12,9 +12,8 @@ config()
 const configService = new ConfigService()
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app = await NestFactory.create(
     AppModule,
-    new FastifyAdapter(),
   );
   const PORT = configService.get('PORT') || 5000
   app.enableCors()
@@ -31,7 +30,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, document)
 
-  await app.listen(PORT);
+  await app.listen(PORT, '0.0.0.0');
   console.log(`Application running on ${await (app.getUrl())}`);
 }
 bootstrap();
