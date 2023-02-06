@@ -30,6 +30,9 @@ import {
       url: process.env.DB_URL,
       entities: [__dirname + '/../**/*.entity.js'],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false
+      }
     }),
     MailerModule.forRoot({
       transport: {
