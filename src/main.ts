@@ -12,9 +12,8 @@ config()
 const configService = new ConfigService()
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app = await NestFactory.create(
     AppModule,
-    new FastifyAdapter(),
   );
   const PORT = configService.get('PORT') || 5000
   app.enableCors()
