@@ -7,20 +7,18 @@ import {
   Patch,
   Post,
   Query,
-  Request,
-  UseGuards,
+  Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
 import { CreateCertificateDto } from 'apps/courses/dto/certificate/create-certificate.dto';
 import {
   GetCertificateOutput,
-  GetCertificatesOutput,
+  GetCertificatesOutput
 } from 'apps/courses/dto/certificate/get-certificate.dto';
 import { UpdateCertificateDto } from 'apps/courses/dto/certificate/update-certificate.dto';
 import { CertificateService } from 'apps/courses/services/certificate/certificate.service';
@@ -33,7 +31,6 @@ export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateCertificateDto,
@@ -47,7 +44,6 @@ export class CertificateController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -65,14 +61,12 @@ export class CertificateController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findById(@Param('id') id: string): Promise<GetCertificateOutput> {
     return await this.certificateService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -83,7 +77,6 @@ export class CertificateController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string, @Request() req) {
     return await this.certificateService.remove(id, req.user);

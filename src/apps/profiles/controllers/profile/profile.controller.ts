@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
 import { GetUserTokenOutput } from "apps/users/dtos";
@@ -14,7 +13,6 @@ export class ProfileController {
   ) { }
 
   @Get('switch')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
@@ -27,7 +25,6 @@ export class ProfileController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'gender', required: false })
@@ -54,7 +51,6 @@ export class ProfileController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
@@ -65,7 +61,6 @@ export class ProfileController {
   }
 
   @Get(':domain')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'domain' })
   @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
@@ -79,7 +74,6 @@ export class ProfileController {
   }
 
   @Patch()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
@@ -94,7 +88,6 @@ export class ProfileController {
   }
 
   @Delete()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })

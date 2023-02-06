@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
 import { CreateCommentInput, GetCommentOutput, GetCommentsOutput, UpdateCommentInput } from "apps/posts/dtos";
 import { CommentService } from "apps/posts/services";
 import { TableName } from "utils";
@@ -13,7 +12,6 @@ export class CommentController {
   ) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
@@ -26,7 +24,6 @@ export class CommentController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'post' })
   @ApiQuery({ name: 'limit', required: false })
@@ -40,7 +37,6 @@ export class CommentController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })
@@ -55,7 +51,6 @@ export class CommentController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })

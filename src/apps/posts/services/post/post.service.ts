@@ -6,10 +6,10 @@ import { GROUP_MODE, MEMBER_STATUS } from "apps/groups/constants";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dtos";
 import { Post } from "apps/posts/entities";
-import { Profile, ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
+import { ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, In, Like, Not, Repository } from "typeorm";
-import { TableName } from "utils";
+import { FindOptionsWhere, In, LessThan, Like, Not, Repository } from "typeorm";
+import { TableName, timeIn } from "utils";
 import { CommentService } from "../comment";
 import { ReactService } from "../react";
 import { formatData } from "./formatData";
@@ -85,6 +85,11 @@ export class PostService extends BaseService<Post> {
       type: type || POST_TYPE.POST,
     }
 
+    if (type && type === POST_TYPE.STORY) {
+      const time24Ago = timeIn({ duration: 24, unit: 'hour', action: 'sub' })
+      commonWhere.createdAt = LessThan(time24Ago)
+    }
+
     if (search) {
       commonWhere.content = Like(`%${search}%`)
     }
@@ -137,12 +142,15 @@ export class PostService extends BaseService<Post> {
         if (!profile) {
           BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
         }
-
-        const isFriend = await this.relationService.isFriend(user, profile)
-        where.push({
-          author: { id: profile.id },
-          mode: isFriend ? Not(POST_MODE.PRIVATE) : POST_MODE.PUBLIC
-        })
+        if (user.profile.id === profile.id) {
+          where.push({ author: { id: profile.id }})
+        } else {
+          const isFriend = await this.relationService.isFriend(user, profile)
+          where.push({
+            author: { id: profile.id },
+            mode: isFriend ? Not(POST_MODE.PRIVATE) : POST_MODE.PUBLIC
+          })
+        }
         break
       }
     }

@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { ProfileService, RelationService } from "apps/profiles";
 import { FILE_SCOPE } from "apps/uploads/constants";
-import { CreateAlbumInput, UpdateAlbumInput } from "apps/uploads/dtos";
+import { CreateAlbumInput, QueryAlbumInput, UpdateAlbumInput } from "apps/uploads/dtos";
 import { Album } from "apps/uploads/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Not, Repository } from "typeorm";
@@ -32,8 +32,9 @@ export class AlbumService extends BaseService<Album> {
     return { album: createdAlbum }
   }
 
-  async findAll(user: UserToken, domain: string) {
-    const profile = await this.profileService.findOne({ domain })
+  async findAll(user: UserToken, query: QueryAlbumInput) {
+    const { user: userId } = query
+    const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
       BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }

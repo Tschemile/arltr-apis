@@ -1,7 +1,6 @@
-import { Controller, Delete, Get, Param, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "apps/auth";
-import { GetFilesOutput } from "apps/uploads/dtos";
+import { GetFileOutput, GetFilesOutput, UpdateFileInput } from "apps/uploads/dtos";
 import { FileService } from "apps/uploads/services";
 import { TableName } from "utils";
 
@@ -13,7 +12,6 @@ export class FileController {
   ) { }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'user' })
   @ApiQuery({ name: 'limit', required: false })
@@ -22,19 +20,30 @@ export class FileController {
     @Request() req,
     @Query('user') user: string,
     @Query('limit') limit: number,
-  ) {
+  ): Promise<GetFilesOutput> {
     return await this.fileService.findAll(req.user, { user, limit })
   }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiOkResponse({ type: GetFilesOutput})
+  @ApiOkResponse({ type: GetFileOutput })
+  async patch(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() input: UpdateFileInput,
+  ): Promise<GetFileOutput> {
+    return await this.fileService.update(req.user, id, input)
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id' })
+  @ApiOkResponse({ type: GetFileOutput })
   async delete(
     @Request() req,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetFileOutput> {
     return await this.fileService.remove(req.user, id)
   }
 }

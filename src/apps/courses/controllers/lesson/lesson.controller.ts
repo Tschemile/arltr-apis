@@ -6,20 +6,18 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UseGuards,
+  Query
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'apps/auth';
 import { CreateLessonDto } from 'apps/courses/dto/lesson/create-lesson.dto';
 import {
   GetLessonOutput,
-  GetLessonsOutput,
+  GetLessonsOutput
 } from 'apps/courses/dto/lesson/get-lesson.dto';
 import { UpdateLessonDto } from 'apps/courses/dto/lesson/update-lesson.dto';
 import { LessonService } from 'apps/courses/services/lesson/lesson.service';
@@ -32,7 +30,6 @@ export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: CreateLessonDto,
@@ -43,7 +40,6 @@ export class LessonController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -60,14 +56,12 @@ export class LessonController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findById(@Param('id') id: string): Promise<GetLessonOutput> {
     return await this.lessonService.findById(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(
     @Param('id') id: string,
@@ -77,7 +71,6 @@ export class LessonController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id') id: string) {
     return await this.lessonService.remove(id);

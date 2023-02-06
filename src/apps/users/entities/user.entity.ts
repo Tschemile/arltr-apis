@@ -8,7 +8,8 @@ import { DBName } from "utils";
   orderBy: {
     createdAt: 'DESC',
   }
-})export class User extends Base {
+})
+export class User extends Base {
   @OneToMany(() => Profile, profile => profile.user, {
     cascade: true,
   })

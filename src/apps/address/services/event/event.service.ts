@@ -8,7 +8,7 @@ import { GroupService } from 'apps/groups';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
 import { TableName } from 'utils';
-import { checkOverlap } from 'utils/utils';
+import { checkOverlap } from 'utils';
 import { AddressService } from '../address';
 
 export const eventRelations = {

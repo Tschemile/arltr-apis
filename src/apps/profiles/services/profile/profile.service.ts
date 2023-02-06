@@ -91,9 +91,9 @@ export class ProfileService extends BaseService<Profile> {
 
     where.id = Not(user.profile.id)
 
-    const { data: profiles, total } = await this.find({
+    const [profiles, total] = await this.profileRepo.findAndCount({
       where,
-      limit,
+      take: limit,
     })
 
     return { profiles, total }
@@ -103,6 +103,10 @@ export class ProfileService extends BaseService<Profile> {
     const profile = await this.profileRepo.findOne({
       where: { domain },
     })
+
+    if (!profile) {
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+    }
 
     const blocked = await this.relationService.findOne([
       { requester: { id: user.profile.id }, user: { domain }, type: RELATION_TYPE.BLOCKED }, 

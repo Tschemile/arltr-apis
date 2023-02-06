@@ -4,16 +4,15 @@ import {
   Get,
   Post,
   Query,
-  Request,
-  UseGuards,
+  Request
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
-import { JwtAuthGuard, Roles } from 'apps/auth';
+import { Roles } from 'apps/auth';
 import { USER_ROLE } from 'apps/profiles';
 import { CreateReportDto } from 'apps/settings/dtos/report/create-report.dto';
 import { GetReportsOutput } from 'apps/settings/dtos/report/get-report.dto';
@@ -26,7 +25,6 @@ export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     type: CreateReportDto,
     description: 'Successfully Create Report',
@@ -36,7 +34,6 @@ export class ReportController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   @ApiQuery({ name: 'category', required: true, type: [String] })

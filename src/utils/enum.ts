@@ -36,6 +36,7 @@ export enum TableName {
   UPLOAD = 'Upload',
   USER = 'User',
   VOTE = 'Vote',
+  VERIFY = 'Verify',
 }
 
 export enum DBName {
@@ -72,4 +73,5 @@ export enum DBName {
   REVIEW = 'review',
   USER = 'user',
   VOTE = 'vote',
+  VERIFY = 'verify',
 }
