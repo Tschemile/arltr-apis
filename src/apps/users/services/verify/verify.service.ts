@@ -8,7 +8,7 @@ import { VerifyInputDto } from 'apps/users/dtos/verify/verify-input.dto';
 import { Verify } from 'apps/users/entities/verify.entity';
 import { BaseError, BaseService } from 'base';
 import { Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { TableName, timeIn } from 'utils';
 import { ranDomCode } from 'utils/utils';
 import { UserService } from '../user';
 
@@ -36,17 +36,17 @@ export class VerifyService extends BaseService<Verify> {
       newVerify = await this.verifyRepo.save({
         id: verify.id,
         code,
-        expiredAt: new Date(),
+        expiredAt: timeIn({duration: 1, unit: 'minute', action: 'add'}),
       });
     } else {
       newVerify = await this.insertOne({
         code,
         information: email,
-        expiredAt: new Date(),
+        expiredAt: timeIn({duration: 1, unit: 'minute', action: 'add'}),
       });
     }
 
-    await this.mailService
+     this.mailService
       .sendMail({
         to: email,
         from: 'pmchauuu@gmail.com',
@@ -57,16 +57,6 @@ export class VerifyService extends BaseService<Verify> {
           username,
         },
       })
-      .then(() => {
-        setTimeout(async () => {
-          await this.verifyRepo.save({
-            id: newVerify.id,
-            code: null,
-            expiredAt: new Date(),
-          });
-        }, 60000);
-      });
-
       return { message: `please verify the code with email ${email}` }
   }
 
@@ -76,7 +66,7 @@ export class VerifyService extends BaseService<Verify> {
       code,
       information: email,
     });
-    if (!verify) {
+    if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
       BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
     const userInfo = await this.userService.findOne({ email });
