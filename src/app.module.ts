@@ -30,8 +30,21 @@ import {
       url: process.env.DB_URL,
       entities: [__dirname + '/../**/*.entity.js'],
       synchronize: true,
-      ssl: {
-        rejectUnauthorized: false
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host:'smtp.sendgrid.net',
+        auth: {
+          user: 'apikey',
+          pass: process.env.YOUR_API_KEY
+        },
+      },
+      template: {
+        dir: __dirname + '/mails/verify',
+        adapter: new EjsAdapter(),
+        options: {
+          strict: false,
+        },
       }
     }),
     MailerModule.forRoot({
