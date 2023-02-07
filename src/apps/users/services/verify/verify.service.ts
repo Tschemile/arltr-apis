@@ -2,9 +2,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthService, UserToken } from 'apps/auth';
+import { AuthService } from 'apps/auth';
 import { ProfileService } from 'apps/profiles';
-import { VerifyInputDto } from 'apps/users/dtos/verify/verify-input.dto';
 import { Verify } from 'apps/users/entities/verify.entity';
 import { BaseError, BaseService } from 'base';
 import { Repository } from 'typeorm';
@@ -25,8 +24,7 @@ export class VerifyService extends BaseService<Verify> {
     super(verifyRepo, {});
   }
 
-  async sendEmail(email: string, username?: string) {
-    
+  async sendEmail(email: string) {
     const verify = await this.findOne({
       information: email,
     });
@@ -36,40 +34,39 @@ export class VerifyService extends BaseService<Verify> {
       newVerify = await this.verifyRepo.save({
         id: verify.id,
         code,
-        expiredAt: timeIn({duration: 1, unit: 'minute', action: 'add'}),
+        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }),
       });
     } else {
       newVerify = await this.insertOne({
         code,
         information: email,
-        expiredAt: timeIn({duration: 1, unit: 'minute', action: 'add'}),
+        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }),
       });
     }
 
-     this.mailService
-      .sendMail({
-        to: email,
-        from: 'pmchauuu@gmail.com',
-        subject: `OPT for loggin in to your account: ${username}`,
-        template: 'verify',
-        context: {
-          code,
-          username,
-        },
-      })
-      return { message: `please verify the code with email ${email}` }
+    const user = await this.userService.findOne({ email });
+
+    this.mailService.sendMail({
+      to: email,
+      from: 'pmchauuu@gmail.com',
+      subject: `OPT for loggin in to your account: ${user.username}`,
+      template: 'verify',
+      context: {
+        code,
+        username: user.username,
+      },
+    });
+    return { message: `please verify the code with email ${email}` };
   }
 
-  async verify(input: VerifyInputDto) {
-    const { code, email } = input;
+  async verify(code: string) {
     const verify = await this.findOne({
       code,
-      information: email,
     });
     if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
       BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
-    const userInfo = await this.userService.findOne({ email });
+    const userInfo = await this.userService.findOne({ email: verify.information });
     const profile = await this.profileService.findOne({
       user: { id: userInfo.id },
     });

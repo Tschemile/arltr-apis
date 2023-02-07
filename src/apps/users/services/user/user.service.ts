@@ -57,7 +57,7 @@ export class UserService extends BaseService<User> {
       role: role || USER_ROLE.USER,
     }, createdUser);
 
-    this.verifyService.sendEmail(email, username)
+    this.verifyService.sendEmail(email)
    
     return { message: `please verify the code with email ${email}` };
   }

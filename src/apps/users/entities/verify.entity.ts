@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Base } from 'base';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, Unique } from 'typeorm';
 import { DBName } from 'utils';
 
 @Entity(DBName.VERIFY, {
@@ -9,7 +9,7 @@ import { DBName } from 'utils';
   },
 })
 export class Verify extends Base {
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   @ApiProperty({ type: String })
   code: string;
 
