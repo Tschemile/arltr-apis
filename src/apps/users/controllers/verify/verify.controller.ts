@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { Body, Post } from '@nestjs/common/decorators';
-import { ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'apps/auth';
 import { SendEmailInput } from 'apps/users/dtos/verify/send-email.input.dto';
 import { VerifyInput } from 'apps/users/dtos/verify/verify.input.dto';
