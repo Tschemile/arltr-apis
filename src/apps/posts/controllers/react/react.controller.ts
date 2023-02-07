@@ -25,7 +25,7 @@ export class ReactController {
 
   @Get()
   @ApiBearerAuth()
-  @ApiQuery({ name: 'type', enum: REACT_TYPE })
+  @ApiQuery({ name: 'type', enum: REACT_TYPE, required: false })
   @ApiQuery({ name: 'post', required: false })
   @ApiQuery({ name: 'comment', required: false })
   @ApiQuery({ name: 'limit', required: false })
