@@ -4,7 +4,7 @@ import { Group } from "apps/groups";
 import { Profile } from "apps/profiles";
 import { Base } from "base";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
-import { DBName, TableName } from "utils";
+import { DBName } from "utils";
 import { POST_MODE, POST_STATUS, POST_TYPE } from "../constants";
 
 @Entity(DBName.POST, {
@@ -53,6 +53,10 @@ export class Post extends Base {
   @Column({ enum: POST_STATUS, default: POST_STATUS.ACTIVE })
   @ApiProperty({ type: String, enum: POST_STATUS })
   status: string
+
+  @Column({ default: false })
+  @ApiProperty({ type: Boolean })
+  disableComment: boolean
 
   @Column({ default: 0 })
   @ApiProperty({ type: Number })

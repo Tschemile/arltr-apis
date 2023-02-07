@@ -90,7 +90,7 @@ export class BaseService<Entity extends Base> {
   }
 
   async group(where: FindOptionsWhere<Entity>, key: string): Promise<BaseGroupType[]> {
-    const { data } = await this.find({ where })
+    const { data, total } = await this.find({ where })
     const groupRaw = data.reduce((obj, x) => {
       if (!obj[x[key]]) {
         obj[x[key]] = []
@@ -109,6 +109,10 @@ export class BaseService<Entity extends Base> {
         })
       }
     }
+    groups.push({
+      type: 'ALL',
+      total,
+    })
 
     return groups
   }
