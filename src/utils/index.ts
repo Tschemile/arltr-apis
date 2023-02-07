@@ -1,3 +1,4 @@
+export * from './compare'
 export * from './datetime'
 export * from './enum'
 export * from './logging'

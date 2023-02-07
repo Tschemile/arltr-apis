@@ -141,10 +141,19 @@ export class ReactService extends BaseService<React> {
     return { users, total }
   }
 
-  async postLiked(user: UserToken, postIds: string[]) {
+  async reacted(user: UserToken, ids: string[], type: 'COMMENT' | 'POST') {
     const where: FindOptionsWhere<React> = {
       user: { id: user.profile.id },
-      post: { id: In(postIds) }
+    }
+
+    switch(type) {
+      case 'POST': {
+        where.post = { id: In(ids) }
+        break
+      }
+      case 'COMMENT': {
+        where.comment = { id: In(ids) }
+      }
     }
 
     const { data: reacts } = await this.find({ where })
