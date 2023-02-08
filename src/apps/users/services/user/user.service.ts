@@ -7,7 +7,7 @@ import { LoginInput, RegisterInput } from 'apps/users/dtos';
 import { User } from 'apps/users/entities';
 import { BaseError, BaseService } from 'base';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { TableName } from 'utils';
 import { VerifyService } from '../verify/verify.service';
 import { ranDomCode } from 'utils/utils';
@@ -93,6 +93,23 @@ export class UserService extends BaseService<User> {
     }
     const token = this.authService.generateToken(user, profile);
     return { token };
+  }
+
+  async findAll(user: UserToken, search?: string) {
+    let where: FindOptionsWhere<User>[]  = []
+
+    if (search) {
+      where = [
+        { firstName: Like(`%${search}%`) },
+        { lastName: Like(`%${search}%`) },
+        { username: Like(`%${search}%`) },
+        { email: Like(`%${search}%`) },
+      ]
+    }
+
+    const { data: users, total } = await this.find({ where })
+
+    return { users, total }
   }
 
   async remove(user: UserToken) {
