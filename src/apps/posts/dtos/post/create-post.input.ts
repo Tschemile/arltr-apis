@@ -37,4 +37,9 @@ export class CreatePostInput {
   @IsEnum(POST_TYPE)
   @ApiProperty({ type: String, enum: POST_TYPE })
   type: string
+
+  @IsUUID(4, { each: true })
+  @IsOptional()
+  @ApiProperty({ type: [String] })
+  tags: string[]
 }

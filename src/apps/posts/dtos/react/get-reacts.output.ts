@@ -9,3 +9,11 @@ export class GetReactsOutput {
   @ApiProperty({ type: [BaseGroupType] })
   total: BaseGroupType[]
 }
+
+export class GetReactOutput {
+  @ApiProperty({ type: Number })
+  total: number
+
+  @ApiProperty({ type: Boolean })
+  isReacted: boolean
+}
