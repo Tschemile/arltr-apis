@@ -63,7 +63,7 @@ export class VerifyService extends BaseService<Verify> {
     const verify = await this.findOne({
       code,
     });
-    if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
+    if (!verify || verify.expiredAt.getTime() > new Date().getTime()) {
       BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
     const userInfo = await this.userService.findOne({ email: verify.information });
