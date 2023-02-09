@@ -2,7 +2,7 @@ import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserToken } from "apps/auth";
 import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
-import { React } from "apps/posts/entities";
+import { Comment, Post, React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
 import { TableName } from "utils";
@@ -26,7 +26,7 @@ export class ReactService extends BaseService<React> {
   }
 
   async validInput(input: UpsertReactInput) {
-    let id: string
+    let data: Comment | Post
     let isPost: boolean
 
     const where: FindOptionsWhere<React> = {}
@@ -38,7 +38,7 @@ export class ReactService extends BaseService<React> {
         BaseError(TableName.POST, HttpStatus.NOT_FOUND)
       }
 
-      id = post.id
+      data = post
       isPost = true
       where.post = { id: post.id }
     }
@@ -48,17 +48,17 @@ export class ReactService extends BaseService<React> {
         BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
       }
 
-      id = comment.id
+      data = comment
       isPost = false
       where.comment = { id: comment.id }
     }
 
-    return { id, isPost, type: input.type, where }
+    return { data, isPost, type: input.type, where }
   }
 
   async upsert(user: UserToken, input: UpsertReactInput) {
     const {
-      id,
+      data,
       isPost,
       type,
       where,
@@ -69,40 +69,47 @@ export class ReactService extends BaseService<React> {
       user: { id: user.profile.id },
     })
 
+    let total = data.totalReacts || 0
     if (reacted) {
       // Un reacted
       if (reacted.type === type) {
         if (isPost) {
-          await this.postService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
+          await this.postService.changeProperty({ id: data.id }, 'totalReacts', 1, 'DECREMENT')
         } else {
-          await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'DECREMENT')
+          await this.commentService.changeProperty({ id: data.id }, 'totalReacts', 1, 'DECREMENT')
         }
+        await this.reactRepo.remove(reacted)
         return {
-          react: await this.reactRepo.remove(reacted)
+          total: total - 1,
+          isReacted: false
         }
       } else {
         // Change react
+        await this.reactRepo.save({
+          type,
+          id: reacted.id,
+        })
         return {
-          react: await this.reactRepo.save({
-            type,
-            id: reacted.id,
-          })
+          total: total,
+          isReacted: true
         }
       }
     } else {
       const createdReact = this.reactRepo.create({
         type,
         user: user.profile,
-        post: isPost ? { id: id } : null,
-        comment: isPost ? null : { id: id }
+        post: isPost ? { id: data.id } : null,
+        comment: isPost ? null : { id: data.id }
       })
       if (isPost) {
-        await this.postService.changeProperty({ id }, 'totalReacts', 1, 'INCREMENT')
+        await this.postService.changeProperty({ id: data.id }, 'totalReacts', 1, 'INCREMENT')
       } else {
-        await this.commentService.changeProperty({ id }, 'totalReacts', 1, 'INCREMENT')
+        await this.commentService.changeProperty({ id: data.id }, 'totalReacts', 1, 'INCREMENT')
       }
+      await this.reactRepo.save(createdReact)
       return {
-        react: await this.reactRepo.save(createdReact)
+        total: total + 1,
+        isReacted: true
       }
     }
   }
