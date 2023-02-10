@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } fro
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CreateCommentInput, GetCommentOutput, GetCommentsOutput, UpdateCommentInput } from "apps/posts/dtos";
 import { CommentService } from "apps/posts/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.COMMENT)
-@Controller(TableName.COMMENT.toLowerCase())
+@ApiTags(ModuleName.COMMENT)
+@Controller(ModuleName.COMMENT.toLowerCase())
 export class CommentController {
   constructor(
     private readonly commentService: CommentService
@@ -13,7 +13,7 @@ export class CommentController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.GROUP} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiCreatedResponse({ type: GetCommentOutput })
   async post(
@@ -39,7 +39,7 @@ export class CommentController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.COMMENT} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetCommentOutput })
   async patch(
@@ -53,7 +53,7 @@ export class CommentController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.COMMENT} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.COMMENT} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

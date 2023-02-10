@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nest
 import { CreateReviewInput } from "apps/shop/dtos";
 import { GetReviewOutput, GetReviewsOutput } from "apps/shop/dtos/review/get-review.output";
 import { ReviewService } from "apps/shop/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.REVIEW)
-@Controller(TableName.REVIEW.toLowerCase())
+@ApiTags(ModuleName.REVIEW)
+@Controller(ModuleName.REVIEW.toLowerCase())
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService

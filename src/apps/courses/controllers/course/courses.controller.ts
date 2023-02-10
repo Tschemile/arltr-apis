@@ -12,13 +12,13 @@ import {
   GetCourseOutput,
   GetCoursesOutput
 } from 'apps/courses/dto/course/get-course.dto';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { CreateCourseDto } from '../../dto/course/create-course.dto';
 import { CourseService } from '../../services/course/courses.service';
 
 
-@ApiTags(TableName.COURSE)
-@Controller(TableName.COURSE.toLowerCase())
+@ApiTags(ModuleName.COURSE)
+@Controller(ModuleName.COURSE.toLowerCase())
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 

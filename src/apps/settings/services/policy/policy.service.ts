@@ -7,7 +7,7 @@ import { UpdatePolicyDto } from 'apps/settings/dtos/policy/update-policy.dto';
 import { Policy } from 'apps/settings/entities';
 import { BaseError, BaseService } from 'base';
 import { Equal, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 export class PolicyService extends BaseService<Policy> {
   constructor(
@@ -51,7 +51,7 @@ export class PolicyService extends BaseService<Policy> {
     const policy = await this.findOne({ id });
 
     if (!policy) {
-      BaseError(TableName.POLICY, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.POLICY, HttpStatus.NOT_FOUND);
     }
 
     await this.policyRepository.save({
@@ -66,7 +66,7 @@ export class PolicyService extends BaseService<Policy> {
     const policy = await this.findOne({ id });
 
     if (!policy) {
-      BaseError(TableName.POLICY, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.POLICY, HttpStatus.NOT_FOUND);
     }
     
     return { policy: await this.policyRepository.softRemove(policy) }

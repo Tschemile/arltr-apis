@@ -2,10 +2,10 @@ import { Body, Controller, Put, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { UpsertVoteInput } from "apps/forum/dtos";
 import { VoteService } from "apps/forum/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.VOTE)
-@Controller(TableName.VOTE.toLowerCase())
+@ApiTags(ModuleName.VOTE)
+@Controller(ModuleName.VOTE.toLowerCase())
 export class VoteController {
   constructor(
     private readonly voteService: VoteService

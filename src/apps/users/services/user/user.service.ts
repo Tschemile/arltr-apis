@@ -8,7 +8,7 @@ import { User } from 'apps/users/entities';
 import { BaseError, BaseService } from 'base';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { VerifyService } from '../verify/verify.service';
 import { ranDomCode } from 'utils/utils';
 
@@ -39,7 +39,7 @@ export class UserService extends BaseService<User> {
     } = input
     const existedUser = await this.findOne([{ username }, { email }]);
     if (existedUser) {
-      BaseError(TableName.USER, HttpStatus.CONFLICT);
+      BaseError(ModuleName.USER, HttpStatus.CONFLICT);
     }
     const password = await bcrypt.hash(enteredPassword, 12);
     const createdUser = this.userRepo.create({
@@ -74,11 +74,11 @@ export class UserService extends BaseService<User> {
       .getOne();
 
     if (!user) {
-      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.USER, HttpStatus.NOT_FOUND);
     }
     if (!(await bcrypt.compare(password, user.password))) {
       BaseError(
-        TableName.USER,
+        ModuleName.USER,
         HttpStatus.BAD_REQUEST,
         'Email or password is incorrect',
       );
@@ -89,7 +89,7 @@ export class UserService extends BaseService<User> {
       },
     });
     if (!profile) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND);
     }
     const token = this.authService.generateToken(user, profile);
     return { token };
@@ -98,7 +98,7 @@ export class UserService extends BaseService<User> {
   async remove(user: UserToken) {
     const exist = await this.findOne({ id: user.id });
     if (!exist) {
-      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.USER, HttpStatus.NOT_FOUND);
     }
 
     return {

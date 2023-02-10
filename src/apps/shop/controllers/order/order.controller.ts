@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, 
 import { CreateOrderInput, UpdateOrderInput } from "apps/shop/dtos";
 import { GetOrderOutput } from "apps/shop/dtos/order/get-order.output";
 import { OrderService } from "apps/shop/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.ORDER)
-@Controller(TableName.ORDER.toLowerCase())
+@ApiTags(ModuleName.ORDER)
+@Controller(ModuleName.ORDER.toLowerCase())
 export class OrderController {
   constructor(
     private readonly orderService: OrderService
@@ -14,7 +14,7 @@ export class OrderController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ORDER} not found` })
   @ApiCreatedResponse({ type: GetOrderOutput })
   async post(
     @Request() req,
@@ -35,7 +35,7 @@ export class OrderController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ORDER} not found` })
   @ApiOkResponse({ type: GetOrderOutput })
   async patch(
     @Request() req,
@@ -51,7 +51,7 @@ export class OrderController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.ORDER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ORDER} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,

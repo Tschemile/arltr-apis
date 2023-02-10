@@ -7,7 +7,7 @@ import { ProfileService } from 'apps/profiles';
 import { CategoryService } from 'apps/settings';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 const courseRelations = {
   author: true,
@@ -36,17 +36,17 @@ export class CourseService extends BaseService<Course> {
     });
 
     if (course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const author = await this.profileService.findOne({ id: authorId });
 
     if (!author) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
     const category = await this.categoryService.findOne({ id: categoryId });
     if (!category) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const createCourse = this.courseRepository.create({
@@ -84,7 +84,7 @@ export class CourseService extends BaseService<Course> {
     const course = await this.findOne({ id });
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -96,11 +96,11 @@ export class CourseService extends BaseService<Course> {
     const course = await this.findOne({ id });
 
     if (course.author.id !== user.profile.id) {
-      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.COURSE, HttpStatus.FORBIDDEN);
     }
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     await this.courseRepository.save({
@@ -117,11 +117,11 @@ export class CourseService extends BaseService<Course> {
     const course = await this.findOne({ id });
 
     if (course.author.id !== user.profile.id) {
-      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.COURSE, HttpStatus.FORBIDDEN);
     }
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     return {

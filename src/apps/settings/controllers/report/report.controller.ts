@@ -17,10 +17,10 @@ import { USER_ROLE } from 'apps/profiles';
 import { CreateReportDto } from 'apps/settings/dtos/report/create-report.dto';
 import { GetReportsOutput } from 'apps/settings/dtos/report/get-report.dto';
 import { ReportService } from 'apps/settings/services/report';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
-@ApiTags(TableName.REPORT)
-@Controller(TableName.REPORT.toLowerCase())
+@ApiTags(ModuleName.REPORT)
+@Controller(ModuleName.REPORT.toLowerCase())
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 

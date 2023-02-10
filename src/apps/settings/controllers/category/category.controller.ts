@@ -5,10 +5,10 @@ import { USER_ROLE } from "apps/profiles";
 import { CreateCategoryInput, UpdateCategoryInput } from "apps/settings/dtos";
 import { Category } from "apps/settings/entities";
 import { CategoryService } from "apps/settings/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.CATEGORY)
-@Controller(TableName.CATEGORY.toLowerCase())
+@ApiTags(ModuleName.CATEGORY)
+@Controller(ModuleName.CATEGORY.toLowerCase())
 export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService
@@ -40,7 +40,7 @@ export class CategoryController {
   @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: `You don't have permission to do it` })
-  @ApiNotFoundResponse({ description: `${TableName.CATEGORY} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.CATEGORY} not found` })
   @ApiOkResponse({ type: Category })
   async update(
     @Param('id') id: string,
@@ -56,7 +56,7 @@ export class CategoryController {
   @Roles(USER_ROLE.ADMIN)
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: `You don't have permission to do it` })
-  @ApiNotFoundResponse({ description: `${TableName.CATEGORY} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.CATEGORY} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Param('id') id: string

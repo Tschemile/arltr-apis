@@ -4,7 +4,7 @@ import { Comment, Post, Tag } from "apps/posts/entities";
 import { ProfileService } from "apps/profiles";
 import { BaseError, BaseService } from "base";
 import { DeepPartial, FindOptionsWhere, In, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
 export const tagRelation = {
   user: true,
@@ -33,7 +33,7 @@ export class TagService extends BaseService<Tag> {
     let isPost = post ? true : false
     
     if (!isPost && !comment) {
-      BaseError(TableName.POST, HttpStatus.BAD_REQUEST)
+      BaseError(ModuleName.POST, HttpStatus.BAD_REQUEST)
     }
 
     const { data: profiles, total } = await this.profileService.find({
@@ -41,7 +41,7 @@ export class TagService extends BaseService<Tag> {
     })
 
     if (total !== tags.length) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     const createTags: DeepPartial<Tag>[] = []

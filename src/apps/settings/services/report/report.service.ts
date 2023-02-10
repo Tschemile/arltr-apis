@@ -13,7 +13,7 @@ import { Report } from 'apps/settings/entities';
 import { ProductService } from 'apps/shop';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { CategoryService } from '../category';
 
 const relations = {
@@ -75,7 +75,7 @@ export class ReportService extends BaseService<Report> {
     });
 
     if (!reporUser) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
 
     const category = await this.categoryService.findOne({
@@ -83,46 +83,46 @@ export class ReportService extends BaseService<Report> {
     });
 
     if (!category) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const post = await this.postService.findOne({ id: postId });
 
     if (!post) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const comment = await this.commentService.findOne({ id: commentId });
     if (!comment) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
 
     const blog = await this.blogService.findOne({ id: blogId });
 
     if (!blog) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const reply = await this.replyService.findOne({ id: replyId });
 
     if (!reply) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const product = await this.productService.findOne({ id: productId });
 
     if (!product) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const group = await this.groupService.findOne({ id: groupId });
 
     if (!group) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const job = await this.jobsService.findOne({ id: jobId });
 
     if (!job) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
     const course = await this.courseService.findOne({ id: courseId });
     if (!course) {
-      BaseError(TableName.REPORT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.REPORT, HttpStatus.NOT_FOUND);
     }
 
     const report = await this.findOne({ reporter: { id: user.profile.id } });
@@ -139,7 +139,7 @@ export class ReportService extends BaseService<Report> {
       report.job.id === jobId &&
       report.course.id === courseId
     ) {
-        BaseError(TableName.REPORT, HttpStatus.CONFLICT);
+        BaseError(ModuleName.REPORT, HttpStatus.CONFLICT);
     }
 
     const createReport = this.reportRepository.create({

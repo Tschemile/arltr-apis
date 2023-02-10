@@ -7,7 +7,7 @@ import { CreateOrderInput, QUERY_ROLE, UpdateOrderInput } from "apps/shop/dtos";
 import { Order } from "apps/shop/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { ProductService } from "../product";
 import { ItemService } from "./item";
 
@@ -34,19 +34,19 @@ export class OrderService extends BaseService<Order> {
 
     const shop = await this.profileService.findOne({ id: shopId })
     if (!shop) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     const address = await this.addressService.findOne({ id: addressId })
     if (!address) {
-      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ADDRESS, HttpStatus.NOT_FOUND)
     }
 
     const productIds = orderItems.map((x) => x.product)
     const { products, total = 0 } = await this.productService.findAll(productIds)
 
     if (total !== orderItems.length) {
-      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PRODUCT, HttpStatus.NOT_FOUND)
     }
 
     const newOrderItems = []
@@ -129,12 +129,12 @@ export class OrderService extends BaseService<Order> {
   async findById(user: UserToken, id: string) {
     const order = await this.findOne({ id })
     if (!order) {
-      BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ORDER, HttpStatus.NOT_FOUND)
     } else if (
       order.shop.id !== user.profile.id
       || order.user.id !== user.profile.id
     ) {
-      BaseError(TableName.ORDER, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ORDER, HttpStatus.FORBIDDEN)
     }
 
     return { order }
@@ -147,9 +147,9 @@ export class OrderService extends BaseService<Order> {
   ) {
     const order = await this.findOne({ id })
     if (!order) {
-      BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ORDER, HttpStatus.NOT_FOUND)
     } else if (order.shop.id !== user.profile.id) {
-      BaseError(TableName.ORDER, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ORDER, HttpStatus.FORBIDDEN)
     }
 
     await this.orderRepo.save({
@@ -172,9 +172,9 @@ export class OrderService extends BaseService<Order> {
 
     const order = await this.findOne({ id })
     if (!order) {
-      BaseError(TableName.ORDER, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ORDER, HttpStatus.NOT_FOUND)
     } else if (order.shop.id !== user.profile.id) {
-      BaseError(TableName.ORDER, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ORDER, HttpStatus.FORBIDDEN)
     }
 
     return {

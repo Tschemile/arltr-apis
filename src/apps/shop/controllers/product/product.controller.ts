@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nes
 import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { CreateProductInput, GetProductOutput, UpdateProductInput } from "apps/shop/dtos";
 import { ProductService } from "apps/shop/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.PRODUCT)
-@Controller(TableName.PRODUCT.toLowerCase())
+@ApiTags(ModuleName.PRODUCT)
+@Controller(ModuleName.PRODUCT.toLowerCase())
 export class ProductController {
   constructor(
     private readonly productService: ProductService,
@@ -32,7 +32,7 @@ export class ProductController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PRODUCT} not found` })
   @ApiOkResponse({ type: GetProductOutput })
   async patch(
     @Request() req,
@@ -48,7 +48,7 @@ export class ProductController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PRODUCT} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PRODUCT} not found` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(
     @Request() req,

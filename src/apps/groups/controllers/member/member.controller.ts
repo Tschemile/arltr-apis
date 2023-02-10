@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { MEMBER_STATUS, QUERY_MEMBER_TYPE } from "apps/groups/constants";
 import { CreateMemberInput, GetMemberOutput, GetMembersOutput, UpdateMemberInput } from "apps/groups/dtos";
 import { MemberService } from "apps/groups/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.MEMBER)
-@Controller(TableName.MEMBER.toLowerCase())
+@ApiTags(ModuleName.MEMBER)
+@Controller(ModuleName.MEMBER.toLowerCase())
 export class MemberController {
   constructor(
     private readonly memberService: MemberService,
@@ -14,7 +14,7 @@ export class MemberController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.GROUP} not found` })
   @ApiCreatedResponse({ type: GetMemberOutput })
   async post(
     @Request() req,
@@ -51,7 +51,7 @@ export class MemberController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.MEMBER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.MEMBER} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetMemberOutput })
   async patch(
@@ -69,7 +69,7 @@ export class MemberController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.MEMBER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.MEMBER} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(

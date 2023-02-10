@@ -5,7 +5,7 @@ import { Address } from "apps/address/entities";
 import { UserToken } from "apps/auth";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
 export const addressRelations = {
   user: true,
@@ -49,7 +49,7 @@ export class AddressService extends BaseService<Address> {
     const address = await this.findOne({ id })
 
     if (address.user.id !== user.profile.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN)
     }
 
     return { address }
@@ -62,9 +62,9 @@ export class AddressService extends BaseService<Address> {
   ) {
     const address = await this.findOne({ id })
     if (!address) {
-      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN)
     }
 
     await this.addressRepo.save({
@@ -82,9 +82,9 @@ export class AddressService extends BaseService<Address> {
   ) {
     const address = await this.findOne({ id })
     if (!address) {
-      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ADDRESS, HttpStatus.NOT_FOUND)
     } else if (address.user.id !== user.profile.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN)
     }
     return {
       address: await this.addressRepo.softRemove(address)

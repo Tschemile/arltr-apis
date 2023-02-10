@@ -12,7 +12,7 @@ import {
 import { Profile, Relation } from 'apps/profiles/entities';
 import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { ProfileService } from '../profile';
 
 export const relateRelations = {
@@ -35,7 +35,7 @@ export class RelationService extends BaseService<Relation> {
 
     const profile = await this.profileService.findOne({ id: userId });
     if (!profile) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND);
     }
 
     const existedRelation = await this.findOne({
@@ -160,14 +160,14 @@ export class RelationService extends BaseService<Relation> {
   async update(user: UserToken, id: string) {
     const relation = await this.findOne({ id });
     if (!relation) {
-      BaseError(TableName.RELATION, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.RELATION, HttpStatus.NOT_FOUND);
     }
 
     if (
       relation.user.id !== user.profile.id &&
       relation.type !== RELATION_TYPE.FRIEND
     ) {
-      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.RELATION, HttpStatus.FORBIDDEN);
     }
 
     await this.relationRepo.save({
@@ -186,14 +186,14 @@ export class RelationService extends BaseService<Relation> {
   async remove(user: UserToken, id: string) {
     const relation = await this.findOne({ id });
     if (!relation) {
-      BaseError(TableName.RELATION, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.RELATION, HttpStatus.NOT_FOUND);
     }
 
     if (
       relation.user.id !== user.profile.id &&
       relation.requester.id !== user.profile.id
     ) {
-      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.RELATION, HttpStatus.FORBIDDEN);
     }
 
     return {
@@ -222,7 +222,7 @@ export class RelationService extends BaseService<Relation> {
 
     const profile = await this.profileService.findOne({ id: userId });
     if (!profile) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND);
     }
 
     const existedRelation = await this.findOne({
@@ -232,7 +232,7 @@ export class RelationService extends BaseService<Relation> {
     });
     
     if(status === FRIEND_STATUS.REQUESTING && existedRelation) {
-      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.RELATION, HttpStatus.FORBIDDEN);
     }
 
     return {existedRelation, type: input.type, profile};

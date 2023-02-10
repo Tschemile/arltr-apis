@@ -22,11 +22,11 @@ import {
 } from 'apps/jobs/dtos/applicant/get-applicant.dto';
 import { UpdateApplicantDto } from 'apps/jobs/dtos/applicant/update-applicant.dto';
 import { ApplicantService } from 'apps/jobs/services/applicant/applicant.service';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 
-@ApiTags(TableName.APPLICANT)
-@Controller(TableName.APPLICANT.toLowerCase())
+@ApiTags(ModuleName.APPLICANT)
+@Controller(ModuleName.APPLICANT.toLowerCase())
 export class ApplicantController {
   constructor(private readonly applicantService: ApplicantService) {}
 

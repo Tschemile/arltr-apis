@@ -5,7 +5,7 @@ import { QueryReactInput, UpsertReactInput } from "apps/posts/dtos";
 import { Comment, Post, React } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { CommentService } from "../comment";
 import { PostService } from "../post";
 
@@ -35,7 +35,7 @@ export class ReactService extends BaseService<React> {
     if (postId) {
       const post = await this.postService.findOne({ id: postId })
       if (!post) {
-        BaseError(TableName.POST, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.POST, HttpStatus.NOT_FOUND)
       }
 
       data = post
@@ -45,7 +45,7 @@ export class ReactService extends BaseService<React> {
     if (commentId) {
       const comment = await this.commentService.findOne({ id: commentId })
       if (!comment) {
-        BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.COMMENT, HttpStatus.NOT_FOUND)
       }
 
       data = comment

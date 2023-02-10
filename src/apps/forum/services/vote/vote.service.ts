@@ -5,7 +5,7 @@ import { UpsertVoteInput } from "apps/forum/dtos";
 import { Vote } from "apps/forum/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { BlogService } from "../blog";
 import { ReplyService } from "../reply";
 
@@ -35,7 +35,7 @@ export class VoteService extends BaseService<Vote> {
     if (blogId) {
       const blog = await this.blogService.findOne({ id: blogId })
       if (!blog) {
-        BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.BLOG, HttpStatus.NOT_FOUND)
       }
 
       id = blog.id
@@ -45,7 +45,7 @@ export class VoteService extends BaseService<Vote> {
     if (replyId) {
       const reply = await this.replyService.findOne({ id: replyId })
       if (!reply) {
-        BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.REPLY, HttpStatus.NOT_FOUND)
       }
 
       id = reply.id

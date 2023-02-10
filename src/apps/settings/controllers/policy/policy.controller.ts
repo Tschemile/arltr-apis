@@ -21,10 +21,10 @@ import { CreatePolicyDto } from 'apps/settings/dtos/policy/create-policy.dto';
 import { GetPolicysOutput } from 'apps/settings/dtos/policy/get-policy.dto';
 import { UpdatePolicyDto } from 'apps/settings/dtos/policy/update-policy.dto';
 import { PolicyService } from 'apps/settings/services/policy';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
-@ApiTags(TableName.POLICY)
-@Controller(TableName.POLICY.toLowerCase())
+@ApiTags(ModuleName.POLICY)
+@Controller(ModuleName.POLICY.toLowerCase())
 export class PolicyController {
   constructor(private readonly policyService: PolicyService) {}
   @Post()

@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundRes
 import { POST_TYPE } from "apps/posts/constants";
 import { CreatePostInput, GetPostOutput, GetPostsOutput, POST_QUERY_TYPE, UpdatePostInput } from "apps/posts/dtos";
 import { PostService } from "apps/posts/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.POST)
-@Controller(TableName.POST.toLowerCase())
+@ApiTags(ModuleName.POST)
+@Controller(ModuleName.POST.toLowerCase())
 export class PostController {
   constructor(
     private readonly postService: PostService
@@ -51,7 +51,7 @@ export class PostController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.POST} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetPostOutput })
   async patch(
@@ -65,7 +65,7 @@ export class PostController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.POST} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

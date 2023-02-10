@@ -5,7 +5,7 @@ import { CreateReviewInput } from "apps/shop/dtos";
 import { Review } from "apps/shop/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { ProductService } from "../product";
 
 export const reviewRelations = {
@@ -27,7 +27,7 @@ export class ReviewService extends BaseService<Review> {
 
     const product = await this.productService.findOne({ id: productId })
     if (!product) {
-      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PRODUCT, HttpStatus.NOT_FOUND)
     }
 
     const createdReview = this.reviewRepo.create({

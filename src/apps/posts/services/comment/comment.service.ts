@@ -5,7 +5,7 @@ import { CreateCommentInput, UpdateCommentInput } from "apps/posts/dtos";
 import { Comment } from "apps/posts/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { PostService } from "../post";
 
 export const commentRelation = {
@@ -27,7 +27,7 @@ export class CommentService extends BaseService<Comment> {
 
     const post = await this.postService.findOne({ id: postId })
     if (!post) {
-      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.POST, HttpStatus.NOT_FOUND)
     }
 
     post.totalComments += 1
@@ -63,11 +63,11 @@ export class CommentService extends BaseService<Comment> {
   ) {
     const comment = await this.findOne({ id })
     if (!comment) {
-      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
     await this.commentRepo.save({
@@ -83,11 +83,11 @@ export class CommentService extends BaseService<Comment> {
   async remove(user: UserToken, id: string) {
     const comment = await this.findOne({ id })
     if (!comment) {
-      BaseError(TableName.COMMENT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.COMMENT, HttpStatus.NOT_FOUND)
     }
 
     if (comment.user.id !== user.profile.id) {
-      BaseError(TableName.COMMENT, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.COMMENT, HttpStatus.FORBIDDEN)
     }
 
     await this.postService.changeProperty({ id: comment.post.id }, 'totalComments', 1, 'DECREMENT')

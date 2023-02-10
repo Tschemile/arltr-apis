@@ -7,7 +7,7 @@ import { UpdateCertificateDto } from 'apps/courses/dto/certificate/update-certif
 import { Certificate } from 'apps/courses/entities/certificate.entity';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { CourseService } from '../course';
 
 const certificateRelation = {
@@ -30,7 +30,7 @@ export class CertificateService extends BaseService<Certificate> {
     const course = await this.courseService.findOne({ id: courseId });
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const certificate = await this.findOne({
@@ -39,7 +39,7 @@ export class CertificateService extends BaseService<Certificate> {
     });
 
     if (certificate) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const createCertificate = this.certificateRepository.create({
@@ -77,7 +77,7 @@ export class CertificateService extends BaseService<Certificate> {
     const certificate = await this.findOne({ id });
 
     if (!certificate) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -93,7 +93,7 @@ export class CertificateService extends BaseService<Certificate> {
     const certificate = await this.findOne({ id });
 
     if (!certificate) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const course = await this.courseService.findOne({
@@ -101,11 +101,11 @@ export class CertificateService extends BaseService<Certificate> {
     });
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== certificate.user.id) {
-      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.COURSE, HttpStatus.FORBIDDEN);
     }
 
     await this.certificateRepository.save({
@@ -124,11 +124,11 @@ export class CertificateService extends BaseService<Certificate> {
     const certificate = await this.findOne({ id });
 
     if (!certificate) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== certificate.user.id) {
-      BaseError(TableName.COURSE, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.COURSE, HttpStatus.FORBIDDEN);
     }
 
     return {

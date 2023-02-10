@@ -26,6 +26,7 @@
     "typeorm:revert-migration": "npm run typeorm -- -d src/typeorm.config.ts migration:revert"
   },
   "dependencies": {
+    "@casl/ability": "^5.4.4",
     "@fastify/static": "^6.8.0",
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",

@@ -9,7 +9,7 @@ import { Responded } from 'apps/address/entities';
 import { UserToken } from 'apps/auth';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { EventService } from '../event';
 
 const respondedRelatetions = {
@@ -33,7 +33,7 @@ export class RespondedService extends BaseService<Responded> {
     });
 
     if (!event) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     const createResponded = await this.insertOne({
@@ -74,17 +74,17 @@ export class RespondedService extends BaseService<Responded> {
     });
 
     if (!event) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     const responded = await this.findOne({ id });
 
     if (!responded) {
-      BaseError(TableName.RESPONDED, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.RESPONDED, HttpStatus.NOT_FOUND);
     }
 
     if (responded.user.id !== user.profile.id) {
-      BaseError(TableName.RESPONDED, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.RESPONDED, HttpStatus.FORBIDDEN);
     }
 
     await this.respondedRepository.save({
@@ -103,7 +103,7 @@ export class RespondedService extends BaseService<Responded> {
     const responded = await this.findOne({ id });
 
     if (!responded) {
-      BaseError(TableName.RESPONDED, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.RESPONDED, HttpStatus.NOT_FOUND);
     }
     return {
       responded,
@@ -114,11 +114,11 @@ export class RespondedService extends BaseService<Responded> {
     const responded = await this.findOne({ id });
 
     if (!responded) {
-      BaseError(TableName.RESPONDED, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.RESPONDED, HttpStatus.NOT_FOUND);
     }
 
     if (responded.user.id !== user.profile.id) {
-      BaseError(TableName.RESPONDED, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.RESPONDED, HttpStatus.FORBIDDEN);
     }
 
     return { responded: await this.respondedRepository.softRemove(responded) };

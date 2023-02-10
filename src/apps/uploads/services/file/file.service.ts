@@ -8,7 +8,7 @@ import { File } from "apps/uploads/entities";
 import { deleteFromCloudinary } from "apps/uploads/utils";
 import { BaseError, BaseService } from "base";
 import { Any, DeepPartial, FindOptionsWhere, In, Not, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { AlbumService } from "../album";
 
 export const fileRelation = {
@@ -47,9 +47,9 @@ export class FileService extends BaseService<File> {
     if (albumId) {
       const album = await this.albumService.findOne({ id: albumId })
       if (!album) {
-        BaseError(TableName.ALBUM, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.ALBUM, HttpStatus.NOT_FOUND)
       } else if (album.user.id !== user.profile.id) {
-        BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
+        BaseError(ModuleName.ALBUM, HttpStatus.FORBIDDEN)
       }
 
       fileData.album = album
@@ -60,7 +60,7 @@ export class FileService extends BaseService<File> {
     if (type) {
       const profile = await this.profileService.findOne({ id: user.profile.id })
       if (!profile) {
-        BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
       }
       let avatar = profile.avatar
       let cover = profile.cover
@@ -109,17 +109,17 @@ export class FileService extends BaseService<File> {
   async update(user: UserToken, id: string, input: UpdateFileInput) {
     const file = await this.findOne({ id })
     if (!file) {
-      BaseError(TableName.FILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.FILE, HttpStatus.NOT_FOUND)
     } else if (user.profile.id !== file.owner.id) {
-      BaseError(TableName.FILE, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.FILE, HttpStatus.FORBIDDEN)
     }
 
     const { album: albumId } = input
     const album = await this.albumService.findOne({ id: albumId })
     if (!album) {
-      BaseError(TableName.ALBUM, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ALBUM, HttpStatus.NOT_FOUND)
     } else if (user.profile.id !== album.user.id) {
-      BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ALBUM, HttpStatus.FORBIDDEN)
     }
 
     await this.fileRepo.save({
@@ -133,9 +133,9 @@ export class FileService extends BaseService<File> {
   async remove(user: UserToken, id: string) {
     const file = await this.findOne({ id })
     if (!file) {
-      BaseError(TableName.FILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.FILE, HttpStatus.NOT_FOUND)
     } else if (user.profile.id !== file.owner.id) {
-      BaseError(TableName.FILE, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.FILE, HttpStatus.FORBIDDEN)
     }
 
     await deleteFromCloudinary(file.filename)

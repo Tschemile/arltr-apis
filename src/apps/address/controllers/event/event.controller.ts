@@ -2,11 +2,11 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } fro
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateEventDto, GetEventOutput, GetEventsOutput, UpdateEventDto } from 'apps/address/dtos/event';
 import { EventService } from 'apps/address/services';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 
-@ApiTags(TableName.EVENT)
-@Controller(TableName.EVENT.toLowerCase())
+@ApiTags(ModuleName.EVENT)
+@Controller(ModuleName.EVENT.toLowerCase())
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 

@@ -7,7 +7,7 @@ import { Profile } from "apps/profiles/entities";
 import { CategoryService } from "apps/settings";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { RelationService } from "../relation";
 
 export const pageRelations = {
@@ -29,7 +29,7 @@ export class PageService extends BaseService<Profile> {
 
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     const createdPage = this.pageRepo.create({
@@ -70,7 +70,7 @@ export class PageService extends BaseService<Profile> {
     if (categoryId) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
       }
 
       where.category = { id: category.id }
@@ -96,7 +96,7 @@ export class PageService extends BaseService<Profile> {
   async validAuthorization(user: UserToken, id: string) {
     const page = await this.findOne({ id })
     if (!page) {
-      BaseError(TableName.PAGE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PAGE, HttpStatus.NOT_FOUND)
     }
 
     const relation = await this.relationService.findOne({
@@ -105,7 +105,7 @@ export class PageService extends BaseService<Profile> {
       user: { id: page.id }
     })
     if (!relation) {
-      BaseError(TableName.PAGE, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.PAGE, HttpStatus.FORBIDDEN)
     }
 
     return { page }
@@ -123,7 +123,7 @@ export class PageService extends BaseService<Profile> {
     if (categoryId) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
       }
       newCategory = category
     }

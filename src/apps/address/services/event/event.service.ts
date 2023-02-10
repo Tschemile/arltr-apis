@@ -7,7 +7,7 @@ import { UserToken } from 'apps/auth';
 import { GroupService } from 'apps/groups';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { checkOverlap } from 'utils';
 import { AddressService } from '../address';
 
@@ -34,7 +34,7 @@ export class EventService extends BaseService<Event> {
       event.address.id === createEventDto.address &&
       event.group.id === createEventDto.group
     ) {
-      BaseError(TableName.EVENT, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.EVENT, HttpStatus.FORBIDDEN);
     }
 
     const address = await this.addressService.findOne({
@@ -42,18 +42,18 @@ export class EventService extends BaseService<Event> {
     });
 
     if (!address) {
-      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.ADDRESS, HttpStatus.NOT_FOUND);
     }
 
     const group = await this.groupService.findOne({ id: createEventDto.group });
 
     if (!group) {
-      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND);
     }
 
 
     if (!checkOverlap(createEventDto.startTime.toString(), createEventDto.endTime.toString())) {
-      BaseError(TableName.EVENT, HttpStatus.CONFLICT, 'time frame not suitable');
+      BaseError(ModuleName.EVENT, HttpStatus.CONFLICT, 'time frame not suitable');
     }
 
     const createEvent = await this.insertOne({
@@ -88,7 +88,7 @@ export class EventService extends BaseService<Event> {
     const event = await this.findOne({ id });
 
     if (!event) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     const address = await this.addressService.findOne({
@@ -96,17 +96,17 @@ export class EventService extends BaseService<Event> {
     });
 
     if (!address) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     const group = await this.groupService.findOne({ id: updateEventDto.group });
 
     if (!group) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== event.user.id) {
-      BaseError(TableName.EVENT, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.EVENT, HttpStatus.FORBIDDEN);
     }
 
     await this.eventRepository.save({
@@ -125,7 +125,7 @@ export class EventService extends BaseService<Event> {
     const event = await this.findOne({ id });
 
     if (!event) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -137,11 +137,11 @@ export class EventService extends BaseService<Event> {
     const event = await this.findOne({ id });
 
     if (!event) {
-      BaseError(TableName.EVENT, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.EVENT, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== event.user.id) {
-      BaseError(TableName.EVENT, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.EVENT, HttpStatus.FORBIDDEN);
     }
 
     return { event: await this.eventRepository.softRemove(event) };

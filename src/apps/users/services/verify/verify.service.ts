@@ -7,7 +7,7 @@ import { ProfileService } from 'apps/profiles';
 import { Verify } from 'apps/users/entities/verify.entity';
 import { BaseError, BaseService } from 'base';
 import { Repository } from 'typeorm';
-import { TableName, timeIn } from 'utils';
+import { ModuleName, timeIn } from 'utils';
 import { ranDomCode } from 'utils/utils';
 import { UserService } from '../user';
 
@@ -64,7 +64,7 @@ export class VerifyService extends BaseService<Verify> {
       code,
     });
     if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
-      BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
+      BaseError(ModuleName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
     const userInfo = await this.userService.findOne({ email: verify.information });
     const profile = await this.profileService.findOne({

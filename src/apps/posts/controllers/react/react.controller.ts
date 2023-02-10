@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } 
 import { REACT_TYPE } from "apps/posts/constants";
 import { GetReactOutput, GetReactsOutput, UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.REACT)
-@Controller(TableName.REACT.toLowerCase())
+@ApiTags(ModuleName.REACT)
+@Controller(ModuleName.REACT.toLowerCase())
 export class ReactController {
   constructor (
     private readonly reactService: ReactService
@@ -14,7 +14,7 @@ export class ReactController {
 
   @Put()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.POST} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.POST} not found` })
   @ApiOkResponse()
   async put(
     @Request() req,

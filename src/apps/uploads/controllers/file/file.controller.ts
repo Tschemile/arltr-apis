@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Query, Request } from "@ne
 import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { GetFileOutput, GetFilesOutput, UpdateFileInput } from "apps/uploads/dtos";
 import { FileService } from "apps/uploads/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.FILE)
-@Controller(TableName.FILE.toLowerCase())
+@ApiTags(ModuleName.FILE)
+@Controller(ModuleName.FILE.toLowerCase())
 export class FileController {
   constructor(
     private readonly fileService: FileService

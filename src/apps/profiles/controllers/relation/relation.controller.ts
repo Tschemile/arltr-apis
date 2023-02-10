@@ -4,10 +4,10 @@ import { JwtAuthGuard } from "apps/auth";
 import { FRIEND_STATUS } from "apps/profiles/constants";
 import { QUERY_RELATION_TYPE, UpsertRelationInput } from "apps/profiles/dtos";
 import { RelationService } from "apps/profiles/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.RELATION)
-@Controller(TableName.RELATION.toLowerCase())
+@ApiTags(ModuleName.RELATION)
+@Controller(ModuleName.RELATION.toLowerCase())
 export class RelationController {
   constructor(
     private readonly relationService: RelationService,
@@ -40,7 +40,7 @@ export class RelationController {
 
   @Put()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.RELATION} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.RELATION} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   async patch(
     @Request() req,

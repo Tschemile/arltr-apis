@@ -21,11 +21,11 @@ import {
 } from 'apps/courses/dto/lesson/get-lesson.dto';
 import { UpdateLessonDto } from 'apps/courses/dto/lesson/update-lesson.dto';
 import { LessonService } from 'apps/courses/services/lesson/lesson.service';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 
-@ApiTags(TableName.LESSON)
-@Controller(TableName.LESSON.toLowerCase())
+@ApiTags(ModuleName.LESSON)
+@Controller(ModuleName.LESSON.toLowerCase())
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 

@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { BaseError } from "base";
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { UserToken } from "../dtos";
 import { AuthService } from "../services";
 
@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       !user &&
       payload.exp < Math.floor(new Date().getTime() / 1000)
     ) {
-      BaseError(TableName.USER, HttpStatus.UNAUTHORIZED)
+      BaseError(ModuleName.USER, HttpStatus.UNAUTHORIZED)
     }
 
     return user

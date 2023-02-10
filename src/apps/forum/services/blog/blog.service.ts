@@ -7,7 +7,7 @@ import { Blog } from "apps/forum/entities";
 import { CategoryService } from "apps/settings";
 import { BaseError, BaseService } from "base";
 import { ArrayContains, FindOptionsWhere, In, Like, Repository } from "typeorm";
-import { generateSlug, TableName } from "utils";
+import { generateSlug, ModuleName } from "utils";
 
 export const blogRelation = {
   author: true,
@@ -28,7 +28,7 @@ export class BlogService extends BaseService<Blog> {
     
     const category = await this.categoryService.findOne({ id: categoryId })
     if (!category) {
-      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     const createdBlog = this.blogRepo.create({
@@ -91,9 +91,9 @@ export class BlogService extends BaseService<Blog> {
   ) {
     const blog = await this.findOne({ id })
     if (!blog) {
-      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.BLOG, HttpStatus.FORBIDDEN)
     }
 
     const { title, category: categoryId } = input
@@ -101,7 +101,7 @@ export class BlogService extends BaseService<Blog> {
     if (categoryId && categoryId !== blog.category.id) {
       const category = await this.categoryService.findOne({ id: categoryId })
       if (!category) {
-        BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+        BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
       }
       blog.category = category
     }
@@ -122,9 +122,9 @@ export class BlogService extends BaseService<Blog> {
   async remove(user: UserToken, id: string) {
     const blog = await this.findOne({ id })
     if (!blog) {
-      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.BLOG, HttpStatus.NOT_FOUND)
     } else if (blog.author.id !== user.profile.id) {
-      BaseError(TableName.BLOG, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.BLOG, HttpStatus.FORBIDDEN)
     }
 
     return {

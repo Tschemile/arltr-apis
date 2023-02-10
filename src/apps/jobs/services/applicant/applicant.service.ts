@@ -8,7 +8,7 @@ import { UpdateApplicantDto } from 'apps/jobs/dtos/applicant/update-applicant.dt
 import { Applicant } from 'apps/jobs/entities';
 import { BaseError, BaseService } from 'base';
 import { Any, Equal, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { JobsService } from '../job';
 import { ResumeService } from '../resume';
 
@@ -38,19 +38,19 @@ export class ApplicantService extends BaseService<Applicant> {
     });
 
     if (applicant) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const job = await this.jobService.findOne({ id: jobId });
 
     if (!job) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const resume = await this.resumeService.findOne({ id: resumeId });
 
     if (!resume) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const createApplicant = this.applicantRepository.create({
@@ -110,7 +110,7 @@ export class ApplicantService extends BaseService<Applicant> {
     const applicant = await this.findOne({ id });
 
     if (!applicant) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -126,13 +126,13 @@ export class ApplicantService extends BaseService<Applicant> {
     });
 
     if (!applicant) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const job = await this.jobService.findOne({ id: updateApplicantDto.job });
 
     if (!job) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const resume = await this.resumeService.findOne({
@@ -140,7 +140,7 @@ export class ApplicantService extends BaseService<Applicant> {
     });
 
     if (!resume) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
     await this.applicantRepository.save({
       ...updateApplicantDto,
@@ -158,7 +158,7 @@ export class ApplicantService extends BaseService<Applicant> {
     const applicant = await this.findOne({ id });
 
     if (!applicant) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
     return { applicant: await this.applicantRepository.softRemove(applicant) };
   }

@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } fro
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CreateAlbumInput, GetAlbumOutput, GetAlbumsOutput, UpdateAlbumInput } from "apps/uploads/dtos";
 import { AlbumService } from "apps/uploads/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.ALBUM)
-@Controller(TableName.ALBUM.toLowerCase())
+@ApiTags(ModuleName.ALBUM)
+@Controller(ModuleName.ALBUM.toLowerCase())
 export class AlbumController {
   constructor(
     private readonly albumService: AlbumService
@@ -35,8 +35,8 @@ export class AlbumController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.ALBUM} not found` })
-  @ApiForbiddenResponse({ description: `You don't have permission to do with this ${TableName.ALBUM}` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ALBUM} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do with this ${ModuleName.ALBUM}` })
   @ApiOkResponse({ type: GetAlbumOutput })
   async patch(
     @Request() req,
@@ -49,8 +49,8 @@ export class AlbumController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.ALBUM} not found` })
-  @ApiForbiddenResponse({ description: `You don't have permission to do with this ${TableName.ALBUM}` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ALBUM} not found` })
+  @ApiForbiddenResponse({ description: `You don't have permission to do with this ${ModuleName.ALBUM}` })
   @ApiOkResponse({ type: GetAlbumOutput })
   async delete(
     @Request() req,

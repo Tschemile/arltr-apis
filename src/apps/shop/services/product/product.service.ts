@@ -7,7 +7,7 @@ import { CreateProductInput, UpdateProductInput } from "apps/shop/dtos";
 import { Product } from "apps/shop/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Repository } from "typeorm";
-import { generateSlug, TableName } from "utils";
+import { generateSlug, ModuleName } from "utils";
 
 export const productRelations = {
   shop: true,
@@ -33,11 +33,11 @@ export class ProductService extends BaseService<Product> {
     const address = await this.addressService.findOne({ id: addressId })
 
     if (!category) {
-      BaseError(TableName.CATEGORY, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.CATEGORY, HttpStatus.NOT_FOUND)
     }
 
     if (!address) {
-      BaseError(TableName.ADDRESS, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ADDRESS, HttpStatus.NOT_FOUND)
     }
 
     return {
@@ -92,9 +92,9 @@ export class ProductService extends BaseService<Product> {
 
     const product = await this.findOne({ id })
     if (!product) {
-      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {
-      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.PRODUCT, HttpStatus.FORBIDDEN)
     }
 
     const { category, address } = await this.checkValidUpsert({
@@ -128,9 +128,9 @@ export class ProductService extends BaseService<Product> {
   ) {
     const product = await this.findOne({ id })
     if (!product) {
-      BaseError(TableName.PRODUCT, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PRODUCT, HttpStatus.NOT_FOUND)
     } else if (product.shop.id !== user.profile.id) {
-      BaseError(TableName.PRODUCT, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.PRODUCT, HttpStatus.FORBIDDEN)
     }
 
     return {

@@ -5,10 +5,10 @@ import { FileMetaInput, FileUploadInput, FileUploadMultiInput } from "apps/uploa
 import { UploadFileInterceptor } from "apps/uploads/middleware";
 import { FileService } from "apps/uploads/services";
 import { imageFileFilter } from "apps/uploads/utils";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.UPLOAD)
-@Controller(TableName.UPLOAD.toLowerCase())
+@ApiTags(ModuleName.UPLOAD)
+@Controller(ModuleName.UPLOAD.toLowerCase())
 export class UploadController {
   constructor(
     private readonly fileService: FileService

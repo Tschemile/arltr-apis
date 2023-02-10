@@ -7,7 +7,7 @@ import { Group } from 'apps/groups/entities';
 import { ProfileService } from 'apps/profiles';
 import { BaseError, BaseService } from 'base';
 import { FindOptionsWhere, In, Like, Not, Repository } from 'typeorm';
-import { generateSlug, TableName } from 'utils';
+import { generateSlug, ModuleName } from 'utils';
 import { MemberService } from '../member';
 
 @Injectable()
@@ -59,7 +59,7 @@ export class GroupService extends BaseService<Group> {
         const { user: userId } = query
         const profile = await this.profileService.findOne({ id: userId })
         if (!profile) {
-          BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+          BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
         }
 
         const { members: memberOfUser } = await this.memberService.findAll(user, {
@@ -93,7 +93,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -101,7 +101,7 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     await this.groupRepo.save({
@@ -123,7 +123,7 @@ export class GroupService extends BaseService<Group> {
   ) {
     const group = await this.findOne({ id })
     if (!group) {
-      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -131,7 +131,7 @@ export class GroupService extends BaseService<Group> {
       group: { id: group.id },
     })
     if (!member || member.role !== MEMBER_ROLE.ADMIN) {
-      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.GROUP, HttpStatus.FORBIDDEN)
     }
 
     return await this.groupRepo.softRemove(group)

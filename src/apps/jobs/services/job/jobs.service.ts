@@ -14,7 +14,7 @@ import {
   Not,
   Repository
 } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { CreateJobDto } from '../../dtos/job/create-job.dto';
 import { Job } from '../../entities';
 
@@ -42,7 +42,7 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!category) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const address = await this.addressService.findOne({
@@ -50,7 +50,7 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!address) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const createJob = this.jobRepository.create({
@@ -100,7 +100,7 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!job) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
     return {
       job,
@@ -115,11 +115,11 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!job) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     if (job.employer.id !== user.profile.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
     const category = await this.categoryService.findOne({
@@ -127,7 +127,7 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!category) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const address = await this.addressService.findOne({
@@ -135,7 +135,7 @@ export class JobsService extends BaseService<Job> {
     });
 
     if (!address) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     await this.jobRepository.save({
@@ -154,11 +154,11 @@ export class JobsService extends BaseService<Job> {
     const job = await this.findOne({ id });
 
     if (!job) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     if (job.employer.id !== user.profile.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
     return { job: await this.jobRepository.softRemove(job) };

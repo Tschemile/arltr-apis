@@ -3,10 +3,10 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedRe
 import { Public } from "apps/auth";
 import { GetUserTokenOutput, LoginInput, RegisterInput } from "apps/users/dtos";
 import { UserService } from "apps/users/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.USER)
-@Controller(TableName.USER.toLowerCase())
+@ApiTags(ModuleName.USER)
+@Controller(ModuleName.USER.toLowerCase())
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -14,7 +14,7 @@ export class UserController {
 
   @Public()
   @Post('login')
-  @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.USER} not found` })
   @ApiBadRequestResponse({ description: 'Email or password incorrect' })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async login(@Body() loginUserInput: LoginInput): Promise<GetUserTokenOutput> {
@@ -23,7 +23,7 @@ export class UserController {
 
   @Public()
   @Post()
-  @ApiConflictResponse({ description: `${TableName.USER} already existed` })
+  @ApiConflictResponse({ description: `${ModuleName.USER} already existed` })
   @ApiCreatedResponse({ type: GetUserTokenOutput })
   async create(@Body() registerInput: RegisterInput)  {
     return await this.userService.register(registerInput)
@@ -31,7 +31,7 @@ export class UserController {
 
   @Delete()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.USER} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.USER} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(
     @Request() req,

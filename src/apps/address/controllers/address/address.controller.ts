@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nes
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { CreateAddressInput, GetAddressesOutput, GetAddressOutput, UpdateAddressInput } from "apps/address/dtos";
 import { AddressService } from "apps/address/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.ADDRESS)
-@Controller(TableName.ADDRESS.toLowerCase())
+@ApiTags(ModuleName.ADDRESS)
+@Controller(ModuleName.ADDRESS.toLowerCase())
 export class AddressController {
   constructor(
     private readonly addressService: AddressService,
@@ -44,7 +44,7 @@ export class AddressController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ADDRESS} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ type: GetAddressOutput })
   async patch(
@@ -62,7 +62,7 @@ export class AddressController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.ADDRESS} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.ADDRESS} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that.`})
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

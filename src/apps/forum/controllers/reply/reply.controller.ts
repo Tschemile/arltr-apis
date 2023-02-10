@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from "@nes
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import { CreateReplyInput, GetRepliesOutput, GetReplyOutput, UpdateReplyInput } from "apps/forum/dtos";
 import { ReplyService } from "apps/forum/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.REPLY)
-@Controller(TableName.REPLY.toLowerCase())
+@ApiTags(ModuleName.REPLY)
+@Controller(ModuleName.REPLY.toLowerCase())
 export class ReplyController {
   constructor(
     private readonly replyService: ReplyService
@@ -34,7 +34,7 @@ export class ReplyController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.REPLY} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetReplyOutput })
   async patch(
@@ -48,7 +48,7 @@ export class ReplyController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.REPLY} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.REPLY} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

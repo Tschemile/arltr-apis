@@ -9,7 +9,7 @@ import { Post } from "apps/posts/entities";
 import { ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseError, BaseService } from "base";
 import { FindOptionsOrder, FindOptionsWhere, In, LessThan, Like, Not, Repository } from "typeorm";
-import { isSameArray, TableName, timeIn } from "utils";
+import { isSameArray, ModuleName, timeIn } from "utils";
 import { CommentService } from "../comment";
 import { ReactService } from "../react";
 import { TagService } from "../tag";
@@ -39,7 +39,7 @@ export class PostService extends BaseService<Post> {
   async validGroup(user: UserToken, groupId: string) {
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     const member = await this.memberService.findOne({
@@ -48,7 +48,7 @@ export class PostService extends BaseService<Post> {
     })
 
     if (!member || member.status !== MEMBER_STATUS.ACTIVE) {
-      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.POST, HttpStatus.FORBIDDEN)
     }
 
     return { group }
@@ -132,12 +132,12 @@ export class PostService extends BaseService<Post> {
       case 'GROUP': {
         const group = await this.groupService.findOne({ id: groupId })
         if (!group) {
-          BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+          BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND)
         }
         if (group.mode !== GROUP_MODE.PUBLIC) {
           const isMember = await this.memberService.isMember(user, group.id)
           if (!isMember) {
-            BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+            BaseError(ModuleName.GROUP, HttpStatus.FORBIDDEN)
           }
         }
         where.push({
@@ -148,7 +148,7 @@ export class PostService extends BaseService<Post> {
       case 'USER': {
         const profile = await this.profileService.findOne({ id: userId })
         if (!profile) {
-          BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+          BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
         }
         if (user.profile.id === profile.id) {
           where.push({ author: { id: profile.id }})
@@ -184,7 +184,7 @@ export class PostService extends BaseService<Post> {
     switch (post.mode) {
       case POST_MODE.PRIVATE: {
         if (post.author.id !== user.profile.id) {
-          BaseError(TableName.POST, HttpStatus.FORBIDDEN)
+          BaseError(ModuleName.POST, HttpStatus.FORBIDDEN)
         }
         break
       }
@@ -194,13 +194,13 @@ export class PostService extends BaseService<Post> {
           { user: { id: post.author.id }, requester: { id: user.profile.id } }
         ])
         if (!relations || relations.type !== RELATION_TYPE.FRIEND) {
-          BaseError(TableName.POST, HttpStatus.FORBIDDEN)
+          BaseError(ModuleName.POST, HttpStatus.FORBIDDEN)
         }
         break
       }
     }
     if (post.status !== POST_STATUS.ACTIVE) {
-      BaseError(TableName.POST, HttpStatus.GONE)
+      BaseError(ModuleName.POST, HttpStatus.GONE)
     }
 
     return { post }
@@ -214,11 +214,11 @@ export class PostService extends BaseService<Post> {
     const { tags: tagIds, ...rest } = input
     const post = await this.findOne({ id })
     if (!post) {
-      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.POST, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.POST, HttpStatus.FORBIDDEN)
     }
 
     const tagsOfPosts = await this.tagService.findAll([post.id], 'POST')
@@ -256,11 +256,11 @@ export class PostService extends BaseService<Post> {
   async remove(user: UserToken, id: string) {
     const post = await this.findOne({ id })
     if (!post) {
-      BaseError(TableName.POST, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.POST, HttpStatus.NOT_FOUND)
     }
 
     if (post.author.id !== user.profile.id) {
-      BaseError(TableName.POST, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.POST, HttpStatus.FORBIDDEN)
     }
 
     return {

@@ -6,7 +6,7 @@ import { UpdateLessonDto } from 'apps/courses/dto/lesson/update-lesson.dto';
 import { Lesson } from 'apps/courses/entities';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Like, Not, Repository } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 import { CourseService } from '../course';
 
 const lessonRelations = {
@@ -30,7 +30,7 @@ export class LessonService extends BaseService<Lesson> {
     });
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const createLesson = this.lessonRepository.create({
@@ -67,7 +67,7 @@ export class LessonService extends BaseService<Lesson> {
     const lesson = await this.findOne({ id });
 
     if (!lesson) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     return {
@@ -79,7 +79,7 @@ export class LessonService extends BaseService<Lesson> {
     const lesson = await this.findOne({ id });
 
     if (!lesson) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     const course = await this.courseService.findOne({
@@ -87,7 +87,7 @@ export class LessonService extends BaseService<Lesson> {
     });
 
     if (!course) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     await this.lessonRepository.save({
@@ -105,7 +105,7 @@ export class LessonService extends BaseService<Lesson> {
     const lesson = await this.findOne({ id });
 
     if (!lesson) {
-      BaseError(TableName.COURSE, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.COURSE, HttpStatus.NOT_FOUND);
     }
 
     return {

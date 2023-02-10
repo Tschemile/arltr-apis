@@ -1,7 +1,6 @@
-export enum TableName {
+export enum ModuleName {
   ACTIVITY = 'Activity',
   ADDRESS = 'Address',
-  ADMIN = 'Admin',
   ALBUM = 'Album',
   APPLICANT = 'Applicant',
   BLOG = 'Blog',
@@ -60,6 +59,7 @@ export enum DBName {
   MESSAGE = 'message',
   ORDER = 'order',
   PARTICIPANT = 'participant',
+  PERMISSION = 'permission',
   POLICY = 'policy',
   POST = 'post',
   PRODUCT = 'product',
@@ -71,8 +71,30 @@ export enum DBName {
   RESPONDED = 'responded',
   RESUME = 'resume',
   REVIEW = 'review',
+  ROLE = 'role',
   TAG = 'tag',
   USER = 'user',
   VOTE = 'vote',
   VERIFY = 'verify',
+}
+
+export enum Action {
+  Manage = 'manage',  // 1
+  Create = 'create',  // 2
+  Read = 'read',      // 3
+  Update = 'update',  // 4
+  Delete = 'delete',  // 5
+}
+
+export enum SYSTEM_MODULE {
+  USER = 'USER',
+  SOCIAL = 'SOCIAL',
+  SHOP = 'SHOP',
+  JOB = 'JOB',
+  FORUM = 'FORUM',
+  COURSE = 'COURSE',
+  CHAT = 'CHAT',
+  PACKAGE = 'PACKAGE',
+  SETTING = 'SETTING',
+  FILE = 'FILE',
 }

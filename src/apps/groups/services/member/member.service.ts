@@ -7,7 +7,7 @@ import { Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, In, Not, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { GroupService } from "../group";
 
 export const memberRelation = {
@@ -39,13 +39,13 @@ export class MemberService extends BaseService<Member> {
     // Check exist group
     const group = await this.groupService.findOne({ id: groupId })
     if (!group) {
-      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.GROUP, HttpStatus.NOT_FOUND)
     }
 
     // Check exist profile
     const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     // Check exist member
@@ -54,7 +54,7 @@ export class MemberService extends BaseService<Member> {
       group: { id: group.id }
     })
     if (existedMember) {
-      BaseError(TableName.MEMBER, HttpStatus.CONFLICT)
+      BaseError(ModuleName.MEMBER, HttpStatus.CONFLICT)
     }
 
     if (role === MEMBER_ROLE.ADMIN) {
@@ -83,7 +83,7 @@ export class MemberService extends BaseService<Member> {
           group: { id: group.id }
         })
         if (!isMember) {
-          BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+          BaseError(ModuleName.GROUP, HttpStatus.FORBIDDEN)
         }
 
         const invitedMember = await this.insertOne({
@@ -137,7 +137,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id })
     if (!member) {
-      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id === user.profile.id) {
@@ -148,7 +148,7 @@ export class MemberService extends BaseService<Member> {
       // Check member has role to update
       const isMember = await this.isMember(user, member.group.id)
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
+        BaseError(ModuleName.MEMBER, HttpStatus.FORBIDDEN)
       } else if(member.status === MEMBER_STATUS.REQUESTING) {
         await this.groupService.changeProperty({ id: member.group.id }, 'total', 1, 'INCREMENT')
       }
@@ -157,7 +157,7 @@ export class MemberService extends BaseService<Member> {
     if (input.role && member.role !== input.role) {
       const isMember = await this.isMember(user, member.group.id)
       if (isMember.role !== MEMBER_ROLE.ADMIN) {
-        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
+        BaseError(ModuleName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 
@@ -186,7 +186,7 @@ export class MemberService extends BaseService<Member> {
     // Find member
     const member = await this.findOne({ id })
     if (!member) {
-      BaseError(TableName.MEMBER, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.MEMBER, HttpStatus.NOT_FOUND)
     }
 
     if (member.user.id !== user.profile.id) {
@@ -195,7 +195,7 @@ export class MemberService extends BaseService<Member> {
         group: { id: member.group.id }
       })
       if (!isMember || isMember.role === MEMBER_ROLE.MEMBER) {
-        BaseError(TableName.MEMBER, HttpStatus.FORBIDDEN)
+        BaseError(ModuleName.MEMBER, HttpStatus.FORBIDDEN)
       }
     }
 

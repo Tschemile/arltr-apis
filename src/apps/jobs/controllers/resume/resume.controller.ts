@@ -22,11 +22,11 @@ import {
 } from 'apps/jobs/dtos/resume/get-resume.dto';
 import { UpdateResumeDto } from 'apps/jobs/dtos/resume/update-resume.dto';
 import { ResumeService } from 'apps/jobs/services/resume';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 
-@ApiTags(TableName.RESUME)
-@Controller(TableName.RESUME.toLowerCase())
+@ApiTags(ModuleName.RESUME)
+@Controller(ModuleName.RESUME.toLowerCase())
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 

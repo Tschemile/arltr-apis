@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse
 import { GetProfileFullyOutput, GetProfileOutput, GetProfilesOutput, UpdateProfileInput } from "apps/profiles/dtos";
 import { ProfileService } from "apps/profiles/services";
 import { GetUserTokenOutput } from "apps/users/dtos";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.PROFILE)
-@Controller(TableName.PROFILE.toLowerCase())
+@ApiTags(ModuleName.PROFILE)
+@Controller(ModuleName.PROFILE.toLowerCase())
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
@@ -14,7 +14,7 @@ export class ProfileController {
 
   @Get('switch')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PROFILE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetUserTokenOutput })
   async switch(
@@ -52,7 +52,7 @@ export class ProfileController {
 
   @Get('me')
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
   async getMyProfile(
     @Request() req
@@ -63,7 +63,7 @@ export class ProfileController {
   @Get(':domain')
   @ApiBearerAuth()
   @ApiParam({ name: 'domain' })
-  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PROFILE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetProfileFullyOutput })
   async getByDomain(
@@ -75,7 +75,7 @@ export class ProfileController {
 
   @Patch()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PROFILE} not found` })
   @ApiOkResponse({ type: GetProfileOutput })
   async patch(
     @Request() req,
@@ -89,7 +89,7 @@ export class ProfileController {
 
   @Delete()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PROFILE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PROFILE} not found` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(
     @Request() req,

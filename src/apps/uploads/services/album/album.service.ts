@@ -7,7 +7,7 @@ import { CreateAlbumInput, QueryAlbumInput, UpdateAlbumInput } from "apps/upload
 import { Album } from "apps/uploads/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Not, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
 export const albumRelation = {
   user: true
@@ -36,7 +36,7 @@ export class AlbumService extends BaseService<Album> {
     const { user: userId } = query
     const profile = await this.profileService.findOne({ id: userId })
     if (!profile) {
-      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.PROFILE, HttpStatus.NOT_FOUND)
     }
 
     const where: FindOptionsWhere<Album> = {
@@ -64,7 +64,7 @@ export class AlbumService extends BaseService<Album> {
   async findById(user: UserToken, id: string) {
     const album = await this.findOne({ id })
     if (!album) {
-      BaseError(TableName.ALBUM, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ALBUM, HttpStatus.NOT_FOUND)
     }
 
     if (album.user.id !== user.profile.id) {
@@ -73,7 +73,7 @@ export class AlbumService extends BaseService<Album> {
         (album.mode === FILE_SCOPE.FRIEND && isFriend) 
         || album.mode === FILE_SCOPE.PRIVATE
       ) {
-        BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
+        BaseError(ModuleName.ALBUM, HttpStatus.FORBIDDEN)
       }
     }
 
@@ -87,9 +87,9 @@ export class AlbumService extends BaseService<Album> {
   ) {
     const album = await this.findOne({ id })
     if (!album) {
-      BaseError(TableName.ALBUM, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ALBUM, HttpStatus.NOT_FOUND)
     } else if (album.user.id !== user.profile.id) {
-      BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ALBUM, HttpStatus.FORBIDDEN)
     }
 
     await this.albumRepo.save(input)
@@ -102,9 +102,9 @@ export class AlbumService extends BaseService<Album> {
   async remove(user: UserToken, id: string) {
     const album = await this.findOne({ id })
     if (!album) {
-      BaseError(TableName.ALBUM, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.ALBUM, HttpStatus.NOT_FOUND)
     } else if (album.user.id !== user.profile.id) {
-      BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.ALBUM, HttpStatus.FORBIDDEN)
     }
 
     return {

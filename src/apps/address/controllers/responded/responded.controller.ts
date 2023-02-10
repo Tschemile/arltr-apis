@@ -18,10 +18,10 @@ import {
   UpdateRespondedDto
 } from 'apps/address/dtos';
 import { RespondedService } from 'apps/address/services/responded/responded.service';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
-@ApiTags(TableName.RESPONDED)
-@Controller(TableName.RESPONDED.toLowerCase())
+@ApiTags(ModuleName.RESPONDED)
+@Controller(ModuleName.RESPONDED.toLowerCase())
 export class RespondedController {
   constructor(private readonly respondedService: RespondedService) {}
   @Post()

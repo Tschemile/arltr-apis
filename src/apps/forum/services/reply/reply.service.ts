@@ -5,7 +5,7 @@ import { CreateReplyInput, UpdateReplyInput } from "apps/forum/dtos";
 import { Reply } from "apps/forum/entities";
 import { BaseError, BaseService } from "base";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 import { BlogService } from "../blog";
 
 export const replyRelation = {
@@ -27,7 +27,7 @@ export class ReplyService extends BaseService<Reply> {
     
     const blog = await this.blogService.findOne({ id: blogId })
     if (!blog) {
-      BaseError(TableName.BLOG, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.BLOG, HttpStatus.NOT_FOUND)
     }
 
     const createdReply = this.replyRepo.create({
@@ -59,9 +59,9 @@ export class ReplyService extends BaseService<Reply> {
   ) {
     const reply = await this.findOne({ id })
     if (!reply) {
-      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.REPLY, HttpStatus.FORBIDDEN)
     }
 
     await this.replyRepo.save({
@@ -77,9 +77,9 @@ export class ReplyService extends BaseService<Reply> {
   async remove(user: UserToken, id: string) {
     const reply = await this.findOne({ id })
     if (!reply) {
-      BaseError(TableName.REPLY, HttpStatus.NOT_FOUND)
+      BaseError(ModuleName.REPLY, HttpStatus.NOT_FOUND)
     } else if (reply.user.id !== user.profile.id) {
-      BaseError(TableName.REPLY, HttpStatus.FORBIDDEN)
+      BaseError(ModuleName.REPLY, HttpStatus.FORBIDDEN)
     }
 
     return {

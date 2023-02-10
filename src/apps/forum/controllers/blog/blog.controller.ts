@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } fro
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CreateBlogInput, GetBlogOutput, GetBlogsOutput, QUERY_TYPE, UpdateBlogInput } from "apps/forum/dtos";
 import { BlogService } from "apps/forum/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.BLOG)
-@Controller(TableName.BLOG.toLowerCase())
+@ApiTags(ModuleName.BLOG)
+@Controller(ModuleName.BLOG.toLowerCase())
 export class BlogController {
   constructor(
     private readonly blogService: BlogService
@@ -13,7 +13,7 @@ export class BlogController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.CATEGORY} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.CATEGORY} not found` })
   @ApiCreatedResponse({ type: GetBlogOutput })
   async post(
     @Request() req,
@@ -53,7 +53,7 @@ export class BlogController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.BLOG} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.BLOG} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetBlogOutput })
   async patch(
@@ -67,7 +67,7 @@ export class BlogController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.BLOG} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.BLOG} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: 'Deleted successfully' })
   async delete(

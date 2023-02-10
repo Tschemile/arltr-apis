@@ -5,10 +5,10 @@ import { Public } from 'apps/auth';
 import { SendEmailInput } from 'apps/users/dtos/verify/send-email.input.dto';
 import { VerifyInput } from 'apps/users/dtos/verify/verify.input.dto';
 import { VerifyService } from 'apps/users/services';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
-@ApiTags(TableName.VERIFY)
-@Controller(TableName.VERIFY.toLowerCase())
+@ApiTags(ModuleName.VERIFY)
+@Controller(ModuleName.VERIFY.toLowerCase())
 export class VerifyController {
   constructor(private verifyService: VerifyService) {}
 

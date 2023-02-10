@@ -14,7 +14,7 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-import { TableName } from 'utils';
+import { ModuleName } from 'utils';
 
 export const resumeRelations = {
   candidate: true,
@@ -37,7 +37,7 @@ export class ResumeService extends BaseService<Resume> {
     });
 
     if (!profile) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     const createResume = this.resumeRepository.create({
@@ -56,11 +56,11 @@ export class ResumeService extends BaseService<Resume> {
     const resume = await this.findOne({ id });
 
     if (!resume) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== resume.candidate.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
     await this.resumeRepository.save({
@@ -95,7 +95,7 @@ export class ResumeService extends BaseService<Resume> {
     const resume = await this.findOne({ id });
 
     if (!resume) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
     return {
       resume,
@@ -106,11 +106,11 @@ export class ResumeService extends BaseService<Resume> {
     const resume = await this.findOne({ id });
 
     if (!resume) {
-      BaseError(TableName.JOB, HttpStatus.NOT_FOUND);
+      BaseError(ModuleName.JOB, HttpStatus.NOT_FOUND);
     }
 
     if (user.profile.id !== resume.candidate.id) {
-      BaseError(TableName.ADDRESS, HttpStatus.FORBIDDEN);
+      BaseError(ModuleName.ADDRESS, HttpStatus.FORBIDDEN);
     }
 
     return {

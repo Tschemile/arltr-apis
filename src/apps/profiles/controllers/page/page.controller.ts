@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } fro
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CreatePageInput, GetPageOutput, GetPagesOutput, UpdatePageInput } from "apps/profiles/dtos";
 import { PageService } from "apps/profiles/services";
-import { TableName } from "utils";
+import { ModuleName } from "utils";
 
-@ApiTags(TableName.PAGE)
-@Controller(TableName.PAGE.toLowerCase())
+@ApiTags(ModuleName.PAGE)
+@Controller(ModuleName.PAGE.toLowerCase())
 export class PageController {
   constructor(
     private readonly pageService: PageService,
@@ -13,7 +13,7 @@ export class PageController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiNotFoundResponse({ description: `${TableName.PAGE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PAGE} not found` })
   @ApiCreatedResponse({ type: GetPageOutput })
   async post(
     @Request() req,
@@ -46,7 +46,7 @@ export class PageController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.PAGE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PAGE} not found` })
   @ApiOkResponse({ type: GetPageOutput })
   async getById(
     @Param('id') id: string
@@ -57,7 +57,7 @@ export class PageController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.PAGE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PAGE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ type: GetPageOutput })
   async patch(
@@ -75,7 +75,7 @@ export class PageController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
-  @ApiNotFoundResponse({ description: `${TableName.PAGE} not found` })
+  @ApiNotFoundResponse({ description: `${ModuleName.PAGE} not found` })
   @ApiForbiddenResponse({ description: `You don't have permission to do that` })
   @ApiOkResponse({ description: `Deleted successfully` })
   async delete(
