@@ -46,6 +46,10 @@ export class VerifyService extends BaseService<Verify> {
 
     const user = await this.userService.findOne({ email });
 
+    if (!user) {
+      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
+    }
+
     this.mailService.sendMail({
       to: email,
       from: 'pmchauuu@gmail.com',
@@ -66,7 +70,9 @@ export class VerifyService extends BaseService<Verify> {
     if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
       BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
-    const userInfo = await this.userService.findOne({ email: verify.information });
+    const userInfo = await this.userService.findOne({
+      email: verify.information,
+    });
     const profile = await this.profileService.findOne({
       user: { id: userInfo.id },
     });
