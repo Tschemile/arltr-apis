@@ -40,12 +40,11 @@ export class AuthService {
 
   async verifyUser(payload: UserToken) {
     const user = await this.userService.getUserWithProfile(payload.id)
-    const profile = user.profiles.find((x) => x.role === USER_ROLE.USER)
 
     const format: UserToken = {
       id: user.id,
       username: user.username,
-      profile,
+      profile: user.profiles[0],
     }
 
     return format
