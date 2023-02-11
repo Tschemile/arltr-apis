@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { GROUP_MODE, QUERY_GROUP_TYPE } from "apps/groups/constants";
-import { CreateGroupInput, GetGroupOutput, GetGroupsOutput, UpdateGroupInput } from "apps/groups/dtos";
+import { CreateGroupInput, GetGroupFullOutput, GetGroupOutput, GetGroupsOutput, UpdateGroupInput } from "apps/groups/dtos";
 import { GroupService } from "apps/groups/services";
 import { TableName } from "utils";
 
@@ -54,12 +54,13 @@ export class GroupController {
   @ApiBearerAuth()
   @ApiParam({ name: 'id' })
   @ApiNotFoundResponse({ description: `${TableName.GROUP} not found` })
-  @ApiOkResponse({ type: GetGroupOutput })
+  @ApiForbiddenResponse({ description: `You don't have permission to do that` })
+  @ApiOkResponse({ type: GetGroupFullOutput })
   async getById(
+    @Request() req,
     @Param('id') id: string
   ): Promise<GetGroupOutput> {
-    const group = await this.groupService.findOne({ id })
-    return { group }
+    return await this.groupService.findById(req.user, id)
   }
 
   @Patch(':id')

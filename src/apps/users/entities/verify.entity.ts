@@ -17,7 +17,7 @@ export class Verify extends Base {
   @ApiProperty({ type: String })
   information: string;
 
-  @Column()
-  @ApiProperty({ type: String, format: 'date-time' })
-  expiredAt: Date;
+  @Column({ nullable: true })
+  @ApiProperty({ type: String })
+  expiredAt: string;
 }
