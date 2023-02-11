@@ -7,15 +7,16 @@ export class UpsertRelationInput {
   @IsUUID()
   @IsOptional()
   @ApiProperty({ type: String, nullable: true })
-  user?: string
+  user: string
 
   @IsEnum(RELATION_TYPE)
   @ApiProperty({ type: String, enum: RELATION_TYPE })
-  type?: string
+  type: string
 
   @IsEnum(FRIEND_STATUS)
-  @ApiProperty({ type: String, enum: FRIEND_STATUS })
-  status: string
+  @ApiProperty({ type: String, enum: FRIEND_STATUS, required: false })
+  @IsOptional()
+  status?: string
 
 
 }

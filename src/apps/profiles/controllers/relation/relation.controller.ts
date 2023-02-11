@@ -17,7 +17,7 @@ export class RelationController {
   @Get()
   @ApiBearerAuth()
   @ApiQuery({ name: 'type', enum: QUERY_RELATION_TYPE })
-  @ApiQuery({ name: 'status', enum: FRIEND_STATUS, required: false })
+  @ApiQuery({ name: 'status', enum: FRIEND_STATUS, required: false, isArray:true })
   async get(
     @Request() req,
     @Query('type') type: QUERY_RELATION_TYPE,

@@ -8,15 +8,17 @@ import { CreatePostInput, QueryPostInput, UpdatePostInput } from "apps/posts/dto
 import { Post } from "apps/posts/entities";
 import { ProfileService, RelationService, RELATION_TYPE } from "apps/profiles";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, In, LessThan, Like, Not, Repository } from "typeorm";
-import { TableName, timeIn } from "utils";
+import { FindOptionsOrder, FindOptionsWhere, In, LessThan, Like, Not, Repository } from "typeorm";
+import { isSameArray, TableName, timeIn } from "utils";
 import { CommentService } from "../comment";
 import { ReactService } from "../react";
+import { TagService } from "../tag";
 import { formatData } from "./formatData";
 
 export const postRelation = {
   author: true,
   group: true,
+  event: true,
 }
 
 @Injectable()
@@ -29,6 +31,7 @@ export class PostService extends BaseService<Post> {
     @Inject(forwardRef(() => CommentService)) private commentService: CommentService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
     @Inject(forwardRef(() => ProfileService)) private profileService: ProfileService,
+    @Inject(forwardRef(() => TagService)) private tagService: TagService,
   ) {
     super(postRepo, postRelation)
   }
@@ -52,7 +55,7 @@ export class PostService extends BaseService<Post> {
   }
 
   async create(user: UserToken, input: CreatePostInput) {
-    const { group: groupId, ...rest } = input
+    const { group: groupId, tags, ...rest } = input
 
     const createdPost = this.postRepo.create({
       ...rest,
@@ -66,6 +69,11 @@ export class PostService extends BaseService<Post> {
     }
 
     await this.postRepo.save(createdPost)
+
+    if (tags && tags.length > 0) {
+      await this.tagService.create({ tags, post: createdPost })
+    }
+
     return {
       post: createdPost
     }
@@ -84,10 +92,15 @@ export class PostService extends BaseService<Post> {
     const commonWhere: FindOptionsWhere<Post> = {
       type: type || POST_TYPE.POST,
     }
+    const order: FindOptionsOrder<Post> = {
+      createdAt: 'DESC'
+    }
 
     if (type && type === POST_TYPE.STORY) {
       const time24Ago = timeIn({ duration: 24, unit: 'hour', action: 'sub' })
       commonWhere.createdAt = LessThan(time24Ago)
+
+      order.createdAt = 'ASC'
     }
 
     if (search) {
@@ -113,11 +126,6 @@ export class PostService extends BaseService<Post> {
           author: { id: In(followingIds) },
           mode: POST_MODE.PUBLIC,
           ...commonWhere
-        })
-
-        where.push({
-          author: { id: user.profile.id },
-          ...commonWhere,
         })
         break
       }
@@ -158,11 +166,15 @@ export class PostService extends BaseService<Post> {
     const { data, total } = await this.find({
       where,
       limit,
+      order,
     })
 
     const postIds = data.map((x) => x.id)
-    const reacts = await this.reactService.postLiked(user, postIds)
-    const posts = formatData({ posts: data, reacts })
+
+    const reacts = await this.reactService.reacted(user, postIds, 'POST')
+    const tags = await this.tagService.findAll(postIds, 'POST')
+
+    const posts = formatData({ posts: data, reacts, tags })
 
     return { posts, total }
   }
@@ -199,6 +211,7 @@ export class PostService extends BaseService<Post> {
     id: string,
     input: UpdatePostInput,
   ) {
+    const { tags: tagIds = [], ...rest } = input || {}
     const post = await this.findOne({ id })
     if (!post) {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
@@ -208,8 +221,30 @@ export class PostService extends BaseService<Post> {
       BaseError(TableName.POST, HttpStatus.FORBIDDEN)
     }
 
+    const tagsOfPosts = await this.tagService.findAll([post.id], 'POST')
+    const tagOfPostIds = tagsOfPosts.map((x) => x.user.id)
+
+    if (!isSameArray(tagIds, tagOfPostIds)) {
+      const newTags = tagIds.filter(value => !tagOfPostIds.includes(value));
+      const removeTags = tagOfPostIds.filter(value => !tagIds.includes(value));
+
+      if (newTags.length > 0) {
+        await this.tagService.create({
+          tags: newTags,
+          post
+        })
+      }
+
+      if (removeTags.length > 0) {
+        await this.tagService.remove({
+          tags: removeTags,
+          post: post,
+        })
+      }
+    }
+
     await this.postRepo.save({
-      ...input,
+      ...rest,
       id,
     })
 

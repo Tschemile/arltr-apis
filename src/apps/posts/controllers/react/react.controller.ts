@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Put, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { REACT_TYPE } from "apps/posts/constants";
-import { GetReactsOutput, UpsertReactInput } from "apps/posts/dtos";
+import { GetReactOutput, GetReactsOutput, UpsertReactInput } from "apps/posts/dtos";
 import { ReactService } from "apps/posts/services";
 import { TableName } from "utils";
 
@@ -19,7 +19,7 @@ export class ReactController {
   async put(
     @Request() req,
     @Body() input: UpsertReactInput
-  ) {
+  ): Promise<GetReactOutput> {
     return await this.reactService.upsert(req.user, input)
   }
 

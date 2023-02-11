@@ -1,17 +1,14 @@
 import { forwardRef, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserToken } from 'apps/auth';
-import {
-  FRIEND_STATUS,
-  RELATION_TYPE,
-} from 'apps/profiles/constants';
+import { FRIEND_STATUS, RELATION_TYPE } from 'apps/profiles/constants';
 import {
   UpsertRelationInput,
   QUERY_RELATION_TYPE,
 } from 'apps/profiles/dtos/relation';
 import { Profile, Relation } from 'apps/profiles/entities';
 import { BaseError, BaseService } from 'base';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
 import { TableName } from 'utils';
 import { ProfileService } from '../profile';
 
@@ -75,8 +72,16 @@ export class RelationService extends BaseService<Relation> {
       case QUERY_RELATION_TYPE.FRIEND: {
         const queryStatus = status || FRIEND_STATUS.ACCEPTED;
         where = [
-          { requester: { id: profile.id }, type, status: queryStatus },
-          { user: { id: profile.id }, type, status: queryStatus },
+          {
+            requester: { id: profile.id },
+            type,
+            status: queryStatus ? Any([queryStatus]) : Not(IsNull()),
+          },
+          {
+            user: { id: profile.id },
+            type,
+            status: queryStatus ? Any([queryStatus]) : Not(IsNull()),
+          },
         ];
         break;
       }
@@ -225,60 +230,69 @@ export class RelationService extends BaseService<Relation> {
       BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND);
     }
 
+    if (user.profile.id === profile.id) {
+      BaseError(TableName.USER, HttpStatus.CONFLICT);
+    }
+
     const existedRelation = await this.findOne({
       requester: { id: user.profile.id },
       user: { id: profile.id },
       type,
     });
-    
-    if(status === FRIEND_STATUS.REQUESTING && existedRelation) {
+
+    if (
+      existedRelation &&
+      type === RELATION_TYPE.FRIEND &&
+      existedRelation.status === FRIEND_STATUS.ACCEPTED
+    ) {
+      BaseError(TableName.RELATION, HttpStatus.CONFLICT);
+    }
+
+    if (
+      existedRelation &&
+      (type === RELATION_TYPE.BLOCKED ||
+        type === RELATION_TYPE.FOLLOW ||
+        type === RELATION_TYPE.LIKED) &&
+      status !== FRIEND_STATUS.REJECT
+    ) {
       BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
     }
 
-    return {existedRelation, type: input.type, profile};
-    }
-
+    return { relation: existedRelation, type: input.type, profile, status };
+  }
 
   async upsert(user: UserToken, input: UpsertRelationInput) {
-    const { existedRelation, type, profile } = await this.validInput(
+    const { relation, type, profile, status } = await this.validInput(
       input,
       user,
     );
-
-    if(existedRelation) {
-      if(input.status === FRIEND_STATUS.REJECT) {
-        return {
-          relation: await this.relationRepo.softRemove(existedRelation),
-        };
+    if (relation) {
+      if (type !== RELATION_TYPE.OWNER && status === FRIEND_STATUS.REJECT) {
+        await this.relationRepo.softRemove(relation);
       }
-      if(input.status === FRIEND_STATUS.ACCEPTED) {
-        await this.relationRepo.save({
-          ...existedRelation,
+      if (type === RELATION_TYPE.FRIEND && status === FRIEND_STATUS.ACCEPTED) {
+        return await this.relationRepo.save({
+          ...relation,
+          requester: user.profile,
+          user: profile,
+          id: relation.id,
           status: FRIEND_STATUS.ACCEPTED,
-          id: existedRelation.id,
         });
-
-        return {
-          relation: {
-            ...existedRelation,
-            status: FRIEND_STATUS.ACCEPTED,
-          },
-        };
       }
-    } else {
-      const createRelation = this.relationRepo.create({
-        requester: user.profile,
-        user: profile,
-        status:
-          type === RELATION_TYPE.FRIEND ? FRIEND_STATUS.REQUESTING : null,
-        type,
-      });
- 
-      await this.relationRepo.save(createRelation);
-
-      return {
-        relation: createRelation,
-      };
+      return;
     }
+
+    const createRelation = this.relationRepo.create({
+      requester: user.profile,
+      user: profile,
+      status: type === RELATION_TYPE.FRIEND ? FRIEND_STATUS.REQUESTING : null,
+      type,
+    });
+
+    await this.relationRepo.save(createRelation);
+
+    return {
+      relation: createRelation,
+    };
   }
 }

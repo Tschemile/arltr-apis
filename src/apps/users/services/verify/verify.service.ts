@@ -34,17 +34,21 @@ export class VerifyService extends BaseService<Verify> {
       newVerify = await this.verifyRepo.save({
         id: verify.id,
         code,
-        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }),
+        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }).toISOString(),
       });
     } else {
       newVerify = await this.insertOne({
         code,
         information: email,
-        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }),
+        expiredAt: timeIn({ duration: 1, unit: 'minute', action: 'add' }).toISOString(),
       });
     }
 
     const user = await this.userService.findOne({ email });
+
+    if (!user) {
+      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
+    }
 
     this.mailService.sendMail({
       to: email,
@@ -63,10 +67,12 @@ export class VerifyService extends BaseService<Verify> {
     const verify = await this.findOne({
       code,
     });
-    if (!verify || verify.expiredAt.getTime() < new Date().getTime()) {
+    if (!verify || new Date(verify.expiredAt).getTime() < new Date().getTime()) {
       BaseError(TableName.VERIFY, HttpStatus.FORBIDDEN, 'The code has expired');
     }
-    const userInfo = await this.userService.findOne({ email: verify.information });
+    const userInfo = await this.userService.findOne({
+      email: verify.information,
+    });
     const profile = await this.profileService.findOne({
       user: { id: userInfo.id },
     });

@@ -1,15 +1,16 @@
-import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { CACHE_MANAGER, forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService, UserToken } from "apps/auth";
 import { GroupService } from "apps/groups";
 import { QUERY_GROUP_TYPE } from "apps/groups/constants";
 import { PostService } from "apps/posts";
 import { RELATION_TYPE, USER_ROLE } from "apps/profiles/constants";
-import { CreateProfileInput, QueryProfileInput, UpdateProfileInput } from "apps/profiles/dtos";
+import { CreateProfileInput, QueryProfileInput, UpdateProfileInput, ProfileFully } from "apps/profiles/dtos";
 import { Profile } from "apps/profiles/entities";
 import { FileService } from "apps/uploads";
 import { User } from "apps/users";
 import { BaseError, BaseService } from "base";
+import { Cache } from "cache-manager";
 import { Between, FindOptionsWhere, Like, Not, Repository } from "typeorm";
 import { TableName } from "utils";
 import { RelationService } from "../relation";
@@ -27,6 +28,7 @@ export class ProfileService extends BaseService<Profile> {
     @Inject(forwardRef(() => GroupService)) private groupService: GroupService,
     @Inject(forwardRef(() => RelationService)) private relationService: RelationService,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {
     super(profileRepo, profileRelations)
   }
@@ -100,6 +102,13 @@ export class ProfileService extends BaseService<Profile> {
   }
 
   async findById(user: UserToken, domain: string) {
+    const value = await this.cacheManager.get(domain) as ProfileFully
+    if (value) {
+      return {
+        profile: value,
+      }
+    }
+
     const profile = await this.profileRepo.findOne({
       where: { domain },
     })
@@ -137,6 +146,9 @@ export class ProfileService extends BaseService<Profile> {
       albums,
       totalAlbums,
     }
+
+    await this.cacheManager.set(domain, profileFully, 60)
+
     return {
       profile: profileFully
     }
@@ -153,6 +165,7 @@ export class ProfileService extends BaseService<Profile> {
     })
 
     const updateProfile = { ...profile, ...input }
+    await this.cacheManager.del(profile.domain)
     return {
       profile: updateProfile,
     }
@@ -163,6 +176,7 @@ export class ProfileService extends BaseService<Profile> {
     if (!profile) {
       BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND)
     }
+    await this.cacheManager.del(profile.domain)
     return {
       profile: await this.profileRepo.softRemove(profile)
     }
