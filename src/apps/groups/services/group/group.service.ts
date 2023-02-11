@@ -86,6 +86,29 @@ export class GroupService extends BaseService<Group> {
     return { groups, total }
   }
 
+  async findById(user: UserToken, id: string) {
+    const group = await this.findOne({ id })
+    if (!group) {
+      BaseError(TableName.GROUP, HttpStatus.NOT_FOUND)
+    }
+
+    const member = await this.memberService.findOne({
+      group: { id: group.id },
+      user: { id: user.profile.id },
+    })
+
+    if (!member && group.mode === GROUP_MODE.HIDDEN) {
+      BaseError(TableName.GROUP, HttpStatus.FORBIDDEN)
+    }
+
+    const groupFully = {
+      ...group,
+      member,
+    }
+
+    return { group: groupFully }
+  }
+
   async update(
     user: UserToken,
     id: string,

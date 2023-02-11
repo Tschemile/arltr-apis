@@ -211,7 +211,7 @@ export class PostService extends BaseService<Post> {
     id: string,
     input: UpdatePostInput,
   ) {
-    const { tags: tagIds, ...rest } = input
+    const { tags: tagIds = [], ...rest } = input || {}
     const post = await this.findOne({ id })
     if (!post) {
       BaseError(TableName.POST, HttpStatus.NOT_FOUND)
