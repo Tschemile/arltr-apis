@@ -11,12 +11,12 @@ import { DBName } from "utils";
     createdAt: 'DESC',
   }
 })export class Member extends Base {
-  @ManyToOne(() => Profile)
+  @ManyToOne(() => Profile, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Profile })
   user: Profile
 
   @Index()
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group, { onDelete: 'CASCADE' })
   @ApiProperty({ type: () => Group })
   group: Group
 
