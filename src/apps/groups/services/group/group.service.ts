@@ -68,7 +68,7 @@ export class GroupService extends BaseService<Group> {
           status: MEMBER_WITH_GROUP.IN,
         })
         if (memberOfUser.length > 0) {
-          const groupIds = memberOfUser.map((x) => x.group.id)
+          const groupIds = memberOfUser.map((x) => x?.group?.id)
           where.id = In(groupIds)
         }
 
