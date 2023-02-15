@@ -6,7 +6,7 @@ import { CreateMemberInput, QueryMemberInput, UpdateMemberInput } from "apps/gro
 import { Member } from "apps/groups/entities";
 import { ProfileService } from "apps/profiles";
 import { BaseError, BaseService } from "base";
-import { FindOptionsWhere, In, Not, Repository } from "typeorm";
+import { FindOptionsWhere, In, Repository } from "typeorm";
 import { TableName } from "utils";
 import { GroupService } from "../group";
 
