@@ -6,6 +6,7 @@ import {
   UpsertRelationInput,
   QUERY_RELATION_TYPE,
 } from 'apps/profiles/dtos/relation';
+import { FriendRelationInput } from 'apps/profiles/dtos/relation/friend-relation.input';
 import { Profile, Relation } from 'apps/profiles/entities';
 import { BaseError, BaseService } from 'base';
 import { Any, FindOptionsWhere, IsNull, Not, Repository } from 'typeorm';
@@ -222,8 +223,8 @@ export class RelationService extends BaseService<Relation> {
     return relation ? true : false;
   }
 
-  async validInput(input: UpsertRelationInput, user: UserToken) {
-    const { user: userId, type, status } = input;
+  async validFriendInput(user: UserToken, input: FriendRelationInput) {
+    const { user: userId, status } = input;
 
     const profile = await this.profileService.findOne({ id: userId });
     if (!profile) {
@@ -234,6 +235,49 @@ export class RelationService extends BaseService<Relation> {
       BaseError(TableName.USER, HttpStatus.CONFLICT);
     }
 
+    const friendRelation = await this.findOne({
+      requester: { id: profile.id  },
+      user: { id: user.profile.id },
+      type: RELATION_TYPE.FRIEND,
+    });
+    if(friendRelation && status === FRIEND_STATUS.REQUESTING) {
+      BaseError(TableName.USER, HttpStatus.CONFLICT);
+    }
+
+    const existedRelation = await this.findOne({
+      requester: { id: user.profile.id },
+      user: { id: profile.id },
+      type: RELATION_TYPE.FRIEND,
+    });
+    console.log('existedRelation',existedRelation);
+    console.log('friendRelation',friendRelation);
+    
+    return {
+      relation: existedRelation ? existedRelation : friendRelation,
+      profile,
+      status,
+    };
+  }
+
+  async validInput(input: UpsertRelationInput, user: UserToken) {
+    const { user: userId, type, status, expiredAt } = input;
+
+    const profile = await this.profileService.findOne({ id: userId });
+    if (!profile) {
+      BaseError(TableName.PROFILE, HttpStatus.NOT_FOUND);
+    }
+
+    if (user.profile.id === profile.id) {
+      BaseError(TableName.USER, HttpStatus.CONFLICT);
+    }
+
+    if (
+      type === RELATION_TYPE.SNOOZE &&
+      new Date(expiredAt).getTime() < new Date().getTime()
+    ) {
+      BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
+    }
+
     const existedRelation = await this.findOne({
       requester: { id: user.profile.id },
       user: { id: profile.id },
@@ -242,42 +286,73 @@ export class RelationService extends BaseService<Relation> {
 
     if (
       existedRelation &&
-      type === RELATION_TYPE.FRIEND &&
-      existedRelation.status === FRIEND_STATUS.ACCEPTED
-    ) {
-      BaseError(TableName.RELATION, HttpStatus.CONFLICT);
-    }
-
-    if (
-      existedRelation &&
       (type === RELATION_TYPE.BLOCKED ||
         type === RELATION_TYPE.FOLLOW ||
-        type === RELATION_TYPE.LIKED) &&
+        type === RELATION_TYPE.LIKED ||
+        type === RELATION_TYPE.SNOOZE) &&
       status !== FRIEND_STATUS.REJECT
     ) {
       BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
     }
 
-    return { relation: existedRelation, type: input.type, profile, status };
+    return {
+      relation: existedRelation,
+      type: input.type,
+      profile,
+      status,
+      expiredAt: new Date(expiredAt),
+    };
   }
 
-  async upsert(user: UserToken, input: UpsertRelationInput) {
-    const { relation, type, profile, status } = await this.validInput(
-      input,
+  async addFriend(user: UserToken, input: FriendRelationInput) {
+    const { relation, profile, status } = await this.validFriendInput(
       user,
+      input,
     );
+
     if (relation) {
-      if (type !== RELATION_TYPE.OWNER && status === FRIEND_STATUS.REJECT) {
-        await this.relationRepo.softRemove(relation);
+      if (status === FRIEND_STATUS.REJECT) {
+        return { relationRemove: await this.relationRepo.softRemove(relation) };
       }
-      if (type === RELATION_TYPE.FRIEND && status === FRIEND_STATUS.ACCEPTED) {
-        return await this.relationRepo.save({
+      if(status === FRIEND_STATUS.ACCEPTED) {
+           return await this.relationRepo.save({
           ...relation,
-          requester: user.profile,
-          user: profile,
           id: relation.id,
           status: FRIEND_STATUS.ACCEPTED,
         });
+      } 
+      return;
+    } else {
+      const friend = await this.findOne({
+        requester: { id: profile.id },
+        user: { id: user.profile.id },
+        type: RELATION_TYPE.FRIEND,
+        status: FRIEND_STATUS.REQUESTING,
+      });
+      if (friend) {
+        return { relationRemove: await this.relationRepo.softRemove(relation) };
+      }
+    }
+    const createRelation = this.relationRepo.create({
+      requester: user.profile,
+      user: profile,
+      status,
+      type: RELATION_TYPE.FRIEND,
+    });
+
+    await this.relationRepo.save(createRelation);
+
+    return {
+      relation: createRelation,
+    };
+  }
+
+  async upsert(user: UserToken, input: UpsertRelationInput) {
+    const { relation, type, profile, status, expiredAt } =
+      await this.validInput(input, user);
+    if (relation) {
+      if (type !== RELATION_TYPE.OWNER && status === FRIEND_STATUS.REJECT) {
+        return { relationRemove: await this.relationRepo.softRemove(relation) };
       }
       return;
     }
@@ -285,7 +360,8 @@ export class RelationService extends BaseService<Relation> {
     const createRelation = this.relationRepo.create({
       requester: user.profile,
       user: profile,
-      status: type === RELATION_TYPE.FRIEND ? FRIEND_STATUS.REQUESTING : null,
+      expiredAt: expiredAt ? expiredAt.toISOString() : null,
+      status,
       type,
     });
 

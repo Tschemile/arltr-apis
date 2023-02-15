@@ -67,11 +67,15 @@ export class GroupService extends BaseService<Group> {
           user: profile.id,
           status: MEMBER_WITH_GROUP.IN,
         })
-        const groupIds = memberOfUser.map((x) => x.group.id)
-        where.id = In(groupIds)
+        if (memberOfUser.length > 0) {
+          const groupIds = memberOfUser.map((x) => x?.group?.id)
+          where.id = In(groupIds)
+        }
 
         if (user.profile.id === profile.id) {
-          where.mode = mode || GROUP_MODE.PUBLIC
+          if (mode) {
+            where.mode = mode
+          }
         } else {
           where.mode = GROUP_MODE.PUBLIC
         }

@@ -6,7 +6,7 @@ import { ProfileService, USER_ROLE } from 'apps/profiles';
 import { LoginInput, RegisterInput } from 'apps/users/dtos';
 import { User } from 'apps/users/entities';
 import { BaseError, BaseService } from 'base';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { TableName } from 'utils';
 import { VerifyService } from '../verify/verify.service';

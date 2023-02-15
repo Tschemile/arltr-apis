@@ -25,6 +25,13 @@ export class VerifyService extends BaseService<Verify> {
   }
 
   async sendEmail(email: string) {
+
+    const user = await this.userService.findOne({ email });
+
+    if (!user) {
+      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
+    }
+
     const verify = await this.findOne({
       information: email,
     });
@@ -44,12 +51,7 @@ export class VerifyService extends BaseService<Verify> {
       });
     }
 
-    const user = await this.userService.findOne({ email });
-
-    if (!user) {
-      BaseError(TableName.USER, HttpStatus.NOT_FOUND);
-    }
-
+   
     this.mailService.sendMail({
       to: email,
       from: 'pmchauuu@gmail.com',
