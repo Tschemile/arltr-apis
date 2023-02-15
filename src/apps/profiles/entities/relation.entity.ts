@@ -26,4 +26,8 @@ import { Profile } from "./profile.entity";
   @Column({ enum: FRIEND_STATUS, nullable: true })
   @ApiProperty({ type: String, enum: FRIEND_STATUS })
   status: string
+
+  @Column({ nullable: true })
+  @ApiProperty({ type: String})
+  expiredAt: string
 }
