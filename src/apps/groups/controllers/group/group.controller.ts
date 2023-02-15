@@ -28,7 +28,7 @@ export class GroupController {
 
   @Get()
   @ApiBearerAuth()
-  @ApiQuery({ name: 'mode', enum: GROUP_MODE })
+  @ApiQuery({ name: 'mode', enum: GROUP_MODE, required: false })
   @ApiQuery({ name: 'type', enum: QUERY_GROUP_TYPE })
   @ApiQuery({ name: 'user', required: false })
   @ApiQuery({ name: 'search', required: false })

@@ -73,7 +73,9 @@ export class GroupService extends BaseService<Group> {
         }
 
         if (user.profile.id === profile.id) {
-          where.mode = mode || GROUP_MODE.PUBLIC
+          if (mode) {
+            where.mode = mode
+          }
         } else {
           where.mode = GROUP_MODE.PUBLIC
         }
