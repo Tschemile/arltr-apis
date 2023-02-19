@@ -31,9 +31,9 @@ import type { RedisClientOptions } from "redis";
       url: process.env.DB_URL,
       entities: [__dirname + '/../**/*.entity.js'],
       synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      }
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // }
     }),
     CacheModule.register<RedisClientOptions>({
       store: redisStore,
