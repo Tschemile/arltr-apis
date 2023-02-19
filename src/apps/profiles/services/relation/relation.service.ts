@@ -272,7 +272,7 @@ export class RelationService extends BaseService<Relation> {
     }
 
     if (
-      type === RELATION_TYPE.SNOOZE &&
+      type === RELATION_TYPE.SNOOZE && expiredAt &&
       new Date(expiredAt).getTime() < new Date().getTime()
     ) {
       BaseError(TableName.RELATION, HttpStatus.FORBIDDEN);
@@ -300,7 +300,6 @@ export class RelationService extends BaseService<Relation> {
       type: input.type,
       profile,
       status,
-      expiredAt: new Date(expiredAt),
     };
   }
 
@@ -348,7 +347,7 @@ export class RelationService extends BaseService<Relation> {
   }
 
   async upsert(user: UserToken, input: UpsertRelationInput) {
-    const { relation, type, profile, status, expiredAt } =
+    const { relation, type, profile, status } =
       await this.validInput(input, user);
     if (relation) {
       if (type !== RELATION_TYPE.OWNER && status === FRIEND_STATUS.REJECT) {
@@ -360,12 +359,12 @@ export class RelationService extends BaseService<Relation> {
     const createRelation = this.relationRepo.create({
       requester: user.profile,
       user: profile,
-      expiredAt: expiredAt ? expiredAt.toISOString() : null,
+      expiredAt: type === RELATION_TYPE.SNOOZE ? input.expiredAt : null,
       status,
       type,
     });
 
-    await this.relationRepo.save(createRelation);
+    await this.relationRepo.save(createRelation); 
 
     return {
       relation: createRelation,
