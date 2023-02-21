@@ -20,6 +20,7 @@ import {
   UploadModule,
   UserModule
 } from 'apps';
+import { RabbitMQSubscriberModule } from 'apps/rabbitmq-subscriber/rabbitmq-subscriber.module';
 import * as redisStore from "cache-manager-redis-store";
 import type { RedisClientOptions } from "redis";
 
@@ -66,6 +67,7 @@ import type { RedisClientOptions } from "redis";
     ProfileModule,
     SettingModule,
     ShopModule,
+    RabbitMQSubscriberModule,
     UploadModule,
     UserModule,
   ],

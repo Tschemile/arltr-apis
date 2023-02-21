@@ -37,6 +37,7 @@ export enum TableName {
   USER = 'User',
   VOTE = 'Vote',
   VERIFY = 'Verify',
+  RABBITMQ = 'Rabbitmq'
 }
 
 export enum DBName {
