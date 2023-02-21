@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { SwaggerModule } from '@nestjs/swagger';
 import * as compression from 'compression';
 import { config } from 'dotenv';
@@ -28,6 +29,23 @@ async function bootstrap() {
   // Swagger
   const document = SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, document)
+
+  // RabbitMQ
+  await app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [
+        'amqps://amemagvm:zT9SmyXgdkAMYmZb7FsQn0Mx0GlJIhXC@puffin.rmq2.cloudamqp.com/amemagvm'
+      ],
+      queue: 'kakaka',
+      queueOptions: {
+        durable: true,
+      },
+      noAck: false,
+    },
+  })
+
+  await app.startAllMicroservices();
 
   await app.listen(PORT, '0.0.0.0');
   console.log(`Application running on ${await (app.getUrl())}`);
