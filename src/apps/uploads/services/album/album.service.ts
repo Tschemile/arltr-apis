@@ -92,7 +92,10 @@ export class AlbumService extends BaseService<Album> {
       BaseError(TableName.ALBUM, HttpStatus.FORBIDDEN)
     }
 
-    await this.albumRepo.save(input)
+    await this.albumRepo.save({
+      ...input,
+      id,
+    })
 
     return {
       album: { ...album, ...input }

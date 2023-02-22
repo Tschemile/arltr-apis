@@ -9,17 +9,15 @@ const configService = new ConfigService()
   imports: [ConfigModule],
   providers: [
     {
-      provide: process.env.RABBITMQ_QUEUE_NAME,
+      provide: process.env.RABBITMQ_NAME,
       useFactory: () => {
-        const user = configService.get('RABBITMQ_USER');
-        const password = configService.get('RABBITMQ_PASSWORD');
-        const host = configService.get('RABBITMQ_HOST');
-        const queueName = configService.get('RABBITMQ_QUEUE_NAME');
+        const rabbitUrl = configService.get('RABBITMQ_URL')
+        const queueName = configService.get('RABBITMQ_NAME')
 
         return ClientProxyFactory.create({
           transport: Transport.RMQ,
           options: {
-            urls: [`amqp://${user}:${password}@${host}`],
+            urls: [rabbitUrl],
             queue: queueName,
             queueOptions: {
               durable: true
