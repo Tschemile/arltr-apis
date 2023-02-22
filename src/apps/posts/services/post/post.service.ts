@@ -87,6 +87,7 @@ export class PostService extends BaseService<Post> {
       user: userId,
       group: groupId,
       limit,
+      page,
     } = query
 
     const commonWhere: FindOptionsWhere<Post> = {
@@ -167,6 +168,7 @@ export class PostService extends BaseService<Post> {
       where,
       limit,
       order,
+      page,
     })
 
     const postIds = data.map((x) => x.id)

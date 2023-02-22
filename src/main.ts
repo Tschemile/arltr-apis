@@ -30,14 +30,15 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, document)
 
+  const rabbitUrl = configService.get('RABBITMQ_URL')
+  const queueName = configService.get('RABBITMQ_NAME')
+
   // RabbitMQ
   await app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [
-        'amqps://amemagvm:zT9SmyXgdkAMYmZb7FsQn0Mx0GlJIhXC@puffin.rmq2.cloudamqp.com/amemagvm'
-      ],
-      queue: 'kakaka',
+      urls: [rabbitUrl],
+      queue: queueName,
       queueOptions: {
         durable: true,
       },
